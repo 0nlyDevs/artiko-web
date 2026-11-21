@@ -281,4 +281,12 @@ export const mg: Dictionary = {
   "form.attach": "Hanampy rakitra",
   "form.send": "Alefa",
   "form.sent": "Vonona ny hafatra. Hisokatra ny fandefasana rehefa miasa ny API an'i ARTIKO.",
+
+  "email.verify.subject": "Hamafiso ny mailakao ho an'i Artiko",
+  "email.verify.body": "Salama {name}, hamafiso ny adiresy mailakao mba hanokafana ny kaontinao Artiko. Ora iray no ahafahana mampiasa ny rohy.",
+  "email.verify.button": "Hamafiso ny mailako",
+  "email.reset.subject": "Avereno ny tenimiafinao Artiko",
+  "email.reset.body": "Salama {name}, nisy nangataka ny hanova ny tenimiafin'ny kaontinao Artiko. Misafidiana vaovao amin'ity rohy ity, ora iray no maha-manan-kery azy.",
+  "email.reset.button": "Hisafidy tenimiafina vaovao",
+  "email.ignore": "Raha tsy ianao no nangataka, aza raharahiana ity mailaka ity: tsy misy miova.",
 };

@@ -294,6 +294,14 @@ export const en = {
   "form.attach": "Attach a file",
   "form.send": "Send",
   "form.sent": "Message ready. Sending opens when the ARTIKO API goes live.",
+
+  "email.verify.subject": "Confirm your email for Artiko",
+  "email.verify.body": "Hello {name}, confirm your email address to open your Artiko account. The link works for one hour.",
+  "email.verify.button": "Confirm my email",
+  "email.reset.subject": "Reset your Artiko password",
+  "email.reset.body": "Hello {name}, someone asked to reset the password of your Artiko account. Choose a new one with this link, valid for one hour.",
+  "email.reset.button": "Choose a new password",
+  "email.ignore": "If you did not ask for this, ignore this email: nothing changes.",
 } as const;
 
 export type Key = keyof typeof en;
