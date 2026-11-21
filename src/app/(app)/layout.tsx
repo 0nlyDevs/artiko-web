@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Bricolage_Grotesque, Cormorant_Garamond, League_Gothic, Rock_Salt } from "next/font/google";
 import { LocaleProvider } from "@/i18n/locale";
 import "./globals.css";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${display.variable} ${salt.variable} ${sans.variable} ${serif.variable}`}>
       <body>
         <LocaleProvider>{children}</LocaleProvider>
+        <Analytics />
       </body>
     </html>
   );
