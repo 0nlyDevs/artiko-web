@@ -1,18 +1,20 @@
 import { MeshReflectorMaterial, Text, useGLTF } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { hero, neon, works } from "./content";
+import { hero, neon, showreel, works, type Work } from "./content";
 import { Overlays } from "./Overlays";
 
 export const SCENE_URL = "/museum/assets/landscape.glb";
 const DISPLAY_FONT = "/fonts/LeagueGothic.ttf";
 
 // Quads that carried the original studio's copy and doodles as runtime
-// textures. They are hidden; Lova's copy is drawn in their place by Overlays.
+// textures. They are hidden; ARTIKO's copy is drawn in their place by Overlays.
 const HIDDEN =
-  /^(Camera_Web|desktop_|portfolio_text_|about_text_block|services_text_block|text_global_|text_mobile_|Group|Layer_1|3_Group|Logo_Rotation|FloorMirror|Tex_03001$|Tex_4k_01004$)/;
+  /^(Camera_Web|desktop_|portfolio_text_|about_text_block|services_text_block|text_global_|text_mobile_|Group|Layer_1|3_Group|Logo_Rotation|FloorMirror|Play_button|Tex_03001$|Tex_4k_01004$)/;
+
+// The baked mesh that holds the showreel room's furniture and its two people.
+const PEOPLE_MESH = "Tex_4k_02_001";
 
 const FRAME_NAMES = ["work_prev_01_0", "work_prev_02_1", "work_prev_03_2", "work_prev_04_3", "work_prev_05_4", "work_prev_06_5"];
 
@@ -26,31 +28,158 @@ type SceneProps = {
   goTo: (x: number) => void;
 };
 
-function coverTexture(url: string, onReady: (texture: THREE.Texture) => void) {
-  const image = new Image();
-  image.decoding = "async";
-  image.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1280;
-    canvas.height = 960;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+const cssFont = (name: string, fallback: string) => {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+};
+
+function canvasTexture(canvas: HTMLCanvasElement) {
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.flipY = false;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function loadImage(url: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = url;
+  });
+}
+
+// Draws an image into a 4:3 canvas: cropped to fill, or whole on a mat of the
+// photo's own background colour for objects shot on a plain backdrop.
+async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { kind: string; label: string }) {
+  const image = await loadImage(url);
+  const canvas = document.createElement("canvas");
+  canvas.width = 1280;
+  canvas.height = 960;
+  const ctx = canvas.getContext("2d")!;
+  if (fit === "contain") {
+    // A blurred, enlarged copy of the picture fills the mat behind it.
+    const cover = Math.max(canvas.width / image.width, canvas.height / image.height) * 1.2;
+    ctx.filter = "blur(36px) brightness(0.92)";
+    ctx.drawImage(image, (canvas.width - image.width * cover) / 2, (canvas.height - image.height * cover) / 2, image.width * cover, image.height * cover);
+    ctx.filter = "none";
+    ctx.shadowColor = "rgba(0,0,0,0.28)";
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 14;
+    const scale = Math.min((canvas.width * 0.9) / image.width, (canvas.height * 0.9) / image.height);
+    const w = image.width * scale;
+    const h = image.height * scale;
+    ctx.drawImage(image, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+    ctx.shadowColor = "transparent";
+  } else {
     const scale = Math.max(canvas.width / image.width, canvas.height / image.height);
     const w = image.width * scale;
     const h = image.height * scale;
     ctx.drawImage(image, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.flipY = false;
-    texture.anisotropy = 4;
-    onReady(texture);
-  };
-  image.src = url;
+  }
+  if (caption) {
+    const sans = cssFont("--font-sans", "sans-serif");
+    const serif = cssFont("--font-serif", "serif");
+    await document.fonts.load(`italic 600 40px ${serif}`).catch(() => undefined);
+    const gradient = ctx.createLinearGradient(0, canvas.height - 420, 0, canvas.height);
+    gradient.addColorStop(0, "rgba(0,0,0,0)");
+    gradient.addColorStop(1, "rgba(0,0,0,0.65)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
+    ctx.font = `700 26px ${sans}`;
+    const kind = caption.kind.toUpperCase();
+    const pad = 18;
+    const width = ctx.measureText(kind).width + pad * 2;
+    ctx.fillStyle = "#e5574a";
+    ctx.beginPath();
+    ctx.roundRect(56, canvas.height - 300, width, 48, 24);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText(kind, 56 + pad, canvas.height - 266);
+    ctx.font = `italic 600 46px ${serif}`;
+    ctx.fillText(caption.label, 56, canvas.height - 200);
+  }
+  return canvas;
+}
+
+async function musicCanvas() {
+  const levels: number[] = await fetch("/museum/assets/satie-waveform.json").then((r) => r.json());
+  const serif = cssFont("--font-serif", "serif");
+  const sans = cssFont("--font-sans", "sans-serif");
+  await document.fonts.load(`italic 600 80px ${serif}`).catch(() => undefined);
+  const canvas = document.createElement("canvas");
+  canvas.width = 1280;
+  canvas.height = 960;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#171312";
+  ctx.fillRect(0, 0, 1280, 960);
+  const mid = 520;
+  const bars = levels.length;
+  const step = 1120 / bars;
+  for (let i = 0; i < bars; i++) {
+    const h = 20 + levels[i] * 520;
+    const t = i / bars;
+    ctx.fillStyle = `rgb(${229 + t * 26}, ${87 + t * 120}, ${74 + t * 110})`;
+    ctx.beginPath();
+    ctx.roundRect(80 + i * step, mid - h / 2, Math.max(2, step * 0.55), h, 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#fff4ec";
+  ctx.font = `italic 600 92px ${serif}`;
+  ctx.fillText("Gymnopédie No. 1", 80, 170);
+  ctx.font = `600 30px ${sans}`;
+  ctx.fillStyle = "rgba(255,244,236,0.7)";
+  ctx.fillText("ERIK SATIE  ·  1888  ·  PIANO", 80, 860);
+  return canvas;
+}
+
+async function oralCanvas() {
+  const serif = cssFont("--font-serif", "serif");
+  const display = cssFont("--font-display", "sans-serif");
+  const sans = cssFont("--font-sans", "sans-serif");
+  await Promise.all([
+    document.fonts.load(`italic 600 80px ${serif}`),
+    document.fonts.load(`400 300px ${display}`),
+  ]).catch(() => undefined);
+  const canvas = document.createElement("canvas");
+  canvas.width = 1280;
+  canvas.height = 960;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#f4ece0";
+  ctx.fillRect(0, 0, 1280, 960);
+  // Voice ripples spreading from the speaker.
+  ctx.strokeStyle = "rgba(20,17,16,0.16)";
+  ctx.lineWidth = 3;
+  for (let r = 120; r < 1100; r += 70) {
+    ctx.beginPath();
+    ctx.arc(1180, 860, r, Math.PI, Math.PI * 1.5);
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#e5574a";
+  ctx.font = `italic 600 420px ${serif}`;
+  ctx.fillText("\u201C", 60, 420);
+  ctx.fillStyle = "#141110";
+  ctx.font = `400 300px ${display}`;
+  ctx.fillText("KABARY", 90, 640);
+  ctx.font = `italic 600 64px ${serif}`;
+  ctx.fillText("the Malagasy art of speech", 96, 740);
+  ctx.font = `600 28px ${sans}`;
+  ctx.fillStyle = "rgba(20,17,16,0.6)";
+  ctx.fillText("PROVERBS  ·  IMAGES  ·  VOICE", 96, 850);
+  return canvas;
+}
+
+function workCanvas(work: Work) {
+  if (work.card === "music") return musicCanvas();
+  if (work.card === "oral") return oralCanvas();
+  return pictureCanvas(work.image ?? "", work.fit ?? "cover");
 }
 
 function prepareScene(root: THREE.Object3D) {
-  if (root.userData.lovaPrepared) return;
-  root.userData.lovaPrepared = true;
+  if (root.userData.artikoPrepared) return;
+  root.userData.artikoPrepared = true;
 
   const cloned = new Map<THREE.Material, THREE.Material>();
   const white = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false });
@@ -96,26 +225,102 @@ function prepareScene(root: THREE.Object3D) {
     if (!frame || !work) return;
     const material = new THREE.MeshBasicMaterial({ color: "#1b1b1b", toneMapped: false });
     frame.material = material;
-    coverTexture(work.image, (texture) => {
-      material.map = texture;
+    void workCanvas(work).then((canvas) => {
+      material.map = canvasTexture(canvas);
       material.color.set("#ffffff");
       material.needsUpdate = true;
     });
   });
 
-  const screen = root.getObjectByName("screen_showreel") as THREE.Mesh | undefined;
-  if (screen) {
-    const material = new THREE.MeshBasicMaterial({ color: "#1b1b1b", toneMapped: false });
-    screen.material = material;
-    coverTexture("/gallery/starry.webp", (texture) => {
-      material.map = texture;
-      material.color.set("#ffffff");
-      material.needsUpdate = true;
-    });
+  const people = root.getObjectByName(PEOPLE_MESH) as THREE.Mesh | undefined;
+  if (people) {
+    people.geometry = people.geometry.clone();
+    people.geometry.setAttribute("aPerson", new THREE.BufferAttribute(personMask(people.geometry), 1));
+    people.material = malagasyMaterial(people.material as THREE.MeshBasicMaterial);
   }
+}
 
-  const play = root.getObjectByName("Play_button") as THREE.Mesh | undefined;
-  if (play) play.material = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false, transparent: true, opacity: 0.92 });
+// Local-space bounds of the two seated people in the showreel room.
+const PERSON_BOUNDS = [
+  new THREE.Box3(new THREE.Vector3(-55, -40, 45), new THREE.Vector3(30, 140, 95)),
+  new THREE.Box3(new THREE.Vector3(880, -40, -85), new THREE.Vector3(1030, 140, 105)),
+];
+
+// Marks the vertices that belong to a person (1) rather than furniture (0).
+// The mesh is a merge of many separate parts, so it is split into connected
+// parts; a part counts as a person when it is small and sits inside a
+// person's bounds, which leaves out couch backs and armrests.
+function personMask(geometry: THREE.BufferGeometry) {
+  const position = geometry.attributes.position;
+  const count = position.count;
+  const parent = new Int32Array(count).map((_, i) => i);
+  const find = (a: number) => {
+    while (parent[a] !== a) {
+      parent[a] = parent[parent[a]];
+      a = parent[a];
+    }
+    return a;
+  };
+  const index = geometry.index;
+  if (index) {
+    for (let i = 0; i < index.count; i += 3) {
+      const a = find(index.getX(i));
+      parent[find(index.getX(i + 1))] = a;
+      parent[find(index.getX(i + 2))] = a;
+    }
+  }
+  const boxes = new Map<number, THREE.Box3>();
+  const point = new THREE.Vector3();
+  for (let v = 0; v < count; v++) {
+    const root = find(v);
+    point.fromBufferAttribute(position, v);
+    let box = boxes.get(root);
+    if (!box) boxes.set(root, (box = new THREE.Box3()));
+    box.expandByPoint(point);
+  }
+  const person = new Map<number, number>();
+  const size = new THREE.Vector3();
+  boxes.forEach((box, root) => {
+    box.getSize(size);
+    const small = size.x < 100 && size.z < 100 && size.y < 170;
+    person.set(root, small && PERSON_BOUNDS.some((b) => b.containsBox(box)) ? 1 : 0);
+  });
+  const mask = new Float32Array(count);
+  for (let v = 0; v < count; v++) mask[v] = person.get(find(v)) ?? 0;
+  return mask;
+}
+
+// The people in the scene are baked into a shared texture with light skin and
+// blond or brown hair. This shader shifts skin tones to warm brown and hair
+// above head height to black, so they read as Malagasy. Furniture on the same
+// mesh is left alone through the per-vertex person mask.
+function malagasyMaterial(source: THREE.MeshBasicMaterial) {
+  const material = source.clone();
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nattribute float aPerson;\nvarying float vWorldY;\nvarying float vPerson;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWorldY = (modelMatrix * vec4(transformed, 1.0)).y;\nvPerson = aPerson;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vWorldY;\nvarying float vPerson;")
+      .replace(
+        "#include <map_fragment>",
+        `#include <map_fragment>
+        vec3 srgb = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(1.0 / 2.2));
+        float hi = max(srgb.r, max(srgb.g, srgb.b));
+        float lo = min(srgb.r, min(srgb.g, srgb.b));
+        float sat = (hi - lo) / max(hi, 1e-4);
+        bool warm = srgb.r >= srgb.g && srgb.g >= srgb.b;
+        float skin = (vPerson > 0.5 && warm && sat > 0.1 && sat < 0.62 && hi > 0.45) ? 1.0 : 0.0;
+        vec3 brown = vec3(0.50, 0.32, 0.22) * (hi / 0.86);
+        srgb = mix(srgb, brown, skin);
+        float yellowish = srgb.g / max(srgb.r, 1e-4);
+        float hair = (vPerson > 0.5 && vWorldY > 96.0 && warm && skin < 0.5 && ((sat >= 0.55 && yellowish > 0.55) || hi < 0.45)) ? 1.0 : 0.0;
+        srgb = mix(srgb, vec3(0.08, 0.065, 0.06) * (0.7 + hi * 0.5), hair);
+        diffuseColor.rgb = pow(srgb, vec3(2.2));`,
+      );
+  };
+  material.customProgramCacheKey = () => "artiko-malagasy";
+  return material;
 }
 
 function ExtrudedLine({ text, position, fontSize }: { text: string; position: [number, number, number]; fontSize: number }) {
@@ -157,15 +362,35 @@ function ExtrudedLine({ text, position, fontSize }: { text: string; position: [n
   );
 }
 
+// The slogan pushes out of the wall line by line once the scene is shown.
 function HeroSlogan() {
+  const lines = useRef<(THREE.Group | null)[]>([]);
+  const start = useRef(-1);
+  useFrame(({ clock }) => {
+    if (start.current < 0) start.current = clock.elapsedTime + 1.1;
+    const t = clock.elapsedTime - start.current;
+    lines.current.forEach((line, i) => {
+      if (!line) return;
+      const k = THREE.MathUtils.clamp((t - i * 0.2) / 1.2, 0, 1);
+      const c = 1.4;
+      const eased = 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2);
+      line.position.z = -40 * (1 - eased);
+    });
+  });
   // Line boxes follow the original composition: two lines indented, the
-  // middle one wider, filling x -514..346 and y 85..474 on the first wall.
-  // Each position is the line's baseline.
+  // middle one wider. Each position is the line's baseline.
+  const baselines: [number, number][] = [
+    [-374, 349],
+    [-514, 217],
+    [-374, 87],
+  ];
   return (
     <group>
-      <ExtrudedLine text={hero.lines[0]} position={[-374, 349, 0]} fontSize={168} />
-      <ExtrudedLine text={hero.lines[1]} position={[-514, 217, 0]} fontSize={168} />
-      <ExtrudedLine text={hero.lines[2]} position={[-374, 87, 0]} fontSize={168} />
+      {baselines.map(([x, y], i) => (
+        <group key={i} ref={(g) => void (lines.current[i] = g)} position={[0, 0, -40]}>
+          <ExtrudedLine text={hero.lines[i]} position={[x, y, 0]} fontSize={168} />
+        </group>
+      ))}
     </group>
   );
 }
@@ -270,48 +495,82 @@ function NeonBoard() {
   );
 }
 
-// Madagascar's flag on the closing room's flagpole, gently waving.
+// Madagascar's flag on the closing room's flagpole: white hoist band, red
+// over green, in its 3:2 proportions. The cloth ripples in a vertex shader
+// that also shades the folds.
+const FLAG_W = 186;
+const FLAG_H = 124;
+
 function Flag() {
-  const mesh = useRef<THREE.Mesh>(null);
-  const { geometry, texture } = useMemo(() => {
-    const g = new THREE.PlaneGeometry(96, 150, 16, 12);
-    g.translate(48, -75, 0);
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const { geometry, uniforms } = useMemo(() => {
+    const g = new THREE.PlaneGeometry(FLAG_W, FLAG_H, 60, 30);
+    g.translate(FLAG_W / 2, -FLAG_H / 2, 0);
     const canvas = document.createElement("canvas");
-    canvas.width = 96;
-    canvas.height = 64;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "#fc3d32";
-      ctx.fillRect(0, 0, 96, 32);
-      ctx.fillStyle = "#007e3a";
-      ctx.fillRect(0, 32, 96, 32);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 32, 64);
-    }
-    const t = new THREE.CanvasTexture(canvas);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return { geometry: g, texture: t };
+    canvas.width = 600;
+    canvas.height = 400;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fc3d32";
+    ctx.fillRect(200, 0, 400, 200);
+    ctx.fillStyle = "#007e3a";
+    ctx.fillRect(200, 200, 400, 200);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 200, 400);
+    // A faint weave so the cloth does not look like plastic.
+    ctx.globalAlpha = 0.05;
+    ctx.fillStyle = "#000";
+    for (let y = 0; y < 400; y += 3) ctx.fillRect(0, y, 600, 1);
+    const map = new THREE.CanvasTexture(canvas);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = 4;
+    return { geometry: g, uniforms: { uMap: { value: map }, uTime: { value: 0 } } };
   }, []);
-  const base = useMemo(() => Float32Array.from(geometry.attributes.position.array as Float32Array), [geometry]);
   useFrame(({ clock }) => {
-    if (!mesh.current) return;
-    const position = mesh.current.geometry.attributes.position as THREE.BufferAttribute;
-    const t = clock.elapsedTime;
-    for (let i = 0; i < position.count; i++) {
-      const x = base[i * 3];
-      const y = base[i * 3 + 1];
-      position.setZ(i, Math.sin(x * 0.07 + t * 2 + y * 0.02) * x * 0.09);
-    }
-    position.needsUpdate = true;
+    if (material.current) material.current.uniforms.uTime.value = clock.elapsedTime;
   });
   return (
-    <mesh ref={mesh} geometry={geometry} position={[15838, 398, -472]} rotation={[0, -0.5, 0]}>
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide} toneMapped={false} />
+    <mesh geometry={geometry} position={[15840, 400, -472]} rotation={[0, -1.0, 0]}>
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        side={THREE.DoubleSide}
+        toneMapped={false}
+        vertexShader={`
+          uniform float uTime;
+          varying vec2 vUv;
+          varying float vShade;
+          void main() {
+            vUv = uv;
+            float k = position.x / ${FLAG_W.toFixed(1)};
+            float a = position.x * 0.042 - uTime * 3.0 + position.y * 0.01;
+            float b = position.x * 0.085 - uTime * 4.6 - position.y * 0.02;
+            float wave = (sin(a) * 14.0 + sin(b) * 4.5) * k;
+            float slope = (cos(a) * 14.0 * 0.042 + cos(b) * 4.5 * 0.085) * k;
+            vec3 p = position;
+            p.z += wave;
+            p.y -= k * k * 7.0;
+            p.x -= k * abs(wave) * 0.12;
+            vShade = clamp(slope, -1.0, 1.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          }
+        `}
+        fragmentShader={`
+          uniform sampler2D uMap;
+          varying vec2 vUv;
+          varying float vShade;
+          void main() {
+            vec4 c = texture2D(uMap, vUv);
+            float light = 0.9 + vShade * 0.22;
+            gl_FragColor = vec4(c.rgb * light, 1.0);
+            #include <colorspace_fragment>
+          }
+        `}
+      />
     </mesh>
   );
 }
 
-function LovaMark() {
+function ArtikoMark() {
   const mesh = useRef<THREE.Mesh>(null);
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
@@ -337,25 +596,188 @@ function LovaMark() {
   );
 }
 
-function PlayTriangle() {
-  const geometry = useMemo(() => {
+// Showreel: a screen that crossfades through art forms with a slow zoom,
+// and a play button that pulses until the visitor starts it.
+const SCREEN_CENTER: [number, number, number] = [5969.4, 276, -110];
+const SLIDE_SECONDS = 4;
+const FADE_SECONDS = 1;
+
+// Owns the screen's crossfade material and the slide clock. Kept outside
+// React so the per-frame mutations stay out of hook values.
+class ShowreelPlayer {
+  playing = false;
+  private textures: THREE.Texture[] = [];
+  private slide = 0;
+  private startedAt = 0;
+  private now = 0;
+  private previous: THREE.Material | THREE.Material[];
+  private cancelled = false;
+  readonly material = new THREE.ShaderMaterial({
+    toneMapped: false,
+    uniforms: {
+      uA: { value: null as THREE.Texture | null },
+      uB: { value: null as THREE.Texture | null },
+      uMix: { value: 0 },
+      uZoomA: { value: 1 },
+      uZoomB: { value: 1 },
+      uDim: { value: 0.82 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D uA;
+      uniform sampler2D uB;
+      uniform float uMix;
+      uniform float uZoomA;
+      uniform float uZoomB;
+      uniform float uDim;
+      varying vec2 vUv;
+      void main() {
+        vec3 a = texture2D(uA, (vUv - 0.5) / uZoomA + 0.5).rgb;
+        vec3 b = texture2D(uB, (vUv - 0.5) / uZoomB + 0.5).rgb;
+        gl_FragColor = vec4(mix(a, b, smoothstep(0.0, 1.0, uMix)) * uDim, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+
+  constructor(private screen: THREE.Mesh) {
+    this.previous = screen.material;
+    screen.material = this.material;
+    void Promise.all(
+      showreel.map((slide) => pictureCanvas(slide.image, "cover", { kind: slide.kind, label: slide.label }).then(canvasTexture)),
+    ).then((list) => {
+      if (this.cancelled) return;
+      this.textures = list;
+      this.material.uniforms.uA.value = list[0];
+      this.material.uniforms.uB.value = list[1];
+    });
+  }
+
+  toggle() {
+    this.playing = !this.playing;
+    if (this.playing) this.startedAt = this.now;
+  }
+
+  update(time: number) {
+    this.now = time;
+    const u = this.material.uniforms;
+    u.uDim.value = THREE.MathUtils.lerp(u.uDim.value, this.playing ? 1 : 0.82, 0.08);
+    const list = this.textures;
+    if (list.length < 2 || !this.playing) return;
+    let elapsed = time - this.startedAt;
+    if (elapsed >= SLIDE_SECONDS + FADE_SECONDS) {
+      this.slide += 1;
+      this.startedAt += SLIDE_SECONDS + FADE_SECONDS;
+      elapsed = time - this.startedAt;
+    }
+    const n = list.length;
+    u.uA.value = list[this.slide % n];
+    u.uB.value = list[(this.slide + 1) % n];
+    u.uZoomA.value = 1 + elapsed * 0.012;
+    u.uZoomB.value = 1 + Math.max(0, elapsed - SLIDE_SECONDS) * 0.012;
+    u.uMix.value = THREE.MathUtils.clamp((elapsed - SLIDE_SECONDS) / FADE_SECONDS, 0, 1);
+  }
+
+  dispose() {
+    this.cancelled = true;
+    this.screen.material = this.previous;
+    this.material.dispose();
+    this.textures.forEach((t) => t.dispose());
+  }
+}
+
+function Showreel({ screen }: { screen: THREE.Mesh | null }) {
+  const player = useRef<ShowreelPlayer | null>(null);
+  const button = useRef<THREE.Group>(null);
+  const ring = useRef<THREE.Mesh>(null);
+  const hover = useRef(false);
+
+  useEffect(() => {
+    if (!screen) return;
+    const instance = new ShowreelPlayer(screen);
+    player.current = instance;
+    return () => {
+      instance.dispose();
+      player.current = null;
+    };
+  }, [screen]);
+
+  useFrame(({ clock }, delta) => {
+    const t = clock.elapsedTime;
+    const p = player.current;
+    p?.update(t);
+    if (button.current) {
+      const target = p?.playing ? 0.001 : hover.current ? 1.12 : 1;
+      const s = THREE.MathUtils.lerp(button.current.scale.x, target, 1 - Math.pow(0.0001, delta));
+      button.current.scale.setScalar(s);
+      button.current.visible = s > 0.01;
+    }
+    if (ring.current) {
+      const k = (t % 1.8) / 1.8;
+      ring.current.scale.setScalar(1 + k * 0.6);
+      (ring.current.material as THREE.MeshBasicMaterial).opacity = 0.6 * (1 - k);
+    }
+  });
+
+  const triangle = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-14, -17);
-    shape.lineTo(20, 0);
-    shape.lineTo(-14, 17);
-    shape.lineTo(-14, -17);
-    return new THREE.ShapeGeometry(shape);
+    shape.moveTo(-10, -15);
+    shape.quadraticCurveTo(-12, -17, -8, -16);
+    shape.lineTo(17, -2);
+    shape.quadraticCurveTo(19, 0, 17, 2);
+    shape.lineTo(-8, 16);
+    shape.quadraticCurveTo(-12, 17, -10, 15);
+    shape.lineTo(-10, -15);
+    return new THREE.ShapeGeometry(shape, 12);
   }, []);
+
+  const toggle = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    player.current?.toggle();
+  };
+
   return (
-    <mesh geometry={geometry} position={[5972, 276, -113]}>
-      <meshBasicMaterial color="#e5574a" toneMapped={false} />
-    </mesh>
+    <group position={SCREEN_CENTER}>
+      <mesh
+        position={[0, 10, -2]}
+        onClick={toggle}
+        onPointerOver={() => {
+          hover.current = true;
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          hover.current = false;
+          document.body.style.cursor = "";
+        }}
+      >
+        <planeGeometry args={[560, 320]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      <group ref={button}>
+        <mesh ref={ring} position={[0, 0, 0.5]}>
+          <ringGeometry args={[50, 53, 64]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} depthWrite={false} />
+        </mesh>
+        <mesh position={[0, 0, 1]}>
+          <circleGeometry args={[44, 64]} />
+          <meshBasicMaterial color="#fff4ec" transparent opacity={0.96} toneMapped={false} />
+        </mesh>
+        <mesh geometry={triangle} position={[3, 0, 2]}>
+          <meshBasicMaterial color="#e5574a" toneMapped={false} />
+        </mesh>
+      </group>
+    </group>
   );
 }
 
 export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
   const gltf = useGLTF(SCENE_URL);
-  const router = useRouter();
 
   useMemo(() => prepareScene(gltf.scene), [gltf.scene]);
 
@@ -426,10 +848,7 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
     return node ? { geometry: node.geometry, position: node.position.clone() } : null;
   }, [gltf.scene]);
 
-  const openJourney = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
-    router.push("/museum");
-  };
+  const screen = useMemo(() => (gltf.scene.getObjectByName("screen_showreel") as THREE.Mesh | undefined) ?? null, [gltf.scene]);
 
   return (
     <>
@@ -453,21 +872,11 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
         </mesh>
       )}
       <HeroSlogan />
-      <LovaMark />
+      <ArtikoMark />
       <NeonBoard />
       <NeonSign />
       <Flag />
-      <group
-        onClick={openJourney}
-        onPointerOver={() => (document.body.style.cursor = "pointer")}
-        onPointerOut={() => (document.body.style.cursor = "")}
-      >
-        <PlayTriangle />
-        <mesh position={[5969.4, 276, -110]}>
-          <planeGeometry args={[116, 116]} />
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-        </mesh>
-      </group>
+      <Showreel screen={screen} />
       <Overlays goTo={goTo} />
     </>
   );

@@ -11,6 +11,9 @@ importers:
       '@google/model-viewer':
         specifier: ^4.4.0
         version: 4.4.0(three@0.187.0)
+      '@gsap/react':
+        specifier: 2.1.2
+        version: 2.1.2(gsap@3.13.0)(react@19.3.0)
       '@react-three/drei':
         specifier: ^10.7.9
         version: 10.7.9(@react-three/fiber@9.8.2(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.187.0))(@types/react@19.3.0)(@types/three@0.187.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.187.0)
@@ -20,6 +23,9 @@ importers:
       better-auth:
         specifier: ^1.7.27
         version: 1.7.27(next@16.4.6(@babel/core@7.29.13)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      gsap:
+        specifier: 3.13.0
+        version: 3.13.0
       lenis:
         specifier: ^1.3.27
         version: 1.3.27(react@19.3.0)
@@ -440,6 +446,12 @@ packages:
     engines: {node: '>=6.0.0'}
     peerDependencies:
       three: ^0.183.0
+
+  '@gsap/react@2.1.2':
+    resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
+    peerDependencies:
+      gsap: ^3.12.5
+      react: '>=17'
 
   '@hey-api/codegen-core@0.9.1':
     resolution: {integrity: sha512-s97jL1dgTMuiMHv2BZ1X4Tgd99Mf9GOvGdNqNcGwIMmnR+PgYNoraj4Zvp134MKsNCap/m7k0r0vKKnl56pj4w==}
@@ -1772,6 +1784,9 @@ packages:
 
   graceful-fs@4.2.12:
     resolution: {integrity: sha512-iuyGF2E4oafQfPsRrG2wtY2ILupMhvtdrhzrxB+0VcjsPpSPttpfYdjnGFGsTi5MaJFjI1jOKHPQ6UTbTj9TAw==}
+
+  gsap@3.13.0:
+    resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -3141,6 +3156,11 @@ snapshots:
       '@monogrid/gainmap-js': 3.7.3(three@0.187.0)
       lit: 3.3.3
       three: 0.187.0
+
+  '@gsap/react@2.1.2(gsap@3.13.0)(react@19.3.0)':
+    dependencies:
+      gsap: 3.13.0
+      react: 19.3.0
 
   '@hey-api/codegen-core@0.9.1':
     dependencies:
@@ -4573,6 +4593,8 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.12: {}
+
+  gsap@3.13.0: {}
 
   has-bigints@1.1.0: {}
 

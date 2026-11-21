@@ -6,6 +6,8 @@ const ink = {
   strokeWidth: 3,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
+  // Lets CSS draw every stroke on with stroke-dashoffset from 1 to 0.
+  pathLength: 1,
 };
 
 const salt = { fontFamily: "var(--font-salt), cursive", fill: "#111" };
@@ -180,4 +182,81 @@ export function Hello({ width = 100, label = "HELLO" }: { width?: number; label?
       </text>
     </svg>
   );
+}
+
+// Small illustrations for the features wall, one per feature. Parts with a
+// class name are animated by globals.css once the wall is in view.
+export function FeatureIcon({ name, width = 120 }: { name: string; width?: number }) {
+  switch (name) {
+    case "scan":
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-scan">
+          <rect x="34" y="8" width="52" height="96" rx="9" {...ink} />
+          <path d="M54 16 H66" {...ink} strokeWidth={2} />
+          <rect x="42" y="26" width="36" height="52" rx="2" {...ink} strokeWidth={2} />
+          <path d="M46 70 L56 56 L62 63 L68 54 L76 70" {...ink} strokeWidth={2} />
+          <circle cx="52" cy="38" r="4" {...ink} strokeWidth={2} />
+          <path className="fi-beam" d="M38 46 H82" stroke="#e5574a" strokeWidth={3} strokeLinecap="round" />
+          <path d="M8 30 V18 C8 14 10 12 14 12 H24 M112 30 V18 C112 14 110 12 106 12 H96 M8 82 V94 C8 98 10 100 14 100 H24 M112 82 V94 C112 98 110 100 106 100 H96" {...ink} />
+        </svg>
+      );
+    case "museum":
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-museum">
+          <path d="M14 106 V52 C14 26 34 10 60 10 C86 10 106 26 106 52 V106 Z" {...ink} />
+          <path d="M44 106 V72 C44 62 52 56 60 56 C68 56 76 62 76 72 V106" {...ink} />
+          <path className="fi-door" d="M47 106 V73 C47 65 53 60 60 60 C67 60 73 65 73 73 V106 Z" fill="#e5574a" />
+          <path d="M4 106 H116" {...ink} />
+          <path d="M60 24 L64 34 L74 34 L66 40 L69 50 L60 44 L51 50 L54 40 L46 34 L56 34 Z" {...ink} strokeWidth={2} />
+        </svg>
+      );
+    case "vote":
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-vote">
+          <path d="M18 60 H102 L96 110 H24 Z" {...ink} />
+          <path d="M40 60 H80" stroke="#111" strokeWidth={6} strokeLinecap="round" />
+          <g className="fi-ballot">
+            <rect x="44" y="14" width="32" height="40" rx="2" {...ink} fill="#fff" />
+            <path d="M51 34 L58 41 L70 26" stroke="#e5574a" strokeWidth={4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          <text x="60" y="94" textAnchor="middle" fontSize="18" style={salt}>
+            +1
+          </text>
+        </svg>
+      );
+    case "fame":
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-fame">
+          <path d="M8 110 V78 H40 V110 M40 110 V54 H80 V110 M80 110 V88 H112 V110 Z" {...ink} />
+          <text x="60" y="88" textAnchor="middle" fontSize="20" style={salt}>
+            1
+          </text>
+          <text x="24" y="100" textAnchor="middle" fontSize="15" style={salt}>
+            2
+          </text>
+          <text x="96" y="104" textAnchor="middle" fontSize="13" style={salt}>
+            3
+          </text>
+          <g className="fi-crown">
+            <path d="M44 44 L40 18 L52 30 L60 10 L68 30 L80 18 L76 44 Z" fill="#e5574a" stroke="#111" strokeWidth={2.5} strokeLinejoin="round" />
+          </g>
+        </svg>
+      );
+    case "learn":
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-learn">
+          <path d="M30 112 C22 92 18 76 24 62 C28 54 36 56 38 64 L40 70 V24 C40 16 52 16 52 24 V56 V18 C52 10 64 10 64 18 V56 V22 C64 14 76 14 76 22 V58 V32 C76 24 88 24 88 32 V76 C88 96 80 104 76 112" {...ink} />
+          <path className="fi-trail" d="M8 30 C20 10 38 6 50 4 M94 8 C106 14 112 26 112 40" stroke="#e5574a" strokeWidth={3} strokeDasharray="2 7" fill="none" strokeLinecap="round" />
+          <circle className="fi-dot" cx="112" cy="40" r="5" fill="#e5574a" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 120 120" width={width} aria-hidden="true" className="fi fi-protect">
+          <path d="M60 6 L104 22 V56 C104 84 86 102 60 114 C34 102 16 84 16 56 V22 Z" {...ink} />
+          <path d="M60 18 L92 30 V56 C92 76 80 90 60 100 Z" fill="#111" />
+          <path className="fi-check" d="M38 58 L54 74 L84 40" stroke="#e5574a" strokeWidth={7} fill="none" strokeLinecap="round" strokeLinejoin="round" pathLength={1} />
+        </svg>
+      );
+  }
 }

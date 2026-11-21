@@ -22,5 +22,45 @@
     "date": "1889",
     "source_url": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
     "rights": "Public domain; see linked Wikimedia Commons file record."
+  },
+  {
+    "file": "walking-man.webp",
+    "title": "The Walking Man",
+    "artist": "Auguste Rodin",
+    "date": "modeled 1877–1900, cast before 1917",
+    "source_url": "https://www.artic.edu/artworks/69852",
+    "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
+  },
+  {
+    "file": "chihongo-mask.webp",
+    "title": "Male Face Mask (Chihongo)",
+    "artist": "Chokwe",
+    "date": "mid–late 19th century",
+    "source_url": "https://www.artic.edu/artworks/181740",
+    "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
+  },
+  {
+    "file": "julia-jackson.webp",
+    "title": "Julia Jackson",
+    "artist": "Julia Margaret Cameron",
+    "date": "1867",
+    "source_url": "https://www.artic.edu/artworks/29230",
+    "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
+  },
+  {
+    "file": "degas-ballet.webp",
+    "title": "Ballet at the Paris Opéra",
+    "artist": "Hilaire Germain Edgar Degas",
+    "date": "1877",
+    "source_url": "https://www.artic.edu/artworks/61603",
+    "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
+  },
+  {
+    "file": "berain-tapestry.webp",
+    "title": "The Elephant, from The Berain Grotesques Series",
+    "artist": "Jean Baptiste Monnoyer",
+    "date": "c. 1688/1732",
+    "source_url": "https://www.artic.edu/artworks/2102",
+    "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
   }
 ]
