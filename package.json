@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "api:generate": "openapi-ts"
+    "api:generate": "openapi-ts",
+    "auth:migrate": "tsx scripts/auth-migrate.ts"
   },
   "dependencies": {
     "@google/model-viewer": "^4.4.0",
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "packageManager": "pnpm@10.16.0"
