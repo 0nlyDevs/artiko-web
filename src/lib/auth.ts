@@ -8,7 +8,7 @@ import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 import { jwt } from "better-auth/plugins/jwt";
 import { after } from "next/server";
 import { Pool } from "pg";
-import { accountEmail, emailLocale, sendEmail } from "./email";
+import { accountEmail, emailLocale, sendEmail, type AccountEmail } from "./email";
 import { MIN_PASSWORD_LENGTH } from "./password";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -19,9 +19,6 @@ const isLocalOrigin = ["localhost", "127.0.0.1"].includes(new URL(baseURL).hostn
 // Brute-force limits for the credential endpoints (stricter than Better Auth's global default).
 const SIGN_IN_WINDOW_SECONDS = 60;
 const SIGN_IN_MAX_ATTEMPTS = 5;
-// Each of these sends an email or spends a token: a few per minute is plenty for a person.
-const EMAIL_WINDOW_SECONDS = 60;
-const EMAIL_MAX_REQUESTS = 3;
 // Verification and reset links stop working after an hour.
 const LINK_LIFETIME_SECONDS = 60 * 60;
 
@@ -29,12 +26,9 @@ const LINK_LIFETIME_SECONDS = 60 * 60;
  * Sends after the response: the reply takes the same time whether the address exists or not (no
  * account enumeration by timing), and a mail outage never turns into a failed sign-up.
  */
-function sendLater(kind: "verify" | "reset", user: { email: string; name: string }, url: string, request?: Request) {
-  after(() =>
-    sendEmail(accountEmail(kind, emailLocale(request), user.email, user.name, url)).catch((error) =>
-      console.error(`[email] ${kind} to ${user.email} failed`, error),
-    ),
-  );
+function sendLater(kind: AccountEmail, to: string, url: string, request?: Request) {
+  // The address stays out of the log: it is personal data.
+  after(() => sendEmail(accountEmail(kind, emailLocale(request), to, url)).catch((error) => console.error(`[email] ${kind} failed`, error)));
 }
 
 // The rate limit keys on the client IP, so it must come from a header the hosting proxy sets and
@@ -74,7 +68,10 @@ function createAuth() {
       resetPasswordTokenExpiresIn: LINK_LIFETIME_SECONDS,
       // A reset ends every open session, including one an attacker may hold.
       revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }, request) => sendLater("reset", user, url, request),
+      sendResetPassword: async ({ user, url }, request) => sendLater("reset", user.email, url, request),
+      // Signing up again with a registered address answers like a new account (no enumeration), so
+      // the owner gets a note pointing to sign-in and reset instead of waiting for a link that never comes.
+      onExistingUserSignUp: async ({ user }, request) => sendLater("existing", user.email, `${baseURL}/forgot-password`, request),
     },
     emailVerification: {
       sendOnSignUp: true,
@@ -82,7 +79,7 @@ function createAuth() {
       sendOnSignIn: true,
       autoSignInAfterVerification: true,
       expiresIn: LINK_LIFETIME_SECONDS,
-      sendVerificationEmail: async ({ user, url }, request) => sendLater("verify", user, url, request),
+      sendVerificationEmail: async ({ user, url }, request) => sendLater("verify", user.email, url, request),
     },
     rateLimit: {
       enabled: true,
@@ -91,8 +88,7 @@ function createAuth() {
       customRules: {
         "/sign-in/email": { window: SIGN_IN_WINDOW_SECONDS, max: SIGN_IN_MAX_ATTEMPTS },
         "/sign-up/email": { window: SIGN_IN_WINDOW_SECONDS, max: SIGN_IN_MAX_ATTEMPTS },
-        "/send-verification-email": { window: EMAIL_WINDOW_SECONDS, max: EMAIL_MAX_REQUESTS },
-        "/request-password-reset": { window: EMAIL_WINDOW_SECONDS, max: EMAIL_MAX_REQUESTS },
+        // /send-verification-email and /request-password-reset keep Better Auth's own stricter defaults.
         "/reset-password": { window: SIGN_IN_WINDOW_SECONDS, max: SIGN_IN_MAX_ATTEMPTS },
       },
     },

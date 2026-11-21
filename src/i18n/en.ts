@@ -289,10 +289,10 @@ export const en = {
   "form.sent": "Message ready. Sending opens when the ARTIKO API goes live.",
 
   "email.verify.subject": "Confirm your email for Artiko",
-  "email.verify.body": "Hello {name}, confirm your email address to open your Artiko account. The link works for one hour.",
+  "email.verify.body": "Confirm your email address to open your Artiko account. The link works for one hour.",
   "email.verify.button": "Confirm my email",
   "email.reset.subject": "Reset your Artiko password",
-  "email.reset.body": "Hello {name}, someone asked to reset the password of your Artiko account. Choose a new one with this link, valid for one hour.",
+  "email.reset.body": "Someone asked to reset the password of your Artiko account. Choose a new one with this link, valid for one hour.",
   "email.reset.button": "Choose a new password",
   "email.ignore": "If you did not ask for this, ignore this email: nothing changes.",
 
@@ -427,6 +427,10 @@ export const en = {
   "expositions.one": "{n} exposition",
   "expositions.other": "{n} expositions",
   "space.linkExpired": "That confirmation link no longer works. Sign in to receive a new one.",
+
+  "email.existing.subject": "You already have an Artiko account",
+  "email.existing.body": "Someone tried to create an Artiko account with this address, which already has one. Sign in, or choose a new password if you forgot it.",
+  "email.existing.button": "Reset my password",
 } as const;
 
 export type Key = keyof typeof en;

@@ -275,10 +275,10 @@ export const fr: Dictionary = {
   "form.sent": "Message prêt. L’envoi sera possible quand l’API d’ARTIKO sera en ligne.",
 
   "email.verify.subject": "Confirmez votre e-mail pour Artiko",
-  "email.verify.body": "Bonjour {name}, confirmez votre adresse e-mail pour ouvrir votre compte Artiko. Le lien est valable une heure.",
+  "email.verify.body": "Confirmez votre adresse e-mail pour ouvrir votre compte Artiko. Le lien est valable une heure.",
   "email.verify.button": "Confirmer mon e-mail",
   "email.reset.subject": "Réinitialisez votre mot de passe Artiko",
-  "email.reset.body": "Bonjour {name}, quelqu’un a demandé à réinitialiser le mot de passe de votre compte Artiko. Choisissez-en un nouveau avec ce lien, valable une heure.",
+  "email.reset.body": "Quelqu’un a demandé à réinitialiser le mot de passe de votre compte Artiko. Choisissez-en un nouveau avec ce lien, valable une heure.",
   "email.reset.button": "Choisir un nouveau mot de passe",
   "email.ignore": "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail : rien ne change.",
 
@@ -413,4 +413,8 @@ export const fr: Dictionary = {
   "expositions.one": "{n} exposition",
   "expositions.other": "{n} expositions",
   "space.linkExpired": "Ce lien de confirmation ne fonctionne plus. Connectez-vous pour en recevoir un nouveau.",
+
+  "email.existing.subject": "Vous avez déjà un compte Artiko",
+  "email.existing.body": "Quelqu’un a essayé de créer un compte Artiko avec cette adresse, qui en a déjà un. Connectez-vous, ou choisissez un nouveau mot de passe si vous l’avez oublié.",
+  "email.existing.button": "Réinitialiser mon mot de passe",
 };

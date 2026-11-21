@@ -47,11 +47,13 @@ describe("emailLocale", () => {
 });
 
 describe("accountEmail", () => {
-  it("escapes the user's name in the HTML and keeps the link in both parts", () => {
-    const mail = accountEmail("verify", "en", "a@example.test", "<b>Rova</b>", "https://artiko.test/api/auth/verify-email?token=t&callbackURL=%2Fme");
-    expect(mail.html).toContain("&lt;b&gt;Rova&lt;/b&gt;");
-    expect(mail.html).not.toContain("<b>Rova</b>");
+  it("escapes the link in the HTML and keeps it intact in the text part", () => {
+    const mail = accountEmail("verify", "en", "a@example.test", "https://artiko.test/api/auth/verify-email?token=t&callbackURL=%2Fme");
     expect(mail.html).toContain("token=t&amp;callbackURL");
     expect(mail.text).toContain("token=t&callbackURL");
+  });
+
+  it("writes every kind in the reader's language", () => {
+    expect(accountEmail("existing", "fr", "a@example.test", "https://artiko.test/forgot-password").subject).toBe("Vous avez déjà un compte Artiko");
   });
 });
