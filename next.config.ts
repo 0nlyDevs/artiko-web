@@ -2,8 +2,26 @@ import type { NextConfig } from "next";
 
 const api = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000");
 
+// Directives that cannot break the museum's inline and vendored scripts. A script-src policy
+// needs per-request nonces for Next's inline hydration code and is a separate piece of work.
+const contentSecurityPolicy = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // The scan and AR features need the camera on this origin only.
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), xr-spatial-tracking=(self)" },
+  ...(process.env.NODE_ENV === "production"
+    ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
+    : []),
+];
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   cacheComponents: true,
   partialPrefetching: true,
   images: {
