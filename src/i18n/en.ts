@@ -112,7 +112,6 @@ export const en = {
   "museum.simple": "Simple gallery view",
   "museum.walk": "Walk the 3D museum",
   "museum.hint": "Drag to look around, scroll to move closer, click a work to open it.",
-  "museum.votesMonth": "{votes} this month",
   "museum.proof": "Proof of process",
   "museum.step": "Step {n}",
   "museum.stepAlt": "Process step {n}",
@@ -317,6 +316,16 @@ export const en = {
   "explore.noResult": "Nothing matches “{q}”.",
   "explore.emptyHint": "Do you practise this art? Publish a work with its proof of creation and it enters this month's vote.",
   "explore.publish": "Publish a work",
+
+  "vote.emailNotVerified": "Confirm your email address first: the link is in your inbox.",
+  "vote.rule": "One vote per person, per art form and per month.",
+  "vote.thisMonth": "this month",
+  "vote.signInCta": "Sign in to vote",
+  "vote.doubleClick": "Double-click to vote",
+  "work.loading": "Loading the work.",
+  "work.close": "Close",
+  "work.museum": "See the museum",
+  "work.footprint": "Fingerprint {hash}.",
 } as const;
 
 export type Key = keyof typeof en;

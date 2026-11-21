@@ -102,7 +102,6 @@ export const mg: Dictionary = {
   "museum.simple": "Fijerena tsotra",
   "museum.walk": "Mandehana ao amin'ny tranombakoka 3D",
   "museum.hint": "Tarao hijery manodidina, afindrao hanakaiky, tsindrio ny asa hanokatra azy.",
-  "museum.votesMonth": "{votes} amin'ity volana ity",
   "museum.proof": "Porofon'ny fanaovana",
   "museum.step": "Dingana {n}",
   "museum.stepAlt": "Dingana {n} amin'ny fanaovana",
@@ -304,4 +303,14 @@ export const mg: Dictionary = {
   "explore.noResult": "Tsy misy mifanaraka amin'ny « {q} ».",
   "explore.emptyHint": "Manao an'io zava-kanto io ve ianao? Avoahy ny asa miaraka amin'ny porofon'ny fanaovana, dia hiditra amin'ny fifidianana amin'ity volana ity izy.",
   "explore.publish": "Hamoaka asa",
+
+  "vote.emailNotVerified": "Hamafiso aloha ny adiresy mailakao: ao amin'ny boaty fandraisanao ny rohy.",
+  "vote.rule": "Vato iray isaky ny olona, isaky ny karazana zava-kanto, isam-bolana.",
+  "vote.thisMonth": "amin'ity volana ity",
+  "vote.signInCta": "Midira hifidy",
+  "vote.doubleClick": "Tsindrio indroa hifidy",
+  "work.loading": "Eo am-pakana ny asa.",
+  "work.close": "Hidio",
+  "work.museum": "Hijery ny tranombakoka",
+  "work.footprint": "Dian-tanana {hash}.",
 };

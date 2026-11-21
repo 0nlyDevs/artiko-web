@@ -101,7 +101,6 @@ export const fr: Dictionary = {
   "museum.simple": "Vue galerie simple",
   "museum.walk": "Parcourir le musée en 3D",
   "museum.hint": "Faites glisser pour regarder autour de vous, défilez pour vous approcher, cliquez sur une œuvre pour l’ouvrir.",
-  "museum.votesMonth": "{votes} ce mois-ci",
   "museum.proof": "Preuve de création",
   "museum.step": "Étape {n}",
   "museum.stepAlt": "Étape de création {n}",
@@ -303,4 +302,14 @@ export const fr: Dictionary = {
   "explore.noResult": "Rien ne correspond à « {q} ».",
   "explore.emptyHint": "Vous pratiquez cet art ? Publiez une œuvre avec sa preuve de création, elle entrera dans le vote du mois.",
   "explore.publish": "Publier une œuvre",
+
+  "vote.emailNotVerified": "Confirmez d’abord votre adresse e-mail : le lien est dans votre boîte de réception.",
+  "vote.rule": "Un vote par personne, par forme d’art et par mois.",
+  "vote.thisMonth": "ce mois-ci",
+  "vote.signInCta": "Se connecter pour voter",
+  "vote.doubleClick": "Double-cliquez pour voter",
+  "work.loading": "Chargement de l’œuvre.",
+  "work.close": "Fermer",
+  "work.museum": "Voir le musée",
+  "work.footprint": "Empreinte {hash}.",
 };
