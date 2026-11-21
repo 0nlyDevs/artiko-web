@@ -49,6 +49,10 @@ export type Work = {
     title: string;
     story: string;
     category: CategoryId;
+    /**
+     * Always present; null when the work is in no exposition
+     */
+    exposition_id?: string | null;
     media_url: string;
     media_kind: MediaKind;
     proof_urls: Array<string>;
@@ -94,6 +98,25 @@ export type Museum = {
         height: number;
     };
     slots: Array<MuseumSlot>;
+};
+
+export type ExpositionIn = {
+    title: string;
+    description?: string;
+};
+
+export type Exposition = {
+    id: string;
+    artist_id: string;
+    artist_name: string;
+    title: string;
+    description: string;
+    /**
+     * The newest image work of the exposition, null when it has none
+     */
+    cover_url: string | null;
+    works_count: number;
+    created_at: string;
 };
 
 export type Vote = {
@@ -153,6 +176,16 @@ export type ScanResult = {
     }>;
 };
 
+/**
+ * Page size
+ */
+export type Limit = number;
+
+/**
+ * Items to skip; request the next page with `offset += limit`
+ */
+export type Offset = number;
+
 export type ArtistId = string;
 
 export type HealthData = {
@@ -172,6 +205,33 @@ export type HealthResponses = {
 };
 
 export type HealthResponse = HealthResponses[keyof HealthResponses];
+
+export type ReadyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/ready';
+};
+
+export type ReadyErrors = {
+    /**
+     * The database is not reachable (`not_ready`)
+     */
+    503: Error;
+};
+
+export type ReadyError = ReadyErrors[keyof ReadyErrors];
+
+export type ReadyResponses = {
+    /**
+     * The API can serve requests
+     */
+    200: {
+        status: 'ok';
+    };
+};
+
+export type ReadyResponse = ReadyResponses[keyof ReadyResponses];
 
 export type GetMeData = {
     body?: never;
@@ -230,13 +290,22 @@ export type UpsertMyArtistResponse = UpsertMyArtistResponses[keyof UpsertMyArtis
 export type ListArtistsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Page size
+         */
+        limit?: number;
+        /**
+         * Items to skip; request the next page with `offset += limit`
+         */
+        offset?: number;
+    };
     url: '/api/v1/artists';
 };
 
 export type ListArtistsResponses = {
     /**
-     * Every artist, by name
+     * Artists by name, one page
      */
     200: Array<Artist>;
 };
@@ -304,13 +373,22 @@ export type ListWorksData = {
         category?: CategoryId;
         month?: Month;
         artist_id?: string;
+        exposition_id?: string;
+        /**
+         * Page size
+         */
+        limit?: number;
+        /**
+         * Items to skip; request the next page with `offset += limit`
+         */
+        offset?: number;
     };
     url: '/api/v1/works';
 };
 
 export type ListWorksResponses = {
     /**
-     * Works, newest first
+     * Works, newest first, one page
      */
     200: Array<Work>;
 };
@@ -323,6 +401,10 @@ export type CreateWorkData = {
         story?: string;
         category: CategoryId;
         ai_declared?: boolean;
+        /**
+         * One of the artist's own expositions (`invalid_exposition`, 400, otherwise)
+         */
+        exposition_id?: string;
         file: Blob | File;
         proof?: Array<Blob | File>;
     };
@@ -391,6 +473,84 @@ export type GetWorkResponses = {
 };
 
 export type GetWorkResponse = GetWorkResponses[keyof GetWorkResponses];
+
+export type ListExpositionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        artist_id?: string;
+    };
+    url: '/api/v1/expositions';
+};
+
+export type ListExpositionsResponses = {
+    /**
+     * Expositions, newest first
+     */
+    200: Array<Exposition>;
+};
+
+export type ListExpositionsResponse = ListExpositionsResponses[keyof ListExpositionsResponses];
+
+export type CreateExpositionData = {
+    body: ExpositionIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/expositions';
+};
+
+export type CreateExpositionErrors = {
+    /**
+     * Missing or invalid token (`unauthorized`, `invalid_token`)
+     */
+    401: Error;
+    /**
+     * Signed in, but not allowed (`not_an_artist`)
+     */
+    403: Error;
+    /**
+     * Body or parameters fail validation (`invalid_request`)
+     */
+    422: Error;
+};
+
+export type CreateExpositionError = CreateExpositionErrors[keyof CreateExpositionErrors];
+
+export type CreateExpositionResponses = {
+    /**
+     * The exposition
+     */
+    201: Exposition;
+};
+
+export type CreateExpositionResponse = CreateExpositionResponses[keyof CreateExpositionResponses];
+
+export type GetExpositionData = {
+    body?: never;
+    path: {
+        exposition_id: string;
+    };
+    query?: never;
+    url: '/api/v1/expositions/{exposition_id}';
+};
+
+export type GetExpositionErrors = {
+    /**
+     * No such resource
+     */
+    404: Error;
+};
+
+export type GetExpositionError = GetExpositionErrors[keyof GetExpositionErrors];
+
+export type GetExpositionResponses = {
+    /**
+     * The exposition
+     */
+    200: Exposition;
+};
+
+export type GetExpositionResponse = GetExpositionResponses[keyof GetExpositionResponses];
 
 export type CastVoteData = {
     body: {
@@ -554,6 +714,10 @@ export type ScanImageErrors = {
      * File over the size limit (`file_too_large`)
      */
     413: Error;
+    /**
+     * Rate limit hit (`rate_limited`); wait `Retry-After` seconds
+     */
+    429: Error;
 };
 
 export type ScanImageError = ScanImageErrors[keyof ScanImageErrors];
