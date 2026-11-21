@@ -251,7 +251,7 @@ button {
 }
 
 .g-join:hover::before {
-  transform: scale(7);
+  transform: scale(12);
 }
 
 .g-join-dot {
@@ -301,8 +301,10 @@ button {
   transition: transform 0.6s var(--ease-in-out);
 }
 
+/* Large enough for the circle, grown from the right, to cover the widest
+   button (about 260 px) corner to corner. */
 .g-cta:hover::before {
-  transform: scale(8);
+  transform: scale(16);
 }
 
 .g-cta-dot {
