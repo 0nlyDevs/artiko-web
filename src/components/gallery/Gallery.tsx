@@ -8,13 +8,13 @@ import Lenis from "lenis";
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { ArtikoLogo } from "../brand/ArtikoLogo";
 import { stops } from "./content";
 import { GalleryScene, type CameraPath } from "./Scene";
 
 gsap.registerPlugin(useGSAP);
 
 const SCROLL_LENGTH = "1500vh";
-const MARQUEE = ["Painting", "Music", "Dance", "Sculpture", "Crafts", "Photography", "Oral art", "Textile"];
 
 const APP_PAGES = [
   { href: "/explore", label: "Explore and vote" },
@@ -24,18 +24,44 @@ const APP_PAGES = [
   { href: "/me", label: "My space" },
 ];
 
+const LOADING_STEPS = ["Opening the doors", "Hanging the paintings", "Tuning the music", "Lighting the rooms", "Welcome"];
+
+// Loader: the ARTIKO flower blooms petal by petal while a thin ring traces
+// the progress around it. On completion the screen lifts away like a curtain
+// (skill "clip-path-bar-reveal").
 function Preloader() {
   const { progress, active } = useProgress();
   const done = !active && progress >= 100;
+  const ratio = done ? 1 : progress / 100;
+  const step = LOADING_STEPS[Math.min(LOADING_STEPS.length - 1, Math.floor(ratio * (LOADING_STEPS.length - 1)))];
+  const r = 92;
+  const length = 2 * Math.PI * r;
   return (
-    <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite">
-      <p className="g-logo g-preloader-logo">
-        artiko<span aria-hidden="true">·</span>
+    <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite" aria-label={`Loading ARTIKO, ${Math.round(progress)}%`}>
+      <svg className="g-loader-mark" viewBox="0 0 220 220" width="168" height="168" aria-hidden="true">
+        <circle cx="110" cy="110" r={r} className="g-loader-track" />
+        <circle
+          cx="110"
+          cy="110"
+          r={r}
+          className="g-loader-ring"
+          strokeDasharray={length}
+          strokeDashoffset={length * (1 - ratio)}
+          transform="rotate(-90 110 110)"
+        />
+        <g className="g-loader-flower">
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+            <g key={angle} transform={`rotate(${angle} 110 110)`}>
+              <ellipse cx="110" cy="78" rx="16.6" ry="32" className={ratio >= (i + 1) / 6 - 0.001 ? "is-on" : ""} />
+            </g>
+          ))}
+          <circle cx="110" cy="110" r="12.8" className="g-loader-heart" />
+        </g>
+      </svg>
+      <ArtikoLogo height={34} className="g-loader-word" />
+      <p className="g-loader-step" key={step}>
+        {step}
       </p>
-      <div className="g-preloader-bar">
-        <span style={{ transform: `scaleX(${progress / 100})` }} />
-      </div>
-      <p className="g-preloader-count">{Math.round(progress)}%</p>
     </div>
   );
 }
@@ -144,8 +170,7 @@ export function Gallery() {
 
   // Menu: the panel unrolls from the top, then the links rise out of their
   // masks one after another (skills "clip-path-bar-reveal" and
-  // "stagger-text-reveal"); the art-form strip loops underneath
-  // ("infinite-horizontal-ticker").
+  // "stagger-text-reveal").
   useGSAP(
     () => {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -167,11 +192,9 @@ export function Gallery() {
           { opacity: 0, rotate: 9, scale: 0.85, y: 30 },
           { opacity: 1, rotate: -4, scale: 1, y: 0, duration: 0.9, ease: "back.out(1.7)" },
           0.5,
-        )
-        .fromTo(".g-menu-strip", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, 0.55);
+        );
       if (reduce) tl.duration(0.01);
       timeline.current = tl;
-      if (!reduce) gsap.to(".g-menu-track", { xPercent: -50, ease: "none", duration: 26, repeat: -1 });
     },
     { scope: menu },
   );
@@ -235,7 +258,7 @@ export function Gallery() {
             <span />
           </button>
           <Link className="g-logo" href="/" aria-label="ARTIKO, home">
-            artiko<span aria-hidden="true">·</span>
+            <ArtikoLogo height={26} />
           </Link>
           <nav className="g-quick" aria-label="Quick links">
             {[1, 3, 4, 5].map((i) => (
@@ -290,20 +313,6 @@ export function Gallery() {
               <span>Free</span>
             </div>
           </aside>
-          <div className="g-menu-strip" aria-hidden="true">
-            <div className="g-menu-track">
-              {[0, 1].map((copy) => (
-                <span key={copy}>
-                  {MARQUEE.map((word) => (
-                    <span key={word}>
-                      {word}
-                      <i>✦</i>
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArtikoLogo } from "@/components/brand/ArtikoLogo";
 
 const NAV = [
   { href: "/explore", label: "Explore" },
@@ -11,8 +12,8 @@ export function SiteHeader() {
   return (
     <header className="border-b border-ink/15">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 sm:px-8">
-        <Link href="/" className="mr-auto text-[34px] leading-none font-medium tracking-[-0.04em]" aria-label="Artiko, home">
-          artiko<span aria-hidden="true" className="text-red">·</span>
+        <Link href="/" className="mr-auto block" aria-label="Artiko, home">
+          <ArtikoLogo height={32} />
         </Link>
         {NAV.map((item) => (
           <Link key={item.href} href={item.href} className="underline-offset-4 hover:underline">

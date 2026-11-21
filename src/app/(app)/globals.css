@@ -149,22 +149,36 @@ button {
 }
 
 .g-logo {
-  font-family: var(--sans);
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
-  color: var(--ink);
-  text-decoration: none;
+  display: block;
+  line-height: 0;
 }
 
-.g-logo span {
-  color: var(--red);
-  margin-left: 1px;
+.g-logo svg {
+  display: block;
 }
 
-.g-header.is-menu .g-logo span {
-  color: var(--cream);
+/* On the red menu panel the coral flower turns cream to stay visible. */
+.g-logo .artiko-flower > g,
+.g-logo .artiko-flower > circle {
+  transition: fill 0.4s;
+}
+
+.g-header.is-menu .g-logo .artiko-flower > g {
+  fill: var(--cream);
+}
+
+.g-header.is-menu .g-logo .artiko-flower > circle {
+  fill: var(--ink);
+}
+
+/* The flower turns a little on hover, and keeps turning while the menu is open. */
+.g-logo .artiko-flower {
+  transition: transform 0.8s var(--ease-in-out);
+}
+
+.g-logo:hover .artiko-flower,
+.g-header.is-menu .g-logo .artiko-flower {
+  transform: rotate(60deg);
 }
 
 .g-quick {
@@ -251,7 +265,7 @@ button {
 }
 
 .g-join:hover::before {
-  transform: scale(7);
+  transform: scale(12);
 }
 
 .g-join-dot {
@@ -301,8 +315,10 @@ button {
   transition: transform 0.6s var(--ease-in-out);
 }
 
+/* Large enough for the circle, grown from the right, to cover the widest
+   button (about 260 px) corner to corner. */
 .g-cta:hover::before {
-  transform: scale(8);
+  transform: scale(16);
 }
 
 .g-cta-dot {
@@ -902,7 +918,7 @@ button {
 }
 
 /* Menu: a red panel that unrolls from the top, two columns of links split
-   by a dashed rule, an info card and a looping strip of art forms. */
+   by a dashed rule and an info card. */
 
 .g-menu {
   position: fixed;
@@ -926,10 +942,9 @@ button {
   right: 10px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-rows: 1fr auto;
   gap: 0 40px;
-  min-height: min(560px, calc(100vh - 20px));
-  padding: 96px 56px 0;
+  min-height: min(480px, calc(100vh - 20px));
+  padding: 96px 56px 40px;
   border-radius: 26px;
   overflow: hidden;
   color: var(--ink);
@@ -1043,7 +1058,6 @@ button {
 
 .g-menu-card {
   align-self: end;
-  margin-bottom: 30px;
   padding: 24px 24px 20px;
   border-radius: 20px;
   background: var(--cream);
@@ -1103,39 +1117,6 @@ button {
   background: var(--red);
 }
 
-.g-menu-strip {
-  grid-column: 1 / -1;
-  margin: 0 -56px;
-  padding: 14px 0;
-  border-top: 1.5px dashed rgba(20, 17, 16, 0.35);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.g-menu-track {
-  display: inline-flex;
-}
-
-.g-menu-track > span {
-  display: inline-flex;
-}
-
-.g-menu-track > span > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 22px;
-  padding-right: 22px;
-  font-family: var(--serif);
-  font-size: 26px;
-  font-style: italic;
-  font-weight: 600;
-}
-
-.g-menu-track i {
-  font-style: normal;
-  font-size: 16px;
-  color: var(--cream);
-}
 
 /* Room indicator and chat, bottom corners */
 
@@ -1223,43 +1204,96 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  background: var(--wall);
+  gap: 22px;
+  background:
+    radial-gradient(60% 50% at 50% 45%, rgba(255, 255, 255, 0.7), transparent 70%),
+    var(--wall);
+  clip-path: inset(0 0 0 0);
   transition:
-    opacity 0.8s 0.2s,
-    visibility 0.8s 0.2s;
+    clip-path 1.1s var(--ease-in-out) 0.5s,
+    visibility 0s 1.6s;
 }
 
 .g-preloader.is-done {
-  opacity: 0;
+  clip-path: inset(0 0 100% 0);
   visibility: hidden;
 }
 
-.g-preloader-logo {
-  font-size: 64px;
+.g-loader-mark {
+  overflow: visible;
+  transition: transform 1s var(--ease-in-out) 0.3s;
 }
 
-.g-preloader-bar {
-  width: 180px;
-  height: 2px;
-  background: rgba(17, 17, 17, 0.12);
-  overflow: hidden;
+.g-preloader.is-done .g-loader-mark {
+  transform: scale(1.25) rotate(60deg);
 }
 
-.g-preloader-bar span {
-  display: block;
-  height: 100%;
-  background: var(--red);
-  transform-origin: left;
-  transition: transform 0.3s;
+.g-loader-track {
+  fill: none;
+  stroke: rgba(30, 43, 74, 0.1);
+  stroke-width: 2;
 }
 
-.g-preloader-count {
+.g-loader-ring {
+  fill: none;
+  stroke: #e76f51;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s var(--ease-out);
+}
+
+.g-loader-flower {
+  transform-origin: 110px 110px;
+  animation: g-spin 9s linear infinite;
+}
+
+.g-loader-flower ellipse {
+  fill: #e76f51;
+  opacity: 0.14;
+  transform-box: view-box;
+  transform-origin: 110px 110px;
+  scale: 0.7;
+  transition:
+    opacity 0.5s,
+    scale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.g-loader-flower ellipse.is-on {
+  opacity: 1;
+  scale: 1;
+}
+
+.g-loader-heart {
+  fill: #f5ebdd;
+  stroke: rgba(30, 43, 74, 0.12);
+  stroke-width: 1;
+}
+
+.g-loader-word {
+  opacity: 0.92;
+}
+
+.g-loader-step {
   margin: 0;
   font-family: var(--serif);
   font-size: 22px;
   font-style: italic;
-  color: #555;
+  font-weight: 500;
+  color: var(--muted);
+  animation: g-step 0.6s var(--ease-out) both;
+}
+
+@keyframes g-step {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes g-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 960px) {
@@ -1269,15 +1303,11 @@ button {
 
   .g-menu-panel {
     grid-template-columns: minmax(0, 1fr);
-    padding: 90px 28px 0;
+    padding: 90px 28px 32px;
   }
 
   .g-menu-card {
     display: none;
-  }
-
-  .g-menu-strip {
-    margin: 24px -28px 0;
   }
 }
 
