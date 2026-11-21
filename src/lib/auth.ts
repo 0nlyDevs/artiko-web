@@ -17,6 +17,11 @@ const SIGN_IN_WINDOW_SECONDS = 60;
 const SIGN_IN_MAX_ATTEMPTS = 5;
 const MIN_PASSWORD_LENGTH = 10;
 
+// The rate limit keys on the client IP, so this must be a header the hosting proxy sets and
+// overwrites (e.g. `x-real-ip`, `cf-connecting-ip`); a header the client can send lets an attacker
+// pick a fresh IP per attempt. `x-forwarded-for` is only safe when exactly one trusted proxy appends to it.
+const CLIENT_IP_HEADER = process.env.AUTH_CLIENT_IP_HEADER ?? "x-forwarded-for";
+
 function createAuth() {
   if (process.env.NODE_ENV === "production" && !isSecureOrigin && !isLocalOrigin) {
     throw new Error("BETTER_AUTH_URL must be an https URL in production");
@@ -35,12 +40,17 @@ function createAuth() {
     emailAndPassword: { enabled: true, minPasswordLength: MIN_PASSWORD_LENGTH },
     rateLimit: {
       enabled: true,
+      // Counts live in the database so every instance shares them and a restart does not reset them.
+      storage: "database",
       customRules: {
         "/sign-in/email": { window: SIGN_IN_WINDOW_SECONDS, max: SIGN_IN_MAX_ATTEMPTS },
         "/sign-up/email": { window: SIGN_IN_WINDOW_SECONDS, max: SIGN_IN_MAX_ATTEMPTS },
       },
     },
-    advanced: { useSecureCookies: isSecureOrigin },
+    advanced: {
+      useSecureCookies: isSecureOrigin,
+      ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
+    },
     plugins: [
       // EdDSA key pair by default, published at /api/auth/jwks.
       jwt({ jwt: { issuer: baseURL, audience: baseURL } }),
