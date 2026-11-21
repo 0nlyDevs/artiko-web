@@ -458,7 +458,7 @@ function NeonSign() {
   );
 }
 
-// The original neon is baked into the back wall, so Lova's sign hangs on a
+// The original neon is baked into the back wall, so Artiko's sign hangs on a
 // white acrylic board that covers it, like a lightbox.
 function NeonBoard() {
   const { board, shadow } = useMemo(() => {
