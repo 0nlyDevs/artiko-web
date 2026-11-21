@@ -49,7 +49,6 @@ export const fr: Dictionary = {
   "explore.title": "Explorer",
   "explore.loadingWorks": "Chargement des œuvres.",
   "explore.artists": "Les artistes et leurs musées",
-  "explore.loadingArtists": "Chargement des artistes.",
   "explore.categories": "Catégories",
   "explore.all": "Tout",
   "explore.empty": "Rien n’est encore publié dans cette catégorie.",
@@ -295,4 +294,13 @@ export const fr: Dictionary = {
   "nav.scanShort": "Vérifier",
   "nav.publish": "Publier",
   "nav.me": "Moi",
+
+  "proof.short": "Prouvé",
+  "explore.search": "Rechercher",
+  "explore.searchPlaceholder": "Rechercher une œuvre, un artiste, une histoire",
+  "explore.month": "Mois",
+  "explore.anyMonth": "Tous les mois",
+  "explore.noResult": "Rien ne correspond à « {q} ».",
+  "explore.emptyHint": "Vous pratiquez cet art ? Publiez une œuvre avec sa preuve de création, elle entrera dans le vote du mois.",
+  "explore.publish": "Publier une œuvre",
 };

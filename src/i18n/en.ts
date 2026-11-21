@@ -56,7 +56,6 @@ export const en = {
   "explore.title": "Explore",
   "explore.loadingWorks": "Loading works.",
   "explore.artists": "Artists and their museums",
-  "explore.loadingArtists": "Loading artists.",
   "explore.categories": "Categories",
   "explore.all": "All",
   "explore.empty": "Nothing published in this category yet.",
@@ -309,6 +308,15 @@ export const en = {
   "nav.scanShort": "Check",
   "nav.publish": "Publish",
   "nav.me": "Me",
+
+  "proof.short": "Proven",
+  "explore.search": "Search",
+  "explore.searchPlaceholder": "Search a work, an artist, a story",
+  "explore.month": "Month",
+  "explore.anyMonth": "All months",
+  "explore.noResult": "Nothing matches “{q}”.",
+  "explore.emptyHint": "Do you practise this art? Publish a work with its proof of creation and it enters this month's vote.",
+  "explore.publish": "Publish a work",
 } as const;
 
 export type Key = keyof typeof en;

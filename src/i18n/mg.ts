@@ -50,7 +50,6 @@ export const mg: Dictionary = {
   "explore.title": "Hitsidika",
   "explore.loadingWorks": "Eo am-pakana ny asa.",
   "explore.artists": "Ny mpanakanto sy ny tranombakokany",
-  "explore.loadingArtists": "Eo am-pakana ny mpanakanto.",
   "explore.categories": "Sokajy",
   "explore.all": "Rehetra",
   "explore.empty": "Mbola tsy misy navoaka amin'ity sokajy ity.",
@@ -296,4 +295,13 @@ export const mg: Dictionary = {
   "nav.scanShort": "Hamarino",
   "nav.publish": "Hamoaka",
   "nav.me": "Izaho",
+
+  "proof.short": "Voaporofo",
+  "explore.search": "Hikaroka",
+  "explore.searchPlaceholder": "Hikaroka asa, mpanakanto, tantara",
+  "explore.month": "Volana",
+  "explore.anyMonth": "Volana rehetra",
+  "explore.noResult": "Tsy misy mifanaraka amin'ny « {q} ».",
+  "explore.emptyHint": "Manao an'io zava-kanto io ve ianao? Avoahy ny asa miaraka amin'ny porofon'ny fanaovana, dia hiditra amin'ny fifidianana amin'ity volana ity izy.",
+  "explore.publish": "Hamoaka asa",
 };
