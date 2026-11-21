@@ -7,5 +7,5 @@ client.setConfig({ baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 export * from "./api-client/sdk.gen";
 export type * from "./api-client/types.gen";
 
-/** Request options that authenticate a call with the Keycloak access token (see `getAccessToken()` in `@/lib/auth`). */
+/** Request options that authenticate a call with the JWT from Better Auth (`authClient.token()`). */
 export const withToken = (token: string) => ({ headers: { Authorization: `Bearer ${token}` } });
