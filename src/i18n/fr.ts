@@ -78,7 +78,7 @@ export const fr: Dictionary = {
   "scan.intro":
     "Envoyez la photo d’un tableau, d’une estampe, d’une affiche ou d’un écran. Artiko vous dit de quelle œuvre il s’agit, qui l’a faite, et si elle est prouvée faite par un humain. La photo n’est pas conservée.",
   "scan.photo": "Photo à vérifier",
-  "scan.photoHelp": "JPEG, PNG ou WebP, 20 Mo maximum.",
+  "scan.photoHelp": "JPEG, PNG ou WebP, 5 Mo maximum.",
   "scan.previewAlt": "La photo en cours de vérification",
   "scan.checking": "Vérification de la photo.",
   "scan.failed": "La vérification a échoué. Réessayez.",
@@ -331,4 +331,12 @@ export const fr: Dictionary = {
   "artist.inHall": "Au Panthéon",
   "artist.others": "Autres musées",
   "artist.heritage": "Patrimoine vivant",
+
+  "heritage.form": "Forme d’art",
+  "heritage.succession": "Relève",
+  "heritage.successionText": "{n} apprenants pour 100 maîtres",
+  "scan.choose": "Prendre ou choisir une photo",
+  "scan.change": "Changer de photo",
+  "scan.waiting": "La réponse s’affiche ici dès que la photo est vérifiée.",
+  "scan.aiNote": "Le fichier porte des Content Credentials qui nomment un générateur d’images. Il n’entre ni dans les musées ni dans le vote.",
 };

@@ -88,7 +88,7 @@ export const en = {
   "scan.intro":
     "Send a photo of a painting, a print, a poster or a screen. Artiko tells you which work it is, who made it, and whether it is proven human-made. The photo is not kept.",
   "scan.photo": "Photo to check",
-  "scan.photoHelp": "JPEG, PNG or WebP, up to 20 MB.",
+  "scan.photoHelp": "JPEG, PNG or WebP, 5 MB at most.",
   "scan.previewAlt": "The photo being checked",
   "scan.checking": "Checking the photo.",
   "scan.failed": "The check did not go through. Try again.",
@@ -345,6 +345,14 @@ export const en = {
   "artist.inHall": "In the Hall of Fame",
   "artist.others": "Other museums",
   "artist.heritage": "Living heritage",
+
+  "heritage.form": "Art form",
+  "heritage.succession": "Succession",
+  "heritage.successionText": "{n} learners for 100 masters",
+  "scan.choose": "Take or choose a photo",
+  "scan.change": "Change the photo",
+  "scan.waiting": "The answer appears here once the photo is checked.",
+  "scan.aiNote": "The file carries Content Credentials that name an image generator. It enters neither the museums nor the vote.",
 } as const;
 
 export type Key = keyof typeof en;

@@ -79,7 +79,7 @@ export const mg: Dictionary = {
   "scan.intro":
     "Alefaso ny sarin'ny hosodoko, pirinty, afisy na efijery. Lazain'i Artiko aminao hoe inona io zava-kanto io, iza no nanao azy ary voaporofo ve fa nataon'olombelona. Tsy tehirizina ny sary.",
   "scan.photo": "Sary hamarinina",
-  "scan.photoHelp": "JPEG, PNG na WebP, hatramin'ny 20 MB.",
+  "scan.photoHelp": "JPEG, PNG na WebP, hatramin'ny 5 MB.",
   "scan.previewAlt": "Ny sary eo am-pamarinana",
   "scan.checking": "Eo am-pamarinana ny sary.",
   "scan.failed": "Tsy lasa ny fanamarinana. Andramo indray.",
@@ -332,4 +332,12 @@ export const mg: Dictionary = {
   "artist.inHall": "Ao amin'ny Efitrano Voninahitra",
   "artist.others": "Tranombakoka hafa",
   "artist.heritage": "Lova velona",
+
+  "heritage.form": "Karazana",
+  "heritage.succession": "Mpandimby",
+  "heritage.successionText": "Mpianatra {n} isaky ny mpahay 100",
+  "scan.choose": "Maka na misafidy sary",
+  "scan.change": "Hanova ny sary",
+  "scan.waiting": "Hiseho eto ny valiny rehefa voamarina ny sary.",
+  "scan.aiNote": "Misy Content Credentials manondro mpamorona sary ilay rakitra. Tsy miditra amin'ny tranombakoka na amin'ny fifidianana izy.",
 };
