@@ -1,0 +1,41 @@
+[
+  {
+    "id": 16568,
+    "title": "Water Lilies",
+    "artist": "Claude Monet",
+    "date": "1906",
+    "file": "monet.webp",
+    "width": 1280,
+    "height": 1232,
+    "source_url": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Water_Lilies_-_1933.1157_-_Art_Institute_of_Chicago.jpg",
+    "collection_url": "https://www.artic.edu/artworks/16568",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Claude_Monet_-_Water_Lilies_-_1933.1157_-_Art_Institute_of_Chicago.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  },
+  {
+    "id": 28560,
+    "title": "The Bedroom",
+    "artist": "Vincent van Gogh",
+    "date": "1889",
+    "file": "vangogh.webp",
+    "width": 1280,
+    "height": 1021,
+    "source_url": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_The_Bedroom%2C_1889_Chicago.jpg",
+    "collection_url": "https://www.artic.edu/artworks/28560",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Van_Gogh_-_The_Bedroom%2C_1889_Chicago.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  },
+  {
+    "id": 27992,
+    "title": "A Sunday on La Grande Jatte — 1884",
+    "artist": "Georges Seurat",
+    "date": "1884–1886",
+    "file": "seurat.webp",
+    "width": 1280,
+    "height": 855,
+    "source_url": "https://commons.wikimedia.org/wiki/File:Georges_Seurat_-_Un_dimanche_apr%C3%A8s-midi_%C3%A0_l%27%C3%8Ele_de_la_Grande_Jatte.jpg",
+    "collection_url": "https://www.artic.edu/artworks/27992",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Georges_Seurat_-_Un_dimanche_apr%C3%A8s-midi_%C3%A0_l%27%C3%8Ele_de_la_Grande_Jatte.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  }
+]
