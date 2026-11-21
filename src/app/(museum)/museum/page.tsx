@@ -1,5 +1,5 @@
-import { MuseumShell } from "../museum-shell";
+import { MuseumShell } from "@/features/museum/museum-shell";
 
-export default function Home() {
+export default function MuseumPage() {
   return <MuseumShell />;
 }
