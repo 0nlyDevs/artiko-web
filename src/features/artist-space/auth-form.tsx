@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useT } from "@/i18n/locale";
 import { clearApiToken } from "@/lib/api-token";
 import { authClient } from "@/lib/auth-client";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { field } from "@/features/artist-space/profile-form";
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
@@ -57,12 +58,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             name="password"
             type="password"
             required
-            minLength={8}
+            minLength={signUp ? MIN_PASSWORD_LENGTH : undefined}
             autoComplete={signUp ? "new-password" : "current-password"}
-            aria-describedby="password-help"
+            aria-describedby={signUp ? "password-help" : undefined}
             className={field}
           />
-          <p id="password-help">{t("auth.passwordHelp")}</p>
+          {signUp && <p id="password-help">{t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH })}</p>}
         </div>
         {error && <p role="alert" className="border-l-4 border-red pl-3">{error.message ?? t("auth.failed")}</p>}
         <button type="submit" disabled={busy} className="self-start bg-ink px-5 py-3 font-bold text-paper disabled:opacity-60">
