@@ -1,6 +1,6 @@
 # Artiko Web
 
-Next.js web app for Artiko: the LOVA museum journey today, artist and gallery pages next. It signs users in through Keycloak with Auth.js and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api), as specified in SOLUTION-6.
+Next.js web app for Artiko: the LOVA museum journey today, artist and gallery pages next. It signs users in with Better Auth and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api). SOLUTION-6 names Keycloak for identity; the team chose Better Auth instead, and the API only needs a different JWKS URL, issuer and audience to switch.
 
 ## Develop
 
@@ -13,16 +13,17 @@ pnpm build
 
 ## Auth and API
 
-- Copy `.env.example` to `.env.local` and fill it in: Keycloak realm, client and the Auth.js secret.
-- Auth.js keeps the Keycloak tokens in its encrypted HTTP-only cookie and refreshes them (access tokens last 5 minutes). Server code reads the access token with `getAccessToken()` from `@/lib/auth`; it never reaches browser JavaScript.
-- `src/lib/api.ts` is the only entry point to the API. Its client is generated from `artiko-api/openapi.yml`: run `pnpm api:generate` (set `OPENAPI_SPEC` to another path or URL if the sibling checkout is elsewhere) and commit the result.
+- Copy `.env.example` to `.env.local` and fill it in. Use the same database as artiko-api (Better Auth keeps its tables in schema `better_auth`), then run `pnpm auth:migrate` once.
+- Better Auth signs a JWT (EdDSA, issuer and audience = `BETTER_AUTH_URL`) published at `/api/auth/jwks`. artiko-api verifies it. Web: `authClient.token()`. Android: sign in, read the `set-auth-token` header, then `GET /api/auth/token` with it as a bearer token.
+- `BETTER_AUTH_SECRET` has no fallback: the auth route fails on its first request without it, but `next build` needs none.
+- `src/lib/api.ts` is the only entry point to the API. Its client is generated from `artiko-api/openapi.yml`: run `pnpm api:generate` (set `OPENAPI_SPEC` to another path or URL) and commit the result.
 
 ## Layout
 
 - `src/app/`: routing only. Route groups carry their own root layout: `(museum)` ships a standalone stylesheet and must not inherit Tailwind's preflight, `(app)` is the Tailwind-styled app shell.
 - `src/features/<feature>/`: the code behind a route. `museum/` holds the LOVA journey shell and its static markup.
 - `src/components/`: the 3D gallery walk of the home page (`gallery/`), still to be moved under `src/features/gallery/` to follow the same rule.
-- `src/lib/`: `auth.ts` (Auth.js + Keycloak), `api.ts` and `api-client/` (generated, do not edit).
+- `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `api.ts` and `api-client/` (generated, do not edit).
 - `public/museum/`: vendored static assets (stylesheet, fonts, GSAP, Lenis, the journey script).
 
 Rule: a page file only imports from `src/features` and `src/app`, never the reverse. Shared code goes in `src/lib/` once two features need it.
