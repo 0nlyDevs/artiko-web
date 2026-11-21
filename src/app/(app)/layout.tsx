@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, League_Gothic, Rock_Salt } from "next/font/google";
+import { Bricolage_Grotesque, Cormorant_Garamond, League_Gothic, Rock_Salt } from "next/font/google";
 import "./globals.css";
 
 const display = League_Gothic({
@@ -13,22 +13,29 @@ const salt = Rock_Salt({
   subsets: ["latin"],
 });
 
-const sans = Inter({
+const sans = Bricolage_Grotesque({
   variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const serif = Cormorant_Garamond({
+  variable: "--font-serif",
+  weight: ["500", "600"],
+  style: ["italic"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "ARTIKO: every art deserves a museum",
   description:
-    "Scan any artwork, visit every artist's 3D museum, vote for the best works and learn the skills that keep art alive.",
+    "ARTIKO scans any artwork, gives every artist a 3D museum, lets the public vote for the best works and teaches the skills that keep art alive.",
 };
 
 export const viewport: Viewport = { themeColor: "#e8e6e1" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${salt.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${salt.variable} ${sans.variable} ${serif.variable}`}>
       <body>{children}</body>
     </html>
   );
