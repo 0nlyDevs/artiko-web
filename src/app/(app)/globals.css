@@ -16,6 +16,17 @@
   --ease-in-out: cubic-bezier(0.87, 0, 0.13, 1);
 }
 
+/* The same tokens as Tailwind utilities (bg-wall, text-ink, bg-red, font-heading...) for the app pages. */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-red: var(--red);
+  --color-paper: var(--paper);
+  --color-wall: var(--wall);
+  --font-heading: var(--font-display);
+}
+
 html {
   background: var(--wall);
   color: var(--ink);
