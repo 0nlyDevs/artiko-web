@@ -1463,6 +1463,8 @@ button {
 }
 
 /* ── App pages: controls and motion shared by explore, museums, Hall of Fame, heritage, scan and my space ── */
+/* In the components layer so Tailwind utilities on the same element (pl-11, pr-14...) still win. */
+@layer components {
 
 .btn {
   display: inline-flex;
@@ -1552,6 +1554,7 @@ select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csv
 @keyframes fade-in { from { opacity: 0; } }
 .fill-in { transform-origin: left; animation: fill-in 0.7s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s both; }
 @keyframes fill-in { from { transform: scaleX(0); } }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .rise, .skel, .pop, .bump, .spin, .scan-sweep, .ken, .fill-in { animation: none; }
