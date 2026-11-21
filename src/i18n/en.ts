@@ -431,6 +431,8 @@ export const en = {
   "email.existing.subject": "You already have an Artiko account",
   "email.existing.body": "Someone tried to create an Artiko account with this address, which already has one. Sign in, or choose a new password if you forgot it.",
   "email.existing.button": "Reset my password",
+
+  "space.unverified": "Confirm your email address to use your space: the link is in your inbox.",
 } as const;
 
 export type Key = keyof typeof en;

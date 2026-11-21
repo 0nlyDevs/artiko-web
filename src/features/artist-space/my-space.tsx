@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import {
+  ApiError,
   getMe,
   getWork,
   listCategories,
@@ -49,13 +50,27 @@ export function MySpace() {
   const { t, plural, rich } = useT();
   const { data: session, isPending } = authClient.useSession();
   const [space, setSpace] = useState<Space | null>(null);
-  const [failed, setFailed] = useState(false);
+  // "unverified": a session opened before email verification was required; the API refuses its token.
+  const [failed, setFailed] = useState<false | "error" | "unverified">(false);
   const [picked, setPicked] = useState<Tab | null>(null);
+  const [resent, setResent] = useState(false);
 
   useEffect(() => {
     if (!session) return;
-    loadSpace().then(setSpace, () => setFailed(true));
+    loadSpace().then(
+      (loaded) => {
+        setFailed(false);
+        setSpace(loaded);
+      },
+      (e) => setFailed(e instanceof ApiError && e.code === "email_not_verified" ? "unverified" : "error"),
+    );
   }, [session]);
+
+  async function signOut() {
+    await authClient.signOut();
+    clearApiToken();
+    router.push("/");
+  }
 
   if (isPending || (session && !space && !failed)) return <SpaceSkeleton />;
   if (!session)
@@ -77,9 +92,29 @@ export function MySpace() {
     );
   if (failed || !space)
     return (
-      <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
-        {t("space.error")}
-      </p>
+      <div className="mx-auto flex max-w-2xl flex-col items-start gap-4 py-8">
+        <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
+          {t(failed === "unverified" ? "space.unverified" : "space.error")}
+        </p>
+        <div className="flex flex-wrap gap-2.5">
+          {failed === "unverified" && (
+            <button
+              type="button"
+              disabled={resent}
+              onClick={async () => {
+                const { error } = await authClient.sendVerificationEmail({ email: session.user.email, callbackURL: "/me" });
+                if (!error) setResent(true);
+              }}
+              className="btn btn-ink"
+            >
+              {resent ? t("auth.resent") : t("auth.resend")}
+            </button>
+          )}
+          <button type="button" onClick={signOut} className="btn btn-soft">
+            {t("space.signOut")}
+          </button>
+        </div>
+      </div>
     );
 
   const { me, works, expositions, votes } = space;
@@ -98,12 +133,6 @@ export function MySpace() {
   const asked = params.get("tab") as Tab | null;
   const tab = picked ?? (tabs.some((x) => x.key === asked) ? (asked as Tab) : tabs[0].key);
   const name = me.name ?? me.email ?? t("space.title");
-
-  async function signOut() {
-    await authClient.signOut();
-    clearApiToken();
-    router.push("/");
-  }
 
   return (
     <div className="mx-auto flex max-w-[1080px] flex-col">

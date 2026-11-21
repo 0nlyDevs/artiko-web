@@ -417,4 +417,6 @@ export const fr: Dictionary = {
   "email.existing.subject": "Vous avez déjà un compte Artiko",
   "email.existing.body": "Quelqu’un a essayé de créer un compte Artiko avec cette adresse, qui en a déjà un. Connectez-vous, ou choisissez un nouveau mot de passe si vous l’avez oublié.",
   "email.existing.button": "Réinitialiser mon mot de passe",
+
+  "space.unverified": "Confirmez votre adresse e-mail pour utiliser votre espace : le lien est dans votre boîte de réception.",
 };

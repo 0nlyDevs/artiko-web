@@ -418,4 +418,6 @@ export const mg: Dictionary = {
   "email.existing.subject": "Efa manana kaonty Artiko ianao",
   "email.existing.body": "Nisy nanandrana namorona kaonty Artiko tamin'ity adiresy ity, nefa efa manana iray izy. Midira, na misafidiana tenimiafina vaovao raha hadinonao.",
   "email.existing.button": "Hamerina ny tenimiafiko",
+
+  "space.unverified": "Hamafiso ny adiresy mailakao mba hampiasana ny toerananao: ao amin'ny boaty fandraisanao ny rohy.",
 };
