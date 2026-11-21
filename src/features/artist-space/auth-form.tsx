@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/i18n/locale";
+import { clearApiToken } from "@/lib/api-token";
 import { authClient } from "@/lib/auth-client";
 import { field } from "@/features/artist-space/profile-form";
 
@@ -25,6 +26,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       : await authClient.signIn.email({ email, password });
     setBusy(false);
     if (error) return setError({ message: error.message ?? null });
+    // A token cached for a previous account must never be sent as this one.
+    clearApiToken();
     router.push("/me");
   }
 
