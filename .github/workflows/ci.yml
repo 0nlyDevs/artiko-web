@@ -1,20 +1,78 @@
 name: CI
+
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod --audit-level high
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
+          persist-credentials: false
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: node pnpm task
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+      - run: task ci
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Ensure the scanner matches mise.toml
+        run: |
+          if ! grep --quiet --line-regexp "gitleaks = \"${GITLEAKS_VERSION}\"" mise.toml; then
+            echo "::error::GITLEAKS_VERSION ${GITLEAKS_VERSION} differs from the gitleaks version in mise.toml"
+            exit 1
+          fi
+      - name: Scan Git history with Gitleaks
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tool_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks.XXXXXXXX")"
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$archive" \
+            --output "$tool_dir/$archive"
+          printf '%s  %s\n' "$GITLEAKS_SHA256" "$tool_dir/$archive" | sha256sum --check --status
+          tar -xzf "$tool_dir/$archive" -C "$tool_dir" gitleaks
+
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            git cat-file -e "${PR_BASE_SHA}^{commit}"
+            git cat-file -e "${PR_HEAD_SHA}^{commit}"
+            log_opts="${PR_BASE_SHA}..${PR_HEAD_SHA}"
+          else
+            log_opts=--all
+          fi
+          "$tool_dir/gitleaks" git --no-banner --redact=100 --verbose --log-opts="$log_opts" .
