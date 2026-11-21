@@ -1225,69 +1225,20 @@ button {
 }
 
 .g-preloader.is-done .g-loader-mark {
-  transform: scale(1.25) rotate(60deg);
-}
-
-.g-loader-track {
-  fill: none;
-  stroke: rgba(30, 43, 74, 0.1);
-  stroke-width: 2;
-}
-
-.g-loader-ring {
-  fill: none;
-  stroke: #e76f51;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s var(--ease-out);
+  transform: scale(1.25);
 }
 
 .g-loader-flower {
   transform-origin: 110px 110px;
-  animation: g-spin 9s linear infinite;
+  animation: g-spin 2.2s var(--ease-in-out) infinite;
 }
 
 .g-loader-flower ellipse {
   fill: #e76f51;
-  opacity: 0.14;
-  transform-box: view-box;
-  transform-origin: 110px 110px;
-  scale: 0.7;
-  transition:
-    opacity 0.5s,
-    scale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.g-loader-flower ellipse.is-on {
-  opacity: 1;
-  scale: 1;
 }
 
 .g-loader-heart {
   fill: #f5ebdd;
-  stroke: rgba(30, 43, 74, 0.12);
-  stroke-width: 1;
-}
-
-.g-loader-word {
-  opacity: 0.92;
-}
-
-.g-loader-step {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: 22px;
-  font-style: italic;
-  font-weight: 500;
-  color: var(--muted);
-  animation: g-step 0.6s var(--ease-out) both;
-}
-
-@keyframes g-step {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
 }
 
 @keyframes g-spin {
