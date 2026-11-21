@@ -570,29 +570,36 @@ function Flag() {
   );
 }
 
+// ARTIKO's flower in 3D on the logo alcove's plinth: six coral petals around
+// a cream heart, turning slowly.
+const PETAL = 52;
+
 function ArtikoMark() {
-  const mesh = useRef<THREE.Mesh>(null);
-  const geometry = useMemo(() => {
+  const group = useRef<THREE.Group>(null);
+  const { petal, heart } = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-40, -62);
-    shape.lineTo(-40, 18);
-    shape.absarc(0, 18, 40, Math.PI, 0, true);
-    shape.lineTo(40, -62);
-    shape.lineTo(-40, -62);
-    const hole = new THREE.Path();
-    hole.absarc(0, -8, 15, 0, Math.PI * 2, false);
-    shape.holes.push(hole);
-    const g = new THREE.ExtrudeGeometry(shape, { depth: 16, bevelEnabled: true, bevelSize: 2.5, bevelThickness: 2.5, bevelSegments: 4, curveSegments: 40 });
-    g.center();
-    return g;
+    shape.absellipse(0, PETAL / 2, PETAL * 0.26, PETAL / 2, 0, Math.PI * 2, false, 0);
+    const extrude = { depth: 8, bevelEnabled: true, bevelSize: 2, bevelThickness: 2, bevelSegments: 4, curveSegments: 40 };
+    const p = new THREE.ExtrudeGeometry(shape, extrude);
+    p.translate(0, 0, -4);
+    const h = new THREE.CylinderGeometry(PETAL * 0.2, PETAL * 0.2, 16, 48);
+    h.rotateX(Math.PI / 2);
+    return { petal: p, heart: h };
   }, []);
   useFrame((_, delta) => {
-    if (mesh.current) mesh.current.rotation.y += delta * 0.6;
+    if (group.current) group.current.rotation.y += delta * 0.6;
   });
   return (
-    <mesh ref={mesh} geometry={geometry} position={[857.5, 282, -82]}>
-      <meshStandardMaterial color="#e5574a" roughness={0.45} metalness={0.05} />
-    </mesh>
+    <group ref={group} position={[857.5, 282, -82]} scale={1.15}>
+      {[0, 60, 120, 180, 240, 300].map((angle) => (
+        <mesh key={angle} geometry={petal} rotation={[0, 0, THREE.MathUtils.degToRad(angle)]}>
+          <meshStandardMaterial color="#e76f51" roughness={0.45} metalness={0.05} />
+        </mesh>
+      ))}
+      <mesh geometry={heart}>
+        <meshStandardMaterial color="#f5ebdd" roughness={0.6} />
+      </mesh>
+    </group>
   );
 }
 

@@ -8,6 +8,7 @@ import Lenis from "lenis";
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { ArtikoLogo } from "../brand/ArtikoLogo";
 import { stops } from "./content";
 import { GalleryScene, type CameraPath } from "./Scene";
 
@@ -28,8 +29,8 @@ function Preloader() {
   const done = !active && progress >= 100;
   return (
     <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite">
-      <p className="g-logo g-preloader-logo">
-        artiko<span aria-hidden="true">·</span>
+      <p className="g-preloader-logo" aria-label="ARTIKO">
+        <ArtikoLogo height={64} />
       </p>
       <div className="g-preloader-bar">
         <span style={{ transform: `scaleX(${progress / 100})` }} />
@@ -231,7 +232,7 @@ export function Gallery() {
             <span />
           </button>
           <Link className="g-logo" href="/" aria-label="ARTIKO, home">
-            artiko<span aria-hidden="true">·</span>
+            <ArtikoLogo height={26} />
           </Link>
           <nav className="g-quick" aria-label="Quick links">
             {[1, 3, 4, 5].map((i) => (

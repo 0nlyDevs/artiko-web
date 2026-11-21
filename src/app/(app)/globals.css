@@ -149,22 +149,36 @@ button {
 }
 
 .g-logo {
-  font-family: var(--sans);
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
-  color: var(--ink);
-  text-decoration: none;
+  display: block;
+  line-height: 0;
 }
 
-.g-logo span {
-  color: var(--red);
-  margin-left: 1px;
+.g-logo svg {
+  display: block;
 }
 
-.g-header.is-menu .g-logo span {
-  color: var(--cream);
+/* On the red menu panel the coral flower turns cream to stay visible. */
+.g-logo .artiko-flower > g,
+.g-logo .artiko-flower > circle {
+  transition: fill 0.4s;
+}
+
+.g-header.is-menu .g-logo .artiko-flower > g {
+  fill: var(--cream);
+}
+
+.g-header.is-menu .g-logo .artiko-flower > circle {
+  fill: var(--ink);
+}
+
+/* The flower turns a little on hover, and keeps turning while the menu is open. */
+.g-logo .artiko-flower {
+  transition: transform 0.8s var(--ease-in-out);
+}
+
+.g-logo:hover .artiko-flower,
+.g-header.is-menu .g-logo .artiko-flower {
+  transform: rotate(60deg);
 }
 
 .g-quick {
