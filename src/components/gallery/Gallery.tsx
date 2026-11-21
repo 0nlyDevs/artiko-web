@@ -24,18 +24,44 @@ const APP_PAGES = [
   { href: "/me", label: "My space" },
 ];
 
+const LOADING_STEPS = ["Opening the doors", "Hanging the paintings", "Tuning the music", "Lighting the rooms", "Welcome"];
+
+// Loader: the ARTIKO flower blooms petal by petal while a thin ring traces
+// the progress around it. On completion the screen lifts away like a curtain
+// (skill "clip-path-bar-reveal").
 function Preloader() {
   const { progress, active } = useProgress();
   const done = !active && progress >= 100;
+  const ratio = done ? 1 : progress / 100;
+  const step = LOADING_STEPS[Math.min(LOADING_STEPS.length - 1, Math.floor(ratio * (LOADING_STEPS.length - 1)))];
+  const r = 92;
+  const length = 2 * Math.PI * r;
   return (
-    <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite">
-      <p className="g-preloader-logo" aria-label="ARTIKO">
-        <ArtikoLogo height={64} />
+    <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite" aria-label={`Loading ARTIKO, ${Math.round(progress)}%`}>
+      <svg className="g-loader-mark" viewBox="0 0 220 220" width="168" height="168" aria-hidden="true">
+        <circle cx="110" cy="110" r={r} className="g-loader-track" />
+        <circle
+          cx="110"
+          cy="110"
+          r={r}
+          className="g-loader-ring"
+          strokeDasharray={length}
+          strokeDashoffset={length * (1 - ratio)}
+          transform="rotate(-90 110 110)"
+        />
+        <g className="g-loader-flower">
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+            <g key={angle} transform={`rotate(${angle} 110 110)`}>
+              <ellipse cx="110" cy="78" rx="16.6" ry="32" className={ratio >= (i + 1) / 6 - 0.001 ? "is-on" : ""} />
+            </g>
+          ))}
+          <circle cx="110" cy="110" r="12.8" className="g-loader-heart" />
+        </g>
+      </svg>
+      <ArtikoLogo height={34} className="g-loader-word" />
+      <p className="g-loader-step" key={step}>
+        {step}
       </p>
-      <div className="g-preloader-bar">
-        <span style={{ transform: `scaleX(${progress / 100})` }} />
-      </div>
-      <p className="g-preloader-count">{Math.round(progress)}%</p>
     </div>
   );
 }
