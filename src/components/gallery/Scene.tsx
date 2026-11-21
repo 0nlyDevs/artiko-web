@@ -2,7 +2,8 @@ import { MeshReflectorMaterial, Text, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { hero, neon, showreel, works, type Work } from "./content";
+import { getLocale, translate, useLocale, useT } from "@/i18n/locale";
+import { heroLines, neon, showreel, works, type Work } from "./content";
 import { Overlays } from "./Overlays";
 
 export const SCENE_URL = "/museum/assets/landscape.glb";
@@ -99,7 +100,8 @@ async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { 
     ctx.fillStyle = "#fff";
     ctx.fillText(kind, 56 + pad, canvas.height - 266);
     ctx.font = `italic 600 46px ${serif}`;
-    ctx.fillText(caption.label, 56, canvas.height - 200);
+    // maxWidth squeezes a longer translation instead of letting it run off the slide.
+    ctx.fillText(caption.label, 56, canvas.height - 200, canvas.width - 112);
   }
   return canvas;
 }
@@ -128,10 +130,10 @@ async function musicCanvas() {
   }
   ctx.fillStyle = "#fff4ec";
   ctx.font = `italic 600 92px ${serif}`;
-  ctx.fillText("Gymnopédie No. 1", 80, 170);
+  ctx.fillText(translate("work.gymnopedie.title"), 80, 170);
   ctx.font = `600 30px ${sans}`;
   ctx.fillStyle = "rgba(255,244,236,0.7)";
-  ctx.fillText("ERIK SATIE  ·  1888  ·  PIANO", 80, 860);
+  ctx.fillText(translate("card.music"), 80, 860);
   return canvas;
 }
 
@@ -164,10 +166,10 @@ async function oralCanvas() {
   ctx.font = `400 300px ${display}`;
   ctx.fillText("KABARY", 90, 640);
   ctx.font = `italic 600 64px ${serif}`;
-  ctx.fillText("the Malagasy art of speech", 96, 740);
+  ctx.fillText(translate("card.oralTagline"), 96, 740, 1100);
   ctx.font = `600 28px ${sans}`;
   ctx.fillStyle = "rgba(20,17,16,0.6)";
-  ctx.fillText("PROVERBS  ·  IMAGES  ·  VOICE", 96, 850);
+  ctx.fillText(translate("card.oralFoot"), 96, 850, 1100);
   return canvas;
 }
 
@@ -175,6 +177,29 @@ function workCanvas(work: Work) {
   if (work.card === "music") return musicCanvas();
   if (work.card === "oral") return oralCanvas();
   return pictureCanvas(work.image ?? "", work.fit ?? "cover");
+}
+
+// Draws a work's canvas onto its frame. Only the cards carry words, so they are redrawn when the
+// language changes (see GalleryScene); `token` drops a draw that a newer one has overtaken.
+function paintFrame(material: THREE.MeshBasicMaterial, work: Work) {
+  const token = ((material.userData.token as number | undefined) ?? 0) + 1;
+  material.userData.token = token;
+  void workCanvas(work).then((canvas) => {
+    if (material.userData.token !== token) return;
+    material.map?.dispose();
+    material.map = canvasTexture(canvas);
+    material.color.set("#ffffff");
+    material.needsUpdate = true;
+  });
+}
+
+function repaintCards(root: THREE.Object3D, locale: string) {
+  if (root.userData.cardsLocale === locale) return;
+  root.userData.cardsLocale = locale;
+  const frames = root.userData.frameMaterials as THREE.MeshBasicMaterial[] | undefined;
+  works.forEach((work, index) => {
+    if (work.card && frames?.[index]) paintFrame(frames[index], work);
+  });
 }
 
 function prepareScene(root: THREE.Object3D) {
@@ -219,18 +244,18 @@ function prepareScene(root: THREE.Object3D) {
     heroWall.material = material;
   }
 
+  const frameMaterials: THREE.MeshBasicMaterial[] = [];
   FRAME_NAMES.forEach((name, index) => {
     const frame = root.getObjectByName(name) as THREE.Mesh | undefined;
     const work = works[index];
     if (!frame || !work) return;
     const material = new THREE.MeshBasicMaterial({ color: "#1b1b1b", toneMapped: false });
     frame.material = material;
-    void workCanvas(work).then((canvas) => {
-      material.map = canvasTexture(canvas);
-      material.color.set("#ffffff");
-      material.needsUpdate = true;
-    });
+    frameMaterials[index] = material;
+    paintFrame(material, work);
   });
+  root.userData.frameMaterials = frameMaterials;
+  root.userData.cardsLocale = getLocale();
 
   const people = root.getObjectByName(PEOPLE_MESH) as THREE.Mesh | undefined;
   if (people) {
@@ -323,6 +348,9 @@ function malagasyMaterial(source: THREE.MeshBasicMaterial) {
   return material;
 }
 
+// Longer words in French or Malagasy shrink to the width the English line was composed for.
+const fitSize = (size: number, text: string, chars: number) => size * Math.min(1, chars / text.length);
+
 function ExtrudedLine({ text, position, fontSize }: { text: string; position: [number, number, number]; fontSize: number }) {
   const layers = 10;
   return (
@@ -364,6 +392,7 @@ function ExtrudedLine({ text, position, fontSize }: { text: string; position: [n
 
 // The slogan pushes out of the wall line by line once the scene is shown.
 function HeroSlogan() {
+  const { t } = useT();
   const lines = useRef<(THREE.Group | null)[]>([]);
   const start = useRef(-1);
   useFrame(({ clock }) => {
@@ -384,19 +413,27 @@ function HeroSlogan() {
     [-514, 217],
     [-374, 87],
   ];
+  // How many letters each line can hold before it meets the doodles and the descriptor.
+  const room = [12, 9, 7];
   return (
     <group>
-      {baselines.map(([x, y], i) => (
-        <group key={i} ref={(g) => void (lines.current[i] = g)} position={[0, 0, -40]}>
-          <ExtrudedLine text={hero.lines[i]} position={[x, y, 0]} fontSize={168} />
-        </group>
-      ))}
+      {baselines.map(([x, y], i) => {
+        const text = t(heroLines[i]);
+        return (
+          <group key={i} ref={(g) => void (lines.current[i] = g)} position={[0, 0, -40]}>
+            <ExtrudedLine text={text} position={[x, y, i * 6]} fontSize={fitSize(168, text, room[i])} />
+          </group>
+        );
+      })}
     </group>
   );
 }
 
 function NeonSign() {
+  const { t } = useT();
   const glow = useRef<THREE.Group>(null);
+  const lines = neon.map((key) => t(key));
+  const fontSize = fitSize(74, lines.reduce((a, b) => (b.length > a.length ? b : a)), 20);
   useFrame(({ clock }) => {
     if (!glow.current) return;
     const t = clock.elapsedTime;
@@ -409,11 +446,11 @@ function NeonSign() {
   return (
     <group position={[14423, 323, -528]}>
       <group ref={glow}>
-        {neon.map((line, i) => (
+        {lines.map((line, i) => (
           <Text
-            key={`glow-${line}`}
+            key={`glow-${i}`}
             font={DISPLAY_FONT}
-            fontSize={74}
+            fontSize={fontSize}
             anchorX="center"
             anchorY="middle"
             position={[i * -14, 36 - i * 72, 0]}
@@ -427,11 +464,11 @@ function NeonSign() {
           </Text>
         ))}
       </group>
-      {neon.map((line, i) => (
+      {lines.map((line, i) => (
         <Text
-          key={line}
+          key={i}
           font={DISPLAY_FONT}
-          fontSize={74}
+          fontSize={fontSize}
           anchorX="center"
           anchorY="middle"
           position={[i * -14, 36 - i * 72, 2]}
@@ -616,6 +653,8 @@ class ShowreelPlayer {
   private startedAt = -1;
   private previous: THREE.Material | THREE.Material[];
   private cancelled = false;
+  private generation = 0;
+  private captionLocale: string | null = null;
   readonly material = new THREE.ShaderMaterial({
     toneMapped: false,
     uniforms: {
@@ -651,13 +690,32 @@ class ShowreelPlayer {
   constructor(private screen: THREE.Mesh) {
     this.previous = screen.material;
     screen.material = this.material;
+    this.reloadCaptions();
+  }
+
+  // (Re)draws the slides with captions in the active language; the slide on screen carries over.
+  reloadCaptions() {
+    const locale = getLocale();
+    if (locale === this.captionLocale) return;
+    this.captionLocale = locale;
+    const generation = ++this.generation;
     void Promise.all(
-      showreel.map((slide) => pictureCanvas(slide.image, "cover", { kind: slide.kind, label: slide.label }).then(canvasTexture)),
+      showreel.map((slide) =>
+        pictureCanvas(slide.image, "cover", {
+          kind: translate(slide.kind, undefined, locale),
+          label: translate(slide.label, undefined, locale),
+        }).then(canvasTexture),
+      ),
     ).then((list) => {
-      if (this.cancelled) return;
+      if (this.cancelled || generation !== this.generation) {
+        list.forEach((t) => t.dispose());
+        return;
+      }
+      const old = this.textures;
       this.textures = list;
-      this.material.uniforms.uA.value = list[0];
-      this.material.uniforms.uB.value = list[1];
+      this.material.uniforms.uA.value = list[this.slide % list.length];
+      this.material.uniforms.uB.value = list[(this.slide + 1) % list.length];
+      old.forEach((t) => t.dispose());
     });
   }
 
@@ -690,6 +748,7 @@ class ShowreelPlayer {
 
 function Showreel({ screen }: { screen: THREE.Mesh | null }) {
   const player = useRef<ShowreelPlayer | null>(null);
+  const locale = useLocale();
 
   useEffect(() => {
     if (!screen) return;
@@ -700,6 +759,10 @@ function Showreel({ screen }: { screen: THREE.Mesh | null }) {
       player.current = null;
     };
   }, [screen]);
+
+  useEffect(() => {
+    player.current?.reloadCaptions();
+  }, [locale]);
 
   useFrame(({ clock }) => player.current?.update(clock.elapsedTime));
 
@@ -715,6 +778,10 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
   const gltf = useGLTF(SCENE_URL);
 
   useMemo(() => prepareScene(gltf.scene), [gltf.scene]);
+
+  // The music and kabary cards carry words drawn into their textures: redraw them for a new language.
+  const locale = useLocale();
+  useEffect(() => repaintCards(gltf.scene, locale), [locale, gltf.scene]);
 
   const path = useMemo(() => {
     const clip = gltf.animations.find((a) => a.name.startsWith("Camera"));

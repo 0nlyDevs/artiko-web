@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Cormorant_Garamond, League_Gothic, Rock_Salt } from "next/font/google";
+import { LocaleProvider } from "@/i18n/locale";
 import "./globals.css";
 
 const display = League_Gothic({
@@ -36,7 +37,9 @@ export const viewport: Viewport = { themeColor: "#e8e6e1" };
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${display.variable} ${salt.variable} ${sans.variable} ${serif.variable}`}>
-      <body>{children}</body>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

@@ -2,7 +2,8 @@ import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import * as THREE from "three";
-import { about, contact, featured, features, hero, stops, works } from "./content";
+import { useT } from "@/i18n/locale";
+import { aboutTags, featureKeys, stops, works } from "./content";
 import { Bubble, Bulb, Crown, CurvedArrow, FeatureIcon, FrameHands, HatchedArrow, Hello, PaintBox, PaletteBrush, ScrollStar, Starburst } from "./Doodles";
 
 // One scene unit is one CSS pixel when the viewport is 755 px tall, the
@@ -87,6 +88,7 @@ function Cta({ children, onClick, light = false }: { children: ReactNode; onClic
 }
 
 function ListenButton() {
+  const { t } = useT();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   useEffect(() => () => audio.current?.pause(), []);
@@ -110,12 +112,13 @@ function ListenButton() {
         <i />
         <i />
       </span>
-      {playing ? "Pause" : "Listen"}
+      {playing ? t("pause") : t("listen")}
     </button>
   );
 }
 
 function ContactForm() {
+  const { t } = useT();
   const [sent, setSent] = useState(false);
   const onSubmit = (event: { preventDefault(): void }) => {
     event.preventDefault();
@@ -124,39 +127,40 @@ function ContactForm() {
   return (
     <form className="g-form" onSubmit={onSubmit}>
       <label className="r" style={at(0)}>
-        Name
+        {t("form.name")}
         <input name="name" autoComplete="name" required />
       </label>
       <label className="r" style={at(1)}>
-        Email
+        {t("form.email")}
         <input name="email" type="email" autoComplete="email" required />
       </label>
       <label className="r" style={at(2)}>
-        Message
+        {t("form.message")}
         <textarea name="message" rows={3} />
       </label>
       <div className="g-form-row r" style={at(3)}>
-        <label className="g-attach" aria-label="Attach a file">
+        <label className="g-attach" aria-label={t("form.attach")}>
           <input type="file" hidden />
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d="M8 13 L14 7 C15.5 5.5 18 5.5 19 7 C20.5 8.5 20.5 10.5 19 12 L11 20 C9 22 6 22 4.5 20 C3 18.5 3 15.5 5 13.5 L12 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
         </label>
         <button type="submit" className="g-cta g-cta-tall">
-          <span className="g-cta-label">Send</span>
+          <span className="g-cta-label">{t("form.send")}</span>
           <span className="g-cta-dot">
             <Arrow />
           </span>
         </button>
       </div>
       <p className="g-form-note" role="status">
-        {sent ? "Message ready. Sending opens when the ARTIKO API goes live." : ""}
+        {sent ? t("form.sent") : ""}
       </p>
     </form>
   );
 }
 
 export function Overlays({ goTo }: { goTo: (x: number) => void }) {
+  const { t } = useT();
   const featuresX = stops[1].x;
   const worksX = 8835;
   const contactX = Infinity;
@@ -165,17 +169,17 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
     <>
       {/* Hero wall */}
       <Box x={[-562, -434]} y={[359, 464]} className="g-doodle g-pop">
-        <Starburst label="WOW" width={128} />
+        <Starburst label={t("doodle.wow")} width={128} />
       </Box>
       <Box x={[316, 462]} y={[355, 463]} className="g-doodle g-float">
-        <Bubble label={hero.bubble} icon width={146} />
+        <Bubble label={t("hero.bubble")} icon width={146} />
       </Box>
       <Box x={[83, 365]} y={[106, 226]} className="g-descriptor">
-        <Line>{hero.descriptor}</Line>
+        <Line>{t("hero.descriptor")}</Line>
       </Box>
       <Box x={[78, 250]} y={[48, 98]}>
         <div className="r" style={at(1)}>
-          <Cta onClick={() => goTo(featuresX)}>{hero.cta}</Cta>
+          <Cta onClick={() => goTo(featuresX)}>{t("hero.cta")}</Cta>
         </div>
       </Box>
       <Box x={[374, 478]} y={[100, 176]} className="g-doodle g-nudge">
@@ -183,7 +187,7 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       </Box>
       <Box x={[363, 488]} y={[64, 88]} className="g-small">
         <span className="r g-scroll-hint" style={at(2)}>
-          Scroll to explore
+          {t("hero.scroll")}
         </span>
       </Box>
 
@@ -193,10 +197,10 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       </Box>
       <Box x={[1429, 2037]} y={[150, 376]}>
         <h2 className="g-title g-title-xl">
-          <Line>{features.title}</Line>
+          <Line>{t("features.title")}</Line>
         </h2>
         <p className="g-text r" style={at(3)}>
-          {features.intro}
+          {t("features.intro")}
         </p>
       </Box>
       <Box x={[1262, 1383]} y={[113, 196]} className="g-doodle g-nudge">
@@ -205,34 +209,34 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       <Box x={[2043, 2171]} y={[124, 210]} className="g-doodle g-wobble">
         <PaletteBrush width={128} />
       </Box>
-      {features.items.map((item, index) => {
+      {featureKeys.map((key, index) => {
         const x0 = 2255 + index * 440;
         const flip = index % 2 === 1;
         return (
-          <Box key={item.key} x={[x0, x0 + 380]} y={[96, 420]} className={`g-feature ${flip ? "is-flip" : ""}`}>
+          <Box key={key} x={[x0, x0 + 380]} y={[96, 420]} className={`g-feature ${flip ? "is-flip" : ""}`}>
             <div className="g-feature-art r" style={at(0)}>
-              <FeatureIcon name={item.key} width={124} />
+              <FeatureIcon name={key} width={124} />
             </div>
             <div className="g-feature-copy">
               <span className="g-num r" style={at(1)}>
                 {String(index + 1).padStart(2, "0")}
               </span>
               <h3 className="g-title">
-                <Line i={1}>{item.title}</Line>
+                <Line i={1}>{t(`features.${key}.title`)}</Line>
               </h3>
               <p className="g-text r" style={at(2)}>
-                {item.text}
+                {t(`features.${key}.text`)}
               </p>
             </div>
           </Box>
         );
       })}
       <Box x={[4720, 5120]} y={[200, 300]} className="g-salt g-more">
-        <Line>{features.more}</Line>
+        <Line>{t("features.more")}</Line>
       </Box>
       <Box x={[4830, 5020]} y={[110, 160]}>
         <div className="r" style={at(2)}>
-          <Cta onClick={() => goTo(contactX)}>{features.cta}</Cta>
+          <Cta onClick={() => goTo(contactX)}>{t("features.cta")}</Cta>
         </div>
       </Box>
 
@@ -241,19 +245,19 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
         <ScrollStar width={70} />
       </Box>
       <Box x={[7060, 7180]} y={[404, 480]} className="g-doodle g-pop">
-        <Hello label="WINNERS" width={110} />
+        <Hello label={t("doodle.winners")} width={110} />
       </Box>
       <Box x={[6804, 7433]} y={[176, 400]}>
         <h2 className="g-title g-title-xl">
-          <Line>{featured.title}</Line>
+          <Line>{t("featured.title")}</Line>
         </h2>
         <p className="g-text g-lead r" style={at(2)}>
-          {featured.text}
+          {t("featured.text")}
         </p>
       </Box>
       <Box x={[6804, 7004]} y={[112, 162]}>
         <div className="r" style={at(3)}>
-          <Cta onClick={() => goTo(worksX)}>{featured.cta}</Cta>
+          <Cta onClick={() => goTo(worksX)}>{t("featured.cta")}</Cta>
         </div>
       </Box>
       <Box x={[7429, 7652]} y={[58, 264]} className="g-doodle">
@@ -264,25 +268,25 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       {works.map((work, index) => {
         const x0 = 9094 + index * 859.6;
         return (
-          <Box key={work.title} x={[x0, x0 + 325]} y={[121, 453]} className="g-case">
+          <Box key={work.id} x={[x0, x0 + 325]} y={[121, 453]} className="g-case">
             <div>
               <span className="g-chip r" style={at(0)}>
-                {work.kind}
+                {t(work.kind)}
               </span>
               <h3 className="g-title">
-                <Line i={1}>{work.title}</Line>
+                <Line i={1}>{t(`work.${work.id}.title`)}</Line>
               </h3>
               <p className="g-meta r" style={at(2)}>
-                {work.meta}
+                {t(`work.${work.id}.meta`)}
               </p>
               <p className="g-text r" style={at(3)}>
-                {work.text}
+                {t(`work.${work.id}.text`)}
               </p>
             </div>
             <div className="g-case-actions r" style={at(4)}>
               {work.card === "music" && <ListenButton />}
               <a className="g-link" href={work.source} target="_blank" rel="noopener noreferrer">
-                Source <Arrow diagonal />
+                {t("source")} <Arrow diagonal />
               </a>
             </div>
           </Box>
@@ -296,26 +300,26 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       <Box x={[15034, 15578]} y={[176, 422]}>
         <div className="g-title-row">
           <h2 className="g-title g-title-xl">
-            <Line>{about.title}</Line>
+            <Line>{t("about.title")}</Line>
           </h2>
           <div className="g-doodle-inline">
-            <Hello width={100} />
+            <Hello label={t("doodle.hello")} width={100} />
           </div>
         </div>
         <p className="g-text g-lead r" style={at(2)}>
-          {about.text}
+          {t("about.text")}
         </p>
         <ul className="g-tags">
-          {about.tags.map((tag, i) => (
+          {aboutTags.map((tag, i) => (
             <li key={tag} className="r" style={at(3 + i * 0.5)}>
-              {tag}
+              {t(tag)}
             </li>
           ))}
         </ul>
       </Box>
       <Box x={[15034, 15234]} y={[100, 150]}>
         <div className="r" style={at(6)}>
-          <Cta onClick={() => goTo(contactX)}>{contact.cta}</Cta>
+          <Cta onClick={() => goTo(contactX)}>{t("contact.cta")}</Cta>
         </div>
       </Box>
       <Box x={[15584, 15733]} y={[89, 190]} className="g-doodle g-wobble">
@@ -326,12 +330,12 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       <Box x={[16467, 16677]} y={[127, 188]}>
         <div className="r" style={at(1)}>
           <Cta light onClick={() => goTo(contactX)}>
-            {contact.cta}
+            {t("contact.cta")}
           </Cta>
         </div>
       </Box>
       <Box x={[16997, 17094]} y={[367, 435]} className="g-doodle g-float">
-        <Hello width={97} />
+        <Hello label={t("doodle.hello")} width={97} />
       </Box>
       <Box x={[17126, 17585]} y={[60, 479]}>
         <ContactForm />

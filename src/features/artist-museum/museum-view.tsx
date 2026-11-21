@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useState } from "react";
+import { useT } from "@/i18n/locale";
 import { ProofSeal } from "@/lib/works/proof-seal";
 import { VoteButton } from "@/features/artist-museum/vote-button";
 import type { Museum, Work } from "@/lib/api";
@@ -10,10 +11,15 @@ import type { Museum, Work } from "@/lib/api";
 // three.js only runs in the browser.
 const Museum3D = dynamic(() => import("@/features/artist-museum/museum-3d"), {
   ssr: false,
-  loading: () => <div className="flex h-full items-center justify-center">Building the room.</div>,
+  loading: () => <Building />,
 });
 
+function Building() {
+  return <div className="flex h-full items-center justify-center">{useT().t("museum.building")}</div>;
+}
+
 export function MuseumView({ museum }: { museum: Museum }) {
+  const { t, plural } = useT();
   const [mode, setMode] = useState<"3d" | "2d">("3d");
   const [selected, setSelected] = useState<Work>(museum.slots[0].work);
   const [extraVotes, setExtraVotes] = useState<Record<string, number>>({});
@@ -27,9 +33,9 @@ export function MuseumView({ museum }: { museum: Museum }) {
           onClick={() => setMode(mode === "3d" ? "2d" : "3d")}
           className="border-2 border-ink px-3 py-1"
         >
-          {mode === "3d" ? "Simple gallery view" : "Walk the 3D museum"}
+          {mode === "3d" ? t("museum.simple") : t("museum.walk")}
         </button>
-        {mode === "3d" && <p>Drag to look around, scroll to move closer, click a work to open it.</p>}
+        {mode === "3d" && <p>{t("museum.hint")}</p>}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[3fr_2fr]">
@@ -63,9 +69,7 @@ export function MuseumView({ museum }: { museum: Museum }) {
           {selected.media_kind === "audio" && <audio controls src={selected.media_url} className="w-full" />}
           {selected.media_kind === "video" && <video controls src={selected.media_url} className="w-full" />}
           {selected.story && <p>{selected.story}</p>}
-          <p>
-            {votes(selected)} {votes(selected) === 1 ? "vote" : "votes"} this month
-          </p>
+          <p>{t("museum.votesMonth", { votes: plural("votes", votes(selected)) })}</p>
           <VoteButton
             key={selected.id}
             work={selected}
@@ -73,14 +77,14 @@ export function MuseumView({ museum }: { museum: Museum }) {
           />
           {selected.proof_urls.length > 0 && (
             <div className="flex flex-col gap-2">
-              <h3 className="font-bold">Proof of process</h3>
+              <h3 className="font-bold">{t("museum.proof")}</h3>
               <div className="grid grid-cols-3 gap-2">
                 {selected.proof_urls.map((url, i) => (
                   <a key={url} href={url} target="_blank" rel="noreferrer" className="bg-paper">
                     {/\.(jpg|png|webp)$/.test(url) ? (
-                      <Image src={url} alt={`Process step ${i + 1}`} width={200} height={150} className="aspect-[4/3] w-full object-cover" />
+                      <Image src={url} alt={t("museum.stepAlt", { n: i + 1 })} width={200} height={150} className="aspect-[4/3] w-full object-cover" />
                     ) : (
-                      <span className="flex aspect-[4/3] items-center justify-center text-sm">Step {i + 1}</span>
+                      <span className="flex aspect-[4/3] items-center justify-center text-sm">{t("museum.step", { n: i + 1 })}</span>
                     )}
                   </a>
                 ))}

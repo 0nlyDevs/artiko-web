@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { T } from "@/i18n/locale";
+import { ExploreCategories } from "@/features/explore/explore-categories";
 import { listArtists, listCategories, listWorks, unwrap, type CategoryId } from "@/lib/api";
 import { WorkLabel } from "@/lib/works/work-label";
 
@@ -8,13 +10,29 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 export function ExplorePage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <div className="flex flex-col gap-16">
-      <h1 className="font-heading text-7xl">Explore</h1>
-      <Suspense fallback={<p>Loading works.</p>}>
+      <h1 className="font-heading text-7xl">
+        <T k="explore.title" />
+      </h1>
+      <Suspense
+        fallback={
+          <p>
+            <T k="explore.loadingWorks" />
+          </p>
+        }
+      >
         <Works searchParams={searchParams} />
       </Suspense>
       <section className="flex flex-col gap-6">
-        <h2 className="font-heading text-5xl">Artists and their museums</h2>
-        <Suspense fallback={<p>Loading artists.</p>}>
+        <h2 className="font-heading text-5xl">
+          <T k="explore.artists" />
+        </h2>
+        <Suspense
+          fallback={
+            <p>
+              <T k="explore.loadingArtists" />
+            </p>
+          }
+        >
           <Artists />
         </Suspense>
       </section>
@@ -29,18 +47,7 @@ async function Works({ searchParams }: { searchParams: SearchParams }) {
   const works = unwrap(await listWorks({ query: selected ? { category: selected } : {} }));
   return (
     <section className="flex flex-col gap-8">
-      <nav aria-label="Categories" className="flex flex-wrap gap-2">
-        {[{ id: undefined, label: "All" }, ...categories].map((c) => (
-          <Link
-            key={c.label}
-            href={c.id ? `/explore?category=${c.id}` : "/explore"}
-            aria-current={c.id === selected ? "page" : undefined}
-            className="border-2 border-ink px-3 py-1 aria-[current=page]:bg-ink aria-[current=page]:text-paper"
-          >
-            {c.label}
-          </Link>
-        ))}
-      </nav>
+      <ExploreCategories categories={categories} selected={selected} />
       {works.length ? (
         <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {works.map((w) => (
@@ -48,7 +55,9 @@ async function Works({ searchParams }: { searchParams: SearchParams }) {
           ))}
         </div>
       ) : (
-        <p>Nothing published in this category yet.</p>
+        <p>
+          <T k="explore.empty" />
+        </p>
       )}
     </section>
   );

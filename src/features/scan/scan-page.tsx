@@ -1,13 +1,15 @@
 import { ScanForm } from "@/features/scan/scan-form";
+import { T } from "@/i18n/locale";
 
 export function ScanPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
-        <h1 className="font-heading text-7xl">Check a photo</h1>
+        <h1 className="font-heading text-7xl">
+          <T k="scan.title" />
+        </h1>
         <p className="max-w-2xl text-xl">
-          Send a photo of a painting, a print, a poster or a screen. Artiko tells you which work it is, who made it,
-          and whether it is proven human-made. The photo is not kept.
+          <T k="scan.intro" />
         </p>
       </div>
       <ScanForm />

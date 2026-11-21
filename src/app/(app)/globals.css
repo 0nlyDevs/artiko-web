@@ -223,6 +223,74 @@ button {
   color: var(--red-deep);
 }
 
+/* Language switcher: EN / FR / MG, in the bar on wide screens and in the menu at every size */
+
+.g-lang {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.g-lang button {
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #3a3533;
+  transition:
+    background 0.25s,
+    color 0.25s;
+}
+
+.g-lang button:hover {
+  background: rgba(20, 17, 16, 0.06);
+  color: var(--ink);
+}
+
+.g-lang button[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.g-bar-lang {
+  padding-left: 14px;
+  border-left: 1px solid rgba(20, 17, 16, 0.12);
+  transition: opacity 0.3s;
+}
+
+.g-header.is-menu .g-bar-lang {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.g-menu-lang {
+  grid-column: 1 / -1;
+  padding: 18px 0 20px;
+}
+
+.g-menu-lang .g-lang button {
+  color: var(--ink);
+}
+
+.g-menu-lang .g-lang button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.g-menu-lang .g-lang button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+@media (max-width: 1180px) {
+  .g-bar-lang {
+    display: none;
+  }
+}
+
 .g-magnetic {
   display: inline-flex;
   padding: 14px;
