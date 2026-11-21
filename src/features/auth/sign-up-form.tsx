@@ -78,7 +78,15 @@ export function SignUpForm() {
           <button type="button" onClick={resend} disabled={resent} className="btn btn-ink">
             {resent ? t("auth.resent") : t("auth.resend")}
           </button>
-          <button type="button" onClick={() => setStep(1)} className="btn btn-soft">
+          <button
+            type="button"
+            onClick={() => {
+              setResent(false);
+              setError(null);
+              setStep(1);
+            }}
+            className="btn btn-soft"
+          >
             {t("auth.wrongEmail")}
           </button>
         </div>

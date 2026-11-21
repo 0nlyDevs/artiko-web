@@ -24,6 +24,7 @@ export function SignInForm() {
     setBusy(true);
     setError(null);
     setUnverified(null);
+    setResent(false);
     const email = String(form.get("email"));
     const { error } = await authClient.signIn.email({ email, password: String(form.get("password")), callbackURL: "/me" });
     setBusy(false);
