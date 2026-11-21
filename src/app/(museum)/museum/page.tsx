@@ -1,4 +1,4 @@
-import { MuseumShell } from "./museum-shell";
+import { MuseumShell } from "../museum-shell";
 
 export default function Home() {
   return <MuseumShell />;
