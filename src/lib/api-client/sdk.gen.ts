@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { CastVoteData, CastVoteErrors, CastVoteResponses, CreateWorkData, CreateWorkErrors, CreateWorkResponses, GetArtistData, GetArtistErrors, GetArtistResponses, GetHallOfFameData, GetHallOfFameResponses, GetMeData, GetMeErrors, GetMeResponses, GetMuseumData, GetMuseumErrors, GetMuseumResponses, GetPracticeData, GetPracticeErrors, GetPracticeResponses, GetWorkData, GetWorkErrors, GetWorkResponses, HealthData, HealthResponses, ListArtistsData, ListArtistsResponses, ListCategoriesData, ListCategoriesResponses, ListMyVotesData, ListMyVotesErrors, ListMyVotesResponses, ListPracticesData, ListPracticesResponses, ListWorksData, ListWorksResponses, ScanImageData, ScanImageErrors, ScanImageResponses, UpsertMyArtistData, UpsertMyArtistErrors, UpsertMyArtistResponses } from './types.gen';
+import type { CastVoteData, CastVoteErrors, CastVoteResponses, CreateExpositionData, CreateExpositionErrors, CreateExpositionResponses, CreateWorkData, CreateWorkErrors, CreateWorkResponses, GetArtistData, GetArtistErrors, GetArtistResponses, GetExpositionData, GetExpositionErrors, GetExpositionResponses, GetHallOfFameData, GetHallOfFameResponses, GetMeData, GetMeErrors, GetMeResponses, GetMuseumData, GetMuseumErrors, GetMuseumResponses, GetPracticeData, GetPracticeErrors, GetPracticeResponses, GetWorkData, GetWorkErrors, GetWorkResponses, HealthData, HealthResponses, ListArtistsData, ListArtistsResponses, ListCategoriesData, ListCategoriesResponses, ListExpositionsData, ListExpositionsResponses, ListMyVotesData, ListMyVotesErrors, ListMyVotesResponses, ListPracticesData, ListPracticesResponses, ListWorksData, ListWorksResponses, ReadyData, ReadyErrors, ReadyResponses, ScanImageData, ScanImageErrors, ScanImageResponses, UpsertMyArtistData, UpsertMyArtistErrors, UpsertMyArtistResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,6 +19,15 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({ url: '/api/v1/health', ...options });
+
+/**
+ * Readiness probe
+ *
+ * `/health` only says the process is alive and never touches the database.
+ * This one also checks that the database answers.
+ *
+ */
+export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<ReadyResponses, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<ReadyResponses, ReadyErrors, ThrowOnError>({ url: '/api/v1/ready', ...options });
 
 export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, GetMeErrors, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, GetMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -72,6 +81,23 @@ export const createWork = <ThrowOnError extends boolean = false>(options: Option
 
 export const getWork = <ThrowOnError extends boolean = false>(options: Options<GetWorkData, ThrowOnError>): RequestResult<GetWorkResponses, GetWorkErrors, ThrowOnError> => (options.client ?? client).get<GetWorkResponses, GetWorkErrors, ThrowOnError>({ url: '/api/v1/works/{work_id}', ...options });
 
+export const listExpositions = <ThrowOnError extends boolean = false>(options?: Options<ListExpositionsData, ThrowOnError>): RequestResult<ListExpositionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ListExpositionsResponses, unknown, ThrowOnError>({ url: '/api/v1/expositions', ...options });
+
+/**
+ * Create an exposition to group one's works (artists only)
+ */
+export const createExposition = <ThrowOnError extends boolean = false>(options: Options<CreateExpositionData, ThrowOnError>): RequestResult<CreateExpositionResponses, CreateExpositionErrors, ThrowOnError> => (options.client ?? client).post<CreateExpositionResponses, CreateExpositionErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/expositions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getExposition = <ThrowOnError extends boolean = false>(options: Options<GetExpositionData, ThrowOnError>): RequestResult<GetExpositionResponses, GetExpositionErrors, ThrowOnError> => (options.client ?? client).get<GetExpositionResponses, GetExpositionErrors, ThrowOnError>({ url: '/api/v1/expositions/{exposition_id}', ...options });
+
 /**
  * One vote per person, per category, per month
  *
@@ -113,7 +139,9 @@ export const getPractice = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * Identify a photo of an artwork (camera on Android, upload on the web)
  *
- * The photo is not stored. Images only, up to 20 MB.
+ * The photo is not stored. Images only, up to 5 MB.
+ * Each client may scan 20 times a minute; past that the API answers 429 with a `Retry-After` header.
+ *
  */
 export const scanImage = <ThrowOnError extends boolean = false>(options: Options<ScanImageData, ThrowOnError>): RequestResult<ScanImageResponses, ScanImageErrors, ThrowOnError> => (options.client ?? client).post<ScanImageResponses, ScanImageErrors, ThrowOnError>({
     ...formDataBodySerializer,

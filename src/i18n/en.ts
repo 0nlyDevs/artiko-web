@@ -136,7 +136,7 @@ export const en = {
   "auth.name": "Your name",
   "auth.email": "Email",
   "auth.password": "Password",
-  "auth.passwordHelp": "At least 8 characters.",
+  "auth.passwordHelp": "At least {min} characters.",
   "auth.failed": "That did not work. Check your email and password.",
   "auth.signInSubmit": "Sign in",
   "auth.signUpSubmit": "Create my account",

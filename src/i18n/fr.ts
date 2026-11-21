@@ -123,7 +123,7 @@ export const fr: Dictionary = {
   "auth.name": "Votre nom",
   "auth.email": "E-mail",
   "auth.password": "Mot de passe",
-  "auth.passwordHelp": "8 caractères minimum.",
+  "auth.passwordHelp": "{min} caractères minimum.",
   "auth.failed": "Cela n’a pas fonctionné. Vérifiez votre e-mail et votre mot de passe.",
   "auth.signInSubmit": "Se connecter",
   "auth.signUpSubmit": "Créer mon compte",

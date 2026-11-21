@@ -37,7 +37,11 @@ export function PublishForm({ artistId, categories }: { artistId: string; catego
     <section className="flex flex-col gap-4">
       <h2 className="font-heading text-5xl">{t("publish.title")}</h2>
       <p className="max-w-2xl">{t("publish.intro")}</p>
-      <form action={publish} className="flex max-w-xl flex-col gap-4">
+      <form onSubmit={(event) => {
+          // Not `action={...}`: React resets the fields after an action even when it fails, wiping what was typed.
+          event.preventDefault();
+          void publish(new FormData(event.currentTarget));
+        }} className="flex max-w-xl flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="title" className="font-bold">{t("publish.workTitle")}</label>
           <input id="title" name="title" required maxLength={200} className={field} />

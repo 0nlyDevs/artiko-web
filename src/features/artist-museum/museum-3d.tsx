@@ -4,6 +4,7 @@ import { OrbitControls, Resize, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import type { Museum, MuseumSlot, Work } from "@/lib/api";
+import { SlotErrorBoundary } from "./slot-error-boundary";
 
 type Props = { museum: Museum; selectedId: string; onSelect: (work: Work) => void };
 
@@ -38,13 +39,15 @@ export default function Museum3D({ museum, selectedId, onSelect }: Props) {
         <meshStandardMaterial color={WALL} />
       </mesh>
       {museum.slots.map((slot) => (
-        <Suspense key={slot.work.id} fallback={null}>
-          {slot.kind === "wall" ? (
-            <Frame slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
-          ) : (
-            <Plinth slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
-          )}
-        </Suspense>
+        <SlotErrorBoundary key={slot.work.id}>
+          <Suspense fallback={null}>
+            {slot.kind === "wall" ? (
+              <Frame slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
+            ) : (
+              <Plinth slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
+            )}
+          </Suspense>
+        </SlotErrorBoundary>
       ))}
       <OrbitControls
         target={[0, 1.4, 0]}

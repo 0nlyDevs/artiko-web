@@ -33,7 +33,11 @@ export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSave
     <section className="flex flex-col gap-4">
       <h2 className="font-heading text-5xl">{artist ? t("profile.titleEdit") : t("profile.titleNew")}</h2>
       {!artist && <p className="max-w-2xl">{t("profile.intro")}</p>}
-      <form action={save} className="flex max-w-xl flex-col gap-4">
+      <form onSubmit={(event) => {
+          // Not `action={...}`: React resets the fields after an action even when it fails, wiping what was typed.
+          event.preventDefault();
+          void save(new FormData(event.currentTarget));
+        }} className="flex max-w-xl flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="display_name" className="font-bold">{t("profile.name")}</label>
           <input id="display_name" name="display_name" required maxLength={100} defaultValue={artist?.display_name} className={field} />

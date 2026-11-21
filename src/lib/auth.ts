@@ -6,6 +6,7 @@ import { nextCookies } from "better-auth/next-js";
 import { bearer } from "better-auth/plugins/bearer";
 import { jwt } from "better-auth/plugins/jwt";
 import { Pool } from "pg";
+import { MIN_PASSWORD_LENGTH } from "./password";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
@@ -15,7 +16,6 @@ const isLocalOrigin = ["localhost", "127.0.0.1"].includes(new URL(baseURL).hostn
 // Brute-force limits for the credential endpoints (stricter than Better Auth's global default).
 const SIGN_IN_WINDOW_SECONDS = 60;
 const SIGN_IN_MAX_ATTEMPTS = 5;
-const MIN_PASSWORD_LENGTH = 10;
 
 // The rate limit keys on the client IP, so it must come from a header the hosting proxy sets and
 // overwrites (`x-real-ip`, `cf-connecting-ip`, the platform's own). Any header a client can send

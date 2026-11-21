@@ -124,7 +124,7 @@ export const mg: Dictionary = {
   "auth.name": "Ny anaranao",
   "auth.email": "Mailaka",
   "auth.password": "Tenimiafina",
-  "auth.passwordHelp": "8 tarehintsoratra farafaharatsiny.",
+  "auth.passwordHelp": "{min} tarehintsoratra farafaharatsiny.",
   "auth.failed": "Tsy mety izany. Jereo ny mailaka sy ny tenimiafinao.",
   "auth.signInSubmit": "Hiditra",
   "auth.signUpSubmit": "Hamorona ny kaontiko",
