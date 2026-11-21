@@ -1,6 +1,6 @@
 # Artiko Web
 
-Next.js web app for Artiko: the LOVA museum journey today, artist and gallery pages next. It signs users in with Better Auth and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api). SOLUTION-6 names Keycloak for identity; the team chose Better Auth instead, and the API only needs a different JWKS URL, issuer and audience to switch.
+Next.js web app for Artiko: the ARTIKO museum journey today, artist and gallery pages next. It signs users in with Better Auth and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api). SOLUTION-6 names Keycloak for identity; the team chose Better Auth instead, and the API only needs a different JWKS URL, issuer and audience to switch.
 
 ## Develop
 
@@ -22,7 +22,7 @@ pnpm build
 ## Layout
 
 - `src/app/`: routing only. Route groups carry their own root layout: `(museum)` ships a standalone stylesheet and must not inherit Tailwind's preflight, `(app)` is the Tailwind-styled app shell.
-- `src/features/<feature>/`: the code behind a route. `museum/` holds the LOVA journey shell and its static markup.
+- `src/features/<feature>/`: the code behind a route. `museum/` holds the ARTIKO journey shell and its static markup.
 - `src/components/`: the 3D gallery walk of the home page (`gallery/`), still to be moved under `src/features/gallery/` to follow the same rule.
 - `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `api.ts` and `api-client/` (generated, do not edit).
 - `public/museum/`: vendored static assets (stylesheet, fonts, GSAP, Lenis, the journey script).

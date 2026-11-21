@@ -29,7 +29,7 @@ export function MuseumShell() {
         // Unique query: a remount gets a fresh instance bound to the new DOM.
         await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ `/museum/app.js?v=${Date.now()}`);
       } catch (error) {
-        console.warn("LOVA: failed to start the museum.", error);
+        console.warn("ARTIKO: failed to start the museum.", error);
       }
     })();
     return () => {

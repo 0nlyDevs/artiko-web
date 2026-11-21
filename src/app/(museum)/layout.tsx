@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  title: "LOVA — Tout ne tient pas dans un cadre.",
+  title: "ARTIKO — Tout ne tient pas dans un cadre.",
   description:
     "Un voyage continu parmi les images, les objets, les langues, les musiques et les gestes. Le patrimoine se regarde, s’écoute et se transmet.",
   icons: {
