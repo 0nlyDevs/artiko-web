@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "LOVA — Tout ne tient pas dans un cadre.",
@@ -24,6 +25,7 @@ export default function MuseumLayout({ children }: { children: React.ReactNode }
       </head>
       <body className="no-js" suppressHydrationWarning>
         {children}
+        <Analytics />
       </body>
     </html>
   );
