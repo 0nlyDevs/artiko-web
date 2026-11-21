@@ -8,9 +8,9 @@ import { SlotErrorBoundary } from "./slot-error-boundary";
 
 type Props = { museum: Museum; selectedId: string; onSelect: (work: Work) => void };
 
-const WALL = "#e8e6e1";
+const WALL = "#FBF0E4";
 const FLOOR = "#4a4a4a";
-const ACCENT = "#e5574a";
+const ACCENT = "#C8553D";
 const INK = "#111111";
 const FRAME_HEIGHT = 1.2;
 

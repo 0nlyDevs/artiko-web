@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #141110;
-  --text: #4a4542;
-  --muted: #6b6461;
-  --red: #e5574a;
-  --red-deep: #c9443a;
-  --cream: #fff4ec;
+  --ink: #2A1C1A;
+  --text: #34231f;
+  --muted: #5e4a43;
+  --red: #C8553D;
+  --red-deep: #9B3F2B;
+  --cream: #FBF0E4;
   --paper: #ffffff;
-  --wall: #e8e6e1;
+  --wall: #FBF0E4;
   --sans: var(--font-sans), system-ui, sans-serif;
   --serif: var(--font-serif), "Cormorant Garamond", Georgia, serif;
-  --display: var(--font-display), "League Gothic", sans-serif;
+  --display: var(--font-sans), system-ui, sans-serif;
   --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
   --ease-in-out: cubic-bezier(0.87, 0, 0.13, 1);
 }
@@ -24,7 +24,7 @@
   --color-red: var(--red);
   --color-paper: var(--paper);
   --color-wall: var(--wall);
-  --font-heading: var(--font-display);
+  --font-heading: var(--font-sans);
 }
 
 html {
@@ -216,78 +216,79 @@ button {
 }
 
 .g-quick button.is-active {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 17px;
-  font-style: italic;
   font-weight: 600;
   color: var(--red-deep);
 }
 
-/* Language switcher: EN / FR / MG, in the bar on wide screens and in the menu at every size */
+/* Language picker: a pill at the bottom right; the marker slides to the active language */
 
-.g-lang {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+.lang-pill {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 250, 246, 0.82);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 12px 26px -14px rgba(20, 17, 16, 0.55),
+    inset 0 0 0 1px rgba(20, 17, 16, 0.08);
 }
 
-.g-lang button {
-  padding: 6px 9px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #3a3533;
-  transition:
-    background 0.25s,
-    color 0.25s;
+/* Leaves room for the chat button of the home gallery */
+.lang-pill--home {
+  right: 86px;
 }
 
-.g-lang button:hover {
-  background: rgba(20, 17, 16, 0.06);
-  color: var(--ink);
-}
-
-.g-lang button[aria-pressed="true"] {
+.lang-pill::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: 44px;
+  border-radius: 999px;
   background: var(--ink);
+  transform: translateX(calc(var(--i, 0) * 44px));
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.25, 1);
+}
+
+.lang-pill button {
+  position: relative;
+  z-index: 1;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    color 0.3s,
+    opacity 0.2s;
+}
+
+.lang-pill button[aria-pressed="true"] {
   color: #fff;
 }
 
-.g-bar-lang {
-  padding-left: 14px;
-  border-left: 1px solid rgba(20, 17, 16, 0.12);
-  transition: opacity 0.3s;
+.lang-pill button:not([aria-pressed="true"]):hover {
+  opacity: 0.6;
 }
 
-.g-header.is-menu .g-bar-lang {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.g-menu-lang {
-  grid-column: 1 / -1;
-  padding: 18px 0 20px;
-}
-
-.g-menu-lang .g-lang button {
-  color: var(--ink);
-}
-
-.g-menu-lang .g-lang button:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.g-menu-lang .g-lang button[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--cream);
-}
-
-@media (max-width: 1180px) {
-  .g-bar-lang {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  .lang-pill::before {
+    transition: none;
   }
 }
 
@@ -543,9 +544,8 @@ button {
 
 .g-meta {
   margin: 6px 0 0;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 19px;
-  font-style: italic;
   font-weight: 500;
   color: var(--muted);
 }
@@ -553,9 +553,8 @@ button {
 .g-num {
   display: block;
   margin-bottom: 6px;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 26px;
-  font-style: italic;
   font-weight: 600;
   color: var(--red-deep);
 }
@@ -568,7 +567,9 @@ button {
 }
 
 .g-salt {
-  font-family: var(--font-salt), cursive;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
   color: #1a1a1a;
 }
 
@@ -729,14 +730,14 @@ button {
 
 .g-box svg text,
 .g-box svg [fill="#111"],
-.g-box svg [fill="#e5574a"] {
+.g-box svg [fill="#C8553D"] {
   opacity: 0;
   transition: opacity 0.6s 0.9s;
 }
 
 .g-box.is-in svg text,
 .g-box.is-in svg [fill="#111"],
-.g-box.is-in svg [fill="#e5574a"] {
+.g-box.is-in svg [fill="#C8553D"] {
   opacity: 1;
 }
 
@@ -799,7 +800,7 @@ button {
 
 @keyframes g-glow {
   50% {
-    filter: drop-shadow(0 0 10px rgba(229, 87, 74, 0.55));
+    filter: drop-shadow(0 0 10px rgba(200, 85, 61, 0.55));
   }
 }
 
@@ -1015,15 +1016,15 @@ button {
   padding: 96px 56px 40px;
   border-radius: 26px;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--cream);
   background-color: var(--red);
   /* Paper grain and two soft highlights, like light on a printed poster. */
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     radial-gradient(120% 90% at 15% 0%, rgba(255, 255, 255, 0.22), transparent 55%),
-    radial-gradient(80% 70% at 100% 100%, rgba(120, 20, 10, 0.28), transparent 60%);
+    radial-gradient(80% 70% at 100% 100%, rgba(10, 20, 80, 0.35), transparent 60%);
   background-blend-mode: multiply, screen, normal;
-  box-shadow: 0 40px 80px -40px rgba(60, 10, 5, 0.6);
+  box-shadow: 0 40px 80px -40px rgba(10, 20, 60, 0.6);
   clip-path: inset(0% 0% 100% 0% round 26px);
 }
 
@@ -1061,7 +1062,7 @@ button {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--ink);
+  color: var(--cream);
   text-align: left;
   transition:
     transform 0.4s var(--ease-out),
@@ -1070,14 +1071,13 @@ button {
 
 .g-menu-list button:hover {
   transform: translateX(10px);
-  color: var(--cream);
+  color: #FFD2B8;
 }
 
 .g-menu-num {
   width: 26px;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 18px;
-  font-style: italic;
   font-weight: 600;
   opacity: 0.7;
 }
@@ -1098,11 +1098,10 @@ button {
 }
 
 .g-menu-list .is-active .g-menu-link-text {
-  font-family: var(--serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--cream);
+  color: #FFD2B8;
 }
 
 .g-menu-arrow {
@@ -1232,9 +1231,8 @@ button {
 }
 
 .g-room-name {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 19px;
-  font-style: italic;
   font-weight: 600;
 }
 
@@ -1361,4 +1359,86 @@ button {
   .g-box > svg {
     animation: none !important;
   }
+}
+
+/* ── Typography of the gallery: Bricolage Grotesque throughout ── */
+
+.g-title {
+  font-family: var(--sans);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+.g-title-xl {
+  font-size: 46px;
+  line-height: 1.04;
+}
+
+.g-title-hero {
+  font-size: 66px;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.g-text,
+.g-lead,
+.g-meta,
+.g-chip,
+.g-link,
+.g-pill {
+  font-family: var(--sans);
+}
+
+.g-lead {
+  max-width: 34ch;
+  margin: 18px 0 0;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Longer wall paragraphs (hall of fame, about) */
+.g-text.g-lead {
+  max-width: none;
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.g-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.g-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.g-hero-actions .g-small {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Golden hour over the whole gallery: a low sun glowing from the top right, rose and plum shadows below ── */
+
+.g-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 88% 6%, rgba(255, 196, 112, 0.6), rgba(255, 168, 96, 0) 68%),
+    linear-gradient(180deg, rgba(255, 150, 96, 0.2) 0%, rgba(255, 150, 96, 0) 38%, rgba(96, 40, 72, 0.28) 100%);
+  mix-blend-mode: soft-light;
 }

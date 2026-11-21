@@ -1,20 +1,23 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { setLocale, useT } from "./locale";
 import { LOCALES, LOCALE_NAMES } from "./locales";
 
-const SITE_BUTTON =
-  "-ml-0.5 border-2 border-ink px-2 py-1 text-sm leading-none font-bold first:ml-0 aria-pressed:bg-ink aria-pressed:text-paper";
-
 /**
- * EN / FR / MG toggle. Each button is named in its own language (`lang` + `aria-label`), so it stays
- * readable and is announced correctly whichever language is active.
- * `site` matches the app pages' header; `gallery` matches the home gallery's frosted bar and menu.
+ * EN / FR / MG picker: a pill fixed at the bottom right, with a marker that slides to the active language.
+ * Each button is named in its own language (`lang` + `aria-label`), so it stays readable and is announced
+ * correctly whichever language is active. `home` leaves room for the home gallery's chat button.
  */
-export function LanguageSwitcher({ variant }: { variant: "site" | "gallery" }) {
+export function LanguageSwitcher({ placement = "page" }: { placement?: "home" | "page" }) {
   const { t, locale } = useT();
   return (
-    <div role="group" aria-label={t("lang.label")} className={variant === "gallery" ? "g-lang" : "flex"}>
+    <div
+      role="group"
+      aria-label={t("lang.label")}
+      className={placement === "home" ? "lang-pill lang-pill--home" : "lang-pill"}
+      style={{ "--i": Math.max(0, LOCALES.indexOf(locale)) } as CSSProperties}
+    >
       {LOCALES.map((code) => (
         <button
           key={code}
@@ -24,7 +27,6 @@ export function LanguageSwitcher({ variant }: { variant: "site" | "gallery" }) {
           aria-label={LOCALE_NAMES[code]}
           title={LOCALE_NAMES[code]}
           onClick={() => setLocale(code)}
-          className={variant === "site" ? SITE_BUTTON : undefined}
         >
           {code.toUpperCase()}
         </button>

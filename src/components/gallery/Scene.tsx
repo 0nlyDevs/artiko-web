@@ -3,8 +3,9 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { getLocale, translate, useLocale, useT } from "@/i18n/locale";
-import { heroLines, neon, showreel, works, type Work } from "./content";
+import { neon, showreel, works, type Work } from "./content";
 import { Overlays } from "./Overlays";
+import { Props } from "./Props";
 
 export const SCENE_URL = "/museum/assets/landscape.glb";
 const DISPLAY_FONT = "/fonts/LeagueGothic.ttf";
@@ -16,6 +17,50 @@ const HIDDEN =
 
 // The baked mesh that holds the showreel room's furniture and its two people.
 const PEOPLE_MESH = "Tex_4k_02_001";
+
+// Every orange and red of the studio's baked textures (sofas, bean bags, the
+// salmon ceiling beams, the red contact lettering) is moved to ARTIKO's warm
+// blue palette. Sofas and bags become ARTIKO blue; the ceiling a pale sky blue.
+// Wood stays out of the hue band. Expects srgb, hi, sat and warm in scope;
+// FURNITURE limits the leather to furniture pixels, CEILING marks the ceiling.
+const WARM_GLSL = `
+        float orangeHue = srgb.g / max(srgb.r, 1e-4);
+        float orange = (FURNITURE && warm && sat > 0.14 && hi > 0.3 && orangeHue > 0.2 && orangeHue < 0.66) ? 1.0 : 0.0;
+        srgb = mix(srgb, vec3(0.74, 0.30, 0.20) * (0.3 + hi * 0.85), orange);
+        float beam = (CEILING) ? 1.0 : 0.0;
+        srgb = mix(srgb, vec3(hi) * vec3(1.0, 0.78, 0.62), beam);
+        float neutral = 1.0 - smoothstep(0.05, 0.14, sat);
+        // Golden hour: where the baked light falls (the rays) it turns gold and glows; in the
+        // shade it deepens to rose and plum. Pale walls take the grade fully, the rest lightly.
+        float lit = smoothstep(0.55, 0.92, hi);
+        vec3 shade = vec3(0.84, 0.60, 0.58);
+        vec3 gold = vec3(1.0, 0.82, 0.52);
+        float body = mix(0.35, 1.0, neutral);
+        srgb = mix(srgb, srgb * mix(shade, gold, lit) * 1.1, body);
+        srgb += vec3(1.0, 0.62, 0.28) * 0.16 * lit * lit * neutral;`;
+
+function warmPalette(material: THREE.MeshBasicMaterial) {
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying float vWorldY;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWorldY = (modelMatrix * vec4(transformed, 1.0)).y;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vWorldY;")
+      .replace(
+        "#include <map_fragment>",
+        `#include <map_fragment>
+        vec3 srgb = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(1.0 / 2.2));
+        float hi = max(srgb.r, max(srgb.g, srgb.b));
+        float lo = min(srgb.r, min(srgb.g, srgb.b));
+        float sat = (hi - lo) / max(hi, 1e-4);
+        bool warm = srgb.r >= srgb.g && srgb.g >= srgb.b;
+        ${WARM_GLSL.replace("FURNITURE", "true").replace("CEILING", "vWorldY > 540.0")}
+        diffuseColor.rgb = pow(srgb, vec3(2.2));`,
+      );
+  };
+  material.customProgramCacheKey = () => "artiko-warm";
+  material.needsUpdate = true;
+}
 
 const FRAME_NAMES = ["work_prev_01_0", "work_prev_02_1", "work_prev_03_2", "work_prev_04_3", "work_prev_05_4", "work_prev_06_5"];
 
@@ -82,8 +127,7 @@ async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { 
   }
   if (caption) {
     const sans = cssFont("--font-sans", "sans-serif");
-    const serif = cssFont("--font-serif", "serif");
-    await document.fonts.load(`italic 600 40px ${serif}`).catch(() => undefined);
+    await document.fonts.load(`600 40px ${sans}`).catch(() => undefined);
     const gradient = ctx.createLinearGradient(0, canvas.height - 420, 0, canvas.height);
     gradient.addColorStop(0, "rgba(0,0,0,0)");
     gradient.addColorStop(1, "rgba(0,0,0,0.65)");
@@ -93,13 +137,13 @@ async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { 
     const kind = caption.kind.toUpperCase();
     const pad = 18;
     const width = ctx.measureText(kind).width + pad * 2;
-    ctx.fillStyle = "#e5574a";
+    ctx.fillStyle = "#C8553D";
     ctx.beginPath();
     ctx.roundRect(56, canvas.height - 300, width, 48, 24);
     ctx.fill();
     ctx.fillStyle = "#fff";
     ctx.fillText(kind, 56 + pad, canvas.height - 266);
-    ctx.font = `italic 600 46px ${serif}`;
+    ctx.font = `600 42px ${sans}`;
     // maxWidth squeezes a longer translation instead of letting it run off the slide.
     ctx.fillText(caption.label, 56, canvas.height - 200, canvas.width - 112);
   }
@@ -108,9 +152,8 @@ async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { 
 
 async function musicCanvas() {
   const levels: number[] = await fetch("/museum/assets/satie-waveform.json").then((r) => r.json());
-  const serif = cssFont("--font-serif", "serif");
   const sans = cssFont("--font-sans", "sans-serif");
-  await document.fonts.load(`italic 600 80px ${serif}`).catch(() => undefined);
+  await document.fonts.load(`700 80px ${sans}`).catch(() => undefined);
   const canvas = document.createElement("canvas");
   canvas.width = 1280;
   canvas.height = 960;
@@ -128,8 +171,8 @@ async function musicCanvas() {
     ctx.roundRect(80 + i * step, mid - h / 2, Math.max(2, step * 0.55), h, 2);
     ctx.fill();
   }
-  ctx.fillStyle = "#fff4ec";
-  ctx.font = `italic 600 92px ${serif}`;
+  ctx.fillStyle = "#FBF0E4";
+  ctx.font = `700 78px ${sans}`;
   ctx.fillText(translate("work.gymnopedie.title"), 80, 170);
   ctx.font = `600 30px ${sans}`;
   ctx.fillStyle = "rgba(255,244,236,0.7)";
@@ -139,11 +182,10 @@ async function musicCanvas() {
 
 async function oralCanvas() {
   const serif = cssFont("--font-serif", "serif");
-  const display = cssFont("--font-display", "sans-serif");
   const sans = cssFont("--font-sans", "sans-serif");
   await Promise.all([
-    document.fonts.load(`italic 600 80px ${serif}`),
-    document.fonts.load(`400 300px ${display}`),
+    document.fonts.load(`italic 500 80px ${serif}`),
+    document.fonts.load(`800 190px ${sans}`),
   ]).catch(() => undefined);
   const canvas = document.createElement("canvas");
   canvas.width = 1280;
@@ -159,13 +201,13 @@ async function oralCanvas() {
     ctx.arc(1180, 860, r, Math.PI, Math.PI * 1.5);
     ctx.stroke();
   }
-  ctx.fillStyle = "#e5574a";
-  ctx.font = `italic 600 420px ${serif}`;
+  ctx.fillStyle = "#C8553D";
+  ctx.font = `italic 500 420px ${serif}`;
   ctx.fillText("\u201C", 60, 420);
-  ctx.fillStyle = "#141110";
-  ctx.font = `400 300px ${display}`;
+  ctx.fillStyle = "#2A1C1A";
+  ctx.font = `800 190px ${sans}`;
   ctx.fillText("KABARY", 90, 640);
-  ctx.font = `italic 600 64px ${serif}`;
+  ctx.font = `500 54px ${sans}`;
   ctx.fillText(translate("card.oralTagline"), 96, 740, 1100);
   ctx.font = `600 28px ${sans}`;
   ctx.fillStyle = "rgba(20,17,16,0.6)";
@@ -224,24 +266,34 @@ function prepareScene(root: THREE.Object3D) {
     if (!cloned.has(source)) {
       const copy = source.clone();
       copy.toneMapped = false;
+      const basic = copy as THREE.MeshBasicMaterial;
+      if (basic.isMeshBasicMaterial && basic.map) warmPalette(basic);
       cloned.set(source, copy);
     }
     mesh.material = cloned.get(source)!;
   });
 
+  // The furniture that gives way to ARTIKO's pieces (see Props).
+  for (const name of ["Tex_4k_03_004", "Tex_4k_03_004001", "Tex_4k_03_005", "Tex_4k_02_009", "Planet_Rotation"]) {
+    const node = root.getObjectByName(name);
+    if (node) node.visible = false;
+  }
+
   // The opening wall carries the studio slogan in its geometry. Rebuild it as
   // a flat wall that samples a clean area of the same baked texture.
-  const heroWall = root.getObjectByName("DesktopWall_001") as THREE.Mesh | undefined;
-  if (heroWall) {
-    heroWall.geometry = new THREE.PlaneGeometry(2292.232, 573.058);
-    const material = (heroWall.material as THREE.MeshBasicMaterial).clone();
+  for (const name of ["DesktopWall_001", "DesktopWall_002"]) {
+    const wall = root.getObjectByName(name) as THREE.Mesh | undefined;
+    if (!wall) continue;
+    wall.geometry = new THREE.PlaneGeometry(2292.232, 573.058);
+    const material = (wall.material as THREE.MeshBasicMaterial).clone();
     if (material.map) {
       material.map = material.map.clone();
       material.map.repeat.set(0.45, 0.2);
       material.map.offset.set(0, 0.79);
       material.map.needsUpdate = true;
+      warmPalette(material);
     }
-    heroWall.material = material;
+    wall.material = material;
   }
 
   const frameMaterials: THREE.MeshBasicMaterial[] = [];
@@ -341,6 +393,7 @@ function malagasyMaterial(source: THREE.MeshBasicMaterial) {
         float yellowish = srgb.g / max(srgb.r, 1e-4);
         float hair = (vPerson > 0.5 && vWorldY > 96.0 && warm && skin < 0.5 && ((sat >= 0.55 && yellowish > 0.55) || hi < 0.45)) ? 1.0 : 0.0;
         srgb = mix(srgb, vec3(0.08, 0.065, 0.06) * (0.7 + hi * 0.5), hair);
+        ${WARM_GLSL.replace("FURNITURE", "vPerson < 0.5").replace("CEILING", "false")}
         diffuseColor.rgb = pow(srgb, vec3(2.2));`,
       );
   };
@@ -350,84 +403,6 @@ function malagasyMaterial(source: THREE.MeshBasicMaterial) {
 
 // Longer words in French or Malagasy shrink to the width the English line was composed for.
 const fitSize = (size: number, text: string, chars: number) => size * Math.min(1, chars / text.length);
-
-function ExtrudedLine({ text, position, fontSize }: { text: string; position: [number, number, number]; fontSize: number }) {
-  const layers = 10;
-  return (
-    <group position={position}>
-      <Text
-        font={DISPLAY_FONT}
-        fontSize={fontSize}
-        anchorX="left"
-        anchorY="top-baseline"
-        position={[10, -16, 0.5]}
-        color="#000000"
-        fillOpacity={0.05}
-        outlineBlur={34}
-        outlineColor="#000000"
-        outlineOpacity={0.1}
-      >
-        {text}
-      </Text>
-      {Array.from({ length: layers }, (_, i) => {
-        const front = i === layers - 1;
-        const shade = new THREE.Color("#9e2c24").lerp(new THREE.Color("#d84a3d"), i / (layers - 1));
-        return (
-          <Text
-            key={i}
-            font={DISPLAY_FONT}
-            fontSize={fontSize}
-            anchorX="left"
-            anchorY="top-baseline"
-            position={[0, 0, 2 + i * 3]}
-            color={front ? "#ec5d4e" : shade}
-          >
-            {text}
-          </Text>
-        );
-      })}
-    </group>
-  );
-}
-
-// The slogan pushes out of the wall line by line once the scene is shown.
-function HeroSlogan() {
-  const { t } = useT();
-  const lines = useRef<(THREE.Group | null)[]>([]);
-  const start = useRef(-1);
-  useFrame(({ clock }) => {
-    if (start.current < 0) start.current = clock.elapsedTime + 1.1;
-    const t = clock.elapsedTime - start.current;
-    lines.current.forEach((line, i) => {
-      if (!line) return;
-      const k = THREE.MathUtils.clamp((t - i * 0.2) / 1.2, 0, 1);
-      const c = 1.4;
-      const eased = 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2);
-      line.position.z = -40 * (1 - eased);
-    });
-  });
-  // Line boxes follow the original composition: two lines indented, the
-  // middle one wider. Each position is the line's baseline.
-  const baselines: [number, number][] = [
-    [-374, 349],
-    [-514, 217],
-    [-374, 87],
-  ];
-  // How many letters each line can hold before it meets the doodles and the descriptor.
-  const room = [12, 9, 7];
-  return (
-    <group>
-      {baselines.map(([x, y], i) => {
-        const text = t(heroLines[i]);
-        return (
-          <group key={i} ref={(g) => void (lines.current[i] = g)} position={[0, 0, -40]}>
-            <ExtrudedLine text={text} position={[x, y, i * 6]} fontSize={fitSize(168, text, room[i])} />
-          </group>
-        );
-      })}
-    </group>
-  );
-}
 
 function NeonSign() {
   const { t } = useT();
@@ -454,10 +429,10 @@ function NeonSign() {
             anchorX="center"
             anchorY="middle"
             position={[i * -14, 36 - i * 72, 0]}
-            color="#ff3b2b"
+            color="#E2643F"
             fillOpacity={0}
             outlineBlur={26}
-            outlineColor="#ff3b2b"
+            outlineColor="#FF8A5C"
             outlineOpacity={0.7}
           >
             {line}
@@ -472,9 +447,9 @@ function NeonSign() {
           anchorX="center"
           anchorY="middle"
           position={[i * -14, 36 - i * 72, 2]}
-          color="#ff6a58"
+          color="#C8553D"
           outlineWidth={1.5}
-          outlineColor="#ffd2c8"
+          outlineColor="#E2643F"
         >
           {line}
         </Text>
@@ -547,7 +522,7 @@ function Flag() {
     canvas.width = 600;
     canvas.height = 400;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#fc3d32";
+    ctx.fillStyle = "#d62828";
     ctx.fillRect(200, 0, 400, 200);
     ctx.fillStyle = "#007e3a";
     ctx.fillRect(200, 200, 400, 200);
@@ -630,11 +605,11 @@ function ArtikoMark() {
     <group ref={group} position={[857.5, 282, -82]} scale={1.15}>
       {[0, 60, 120, 180, 240, 300].map((angle) => (
         <mesh key={angle} geometry={petal} rotation={[0, 0, THREE.MathUtils.degToRad(angle)]}>
-          <meshStandardMaterial color="#e76f51" roughness={0.45} metalness={0.05} />
+          <meshStandardMaterial color="#C8553D" roughness={0.45} metalness={0.05} />
         </mesh>
       ))}
       <mesh geometry={heart}>
-        <meshStandardMaterial color="#f5ebdd" roughness={0.6} />
+        <meshStandardMaterial color="#FBF0E4" roughness={0.6} />
       </mesh>
     </group>
   );
@@ -816,6 +791,22 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
 
   const fitted = useRef(0);
   const smoothed = useRef(0);
+  // Total scroll distance, measured on resize only.
+  const scrollRange = useRef(0);
+  useEffect(() => {
+    const root = document.documentElement;
+    const measure = () => {
+      scrollRange.current = root.scrollHeight - window.innerHeight;
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
   // Runs before every other frame callback (negative priority), so the Html
   // overlays always read this frame's camera.
   useFrame(({ camera, size }) => {
@@ -834,8 +825,7 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
     if (!path) return;
     // Read the scroll position every frame rather than trusting scroll
     // events, which can be dropped while Lenis is stopped or animating.
-    const root = document.documentElement;
-    const max = root.scrollHeight - window.innerHeight;
+    const max = scrollRange.current;
     const target = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : progress.current;
     smoothed.current += (target - smoothed.current) * 0.18;
     const t = path.t0 + smoothed.current * (path.t1 - path.t0);
@@ -862,11 +852,11 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
       {floorMirror && (
         <mesh geometry={floorMirror.geometry} position={floorMirror.position}>
           <MeshReflectorMaterial
-            resolution={1024}
+            resolution={512}
             mirror={0.6}
             mixStrength={1.2}
-            blur={[400, 120]}
-            mixBlur={1}
+            blur={[0, 0]}
+            mixBlur={0}
             color="#ffffff"
             transparent
             opacity={0.22}
@@ -875,7 +865,7 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
           />
         </mesh>
       )}
-      <HeroSlogan />
+      <Props />
       <ArtikoMark />
       <NeonBoard />
       <NeonSign />
