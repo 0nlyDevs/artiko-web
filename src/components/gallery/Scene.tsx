@@ -1,5 +1,5 @@
 import { MeshReflectorMaterial, Text, useGLTF } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { hero, neon, showreel, works, type Work } from "./content";
@@ -603,20 +603,17 @@ function ArtikoMark() {
   );
 }
 
-// Showreel: a screen that crossfades through art forms with a slow zoom,
-// and a play button that pulses until the visitor starts it.
-const SCREEN_CENTER: [number, number, number] = [5969.4, 276, -110];
+// Showreel: a screen that keeps crossfading through art forms with a slow
+// zoom, like a looping video.
 const SLIDE_SECONDS = 4;
 const FADE_SECONDS = 1;
 
 // Owns the screen's crossfade material and the slide clock. Kept outside
 // React so the per-frame mutations stay out of hook values.
 class ShowreelPlayer {
-  playing = false;
   private textures: THREE.Texture[] = [];
   private slide = 0;
-  private startedAt = 0;
-  private now = 0;
+  private startedAt = -1;
   private previous: THREE.Material | THREE.Material[];
   private cancelled = false;
   readonly material = new THREE.ShaderMaterial({
@@ -627,7 +624,6 @@ class ShowreelPlayer {
       uMix: { value: 0 },
       uZoomA: { value: 1 },
       uZoomB: { value: 1 },
-      uDim: { value: 0.82 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -642,12 +638,11 @@ class ShowreelPlayer {
       uniform float uMix;
       uniform float uZoomA;
       uniform float uZoomB;
-      uniform float uDim;
       varying vec2 vUv;
       void main() {
         vec3 a = texture2D(uA, (vUv - 0.5) / uZoomA + 0.5).rgb;
         vec3 b = texture2D(uB, (vUv - 0.5) / uZoomB + 0.5).rgb;
-        gl_FragColor = vec4(mix(a, b, smoothstep(0.0, 1.0, uMix)) * uDim, 1.0);
+        gl_FragColor = vec4(mix(a, b, smoothstep(0.0, 1.0, uMix)), 1.0);
         #include <colorspace_fragment>
       }
     `,
@@ -666,17 +661,11 @@ class ShowreelPlayer {
     });
   }
 
-  toggle() {
-    this.playing = !this.playing;
-    if (this.playing) this.startedAt = this.now;
-  }
-
   update(time: number) {
-    this.now = time;
     const u = this.material.uniforms;
-    u.uDim.value = THREE.MathUtils.lerp(u.uDim.value, this.playing ? 1 : 0.82, 0.08);
     const list = this.textures;
-    if (list.length < 2 || !this.playing) return;
+    if (list.length < 2) return;
+    if (this.startedAt < 0) this.startedAt = time;
     let elapsed = time - this.startedAt;
     if (elapsed >= SLIDE_SECONDS + FADE_SECONDS) {
       this.slide += 1;
@@ -701,9 +690,6 @@ class ShowreelPlayer {
 
 function Showreel({ screen }: { screen: THREE.Mesh | null }) {
   const player = useRef<ShowreelPlayer | null>(null);
-  const button = useRef<THREE.Group>(null);
-  const ring = useRef<THREE.Mesh>(null);
-  const hover = useRef(false);
 
   useEffect(() => {
     if (!screen) return;
@@ -715,72 +701,9 @@ function Showreel({ screen }: { screen: THREE.Mesh | null }) {
     };
   }, [screen]);
 
-  useFrame(({ clock }, delta) => {
-    const t = clock.elapsedTime;
-    const p = player.current;
-    p?.update(t);
-    if (button.current) {
-      const target = p?.playing ? 0.001 : hover.current ? 1.12 : 1;
-      const s = THREE.MathUtils.lerp(button.current.scale.x, target, 1 - Math.pow(0.0001, delta));
-      button.current.scale.setScalar(s);
-      button.current.visible = s > 0.01;
-    }
-    if (ring.current) {
-      const k = (t % 1.8) / 1.8;
-      ring.current.scale.setScalar(1 + k * 0.6);
-      (ring.current.material as THREE.MeshBasicMaterial).opacity = 0.6 * (1 - k);
-    }
-  });
+  useFrame(({ clock }) => player.current?.update(clock.elapsedTime));
 
-  const triangle = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-10, -15);
-    shape.quadraticCurveTo(-12, -17, -8, -16);
-    shape.lineTo(17, -2);
-    shape.quadraticCurveTo(19, 0, 17, 2);
-    shape.lineTo(-8, 16);
-    shape.quadraticCurveTo(-12, 17, -10, 15);
-    shape.lineTo(-10, -15);
-    return new THREE.ShapeGeometry(shape, 12);
-  }, []);
-
-  const toggle = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
-    player.current?.toggle();
-  };
-
-  return (
-    <group position={SCREEN_CENTER}>
-      <mesh
-        position={[0, 10, -2]}
-        onClick={toggle}
-        onPointerOver={() => {
-          hover.current = true;
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          hover.current = false;
-          document.body.style.cursor = "";
-        }}
-      >
-        <planeGeometry args={[560, 320]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
-      <group ref={button}>
-        <mesh ref={ring} position={[0, 0, 0.5]}>
-          <ringGeometry args={[50, 53, 64]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} depthWrite={false} />
-        </mesh>
-        <mesh position={[0, 0, 1]}>
-          <circleGeometry args={[44, 64]} />
-          <meshBasicMaterial color="#fff4ec" transparent opacity={0.96} toneMapped={false} />
-        </mesh>
-        <mesh geometry={triangle} position={[3, 0, 2]}>
-          <meshBasicMaterial color="#e5574a" toneMapped={false} />
-        </mesh>
-      </group>
-    </group>
-  );
+  return null;
 }
 
 export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
