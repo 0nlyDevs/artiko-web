@@ -902,7 +902,7 @@ button {
 }
 
 /* Menu: a red panel that unrolls from the top, two columns of links split
-   by a dashed rule, an info card and a looping strip of art forms. */
+   by a dashed rule and an info card. */
 
 .g-menu {
   position: fixed;
@@ -926,10 +926,9 @@ button {
   right: 10px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-rows: 1fr auto;
   gap: 0 40px;
-  min-height: min(560px, calc(100vh - 20px));
-  padding: 96px 56px 0;
+  min-height: min(480px, calc(100vh - 20px));
+  padding: 96px 56px 40px;
   border-radius: 26px;
   overflow: hidden;
   color: var(--ink);
@@ -1043,7 +1042,6 @@ button {
 
 .g-menu-card {
   align-self: end;
-  margin-bottom: 30px;
   padding: 24px 24px 20px;
   border-radius: 20px;
   background: var(--cream);
@@ -1103,39 +1101,6 @@ button {
   background: var(--red);
 }
 
-.g-menu-strip {
-  grid-column: 1 / -1;
-  margin: 0 -56px;
-  padding: 14px 0;
-  border-top: 1.5px dashed rgba(20, 17, 16, 0.35);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.g-menu-track {
-  display: inline-flex;
-}
-
-.g-menu-track > span {
-  display: inline-flex;
-}
-
-.g-menu-track > span > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 22px;
-  padding-right: 22px;
-  font-family: var(--serif);
-  font-size: 26px;
-  font-style: italic;
-  font-weight: 600;
-}
-
-.g-menu-track i {
-  font-style: normal;
-  font-size: 16px;
-  color: var(--cream);
-}
 
 /* Room indicator and chat, bottom corners */
 
@@ -1269,15 +1234,11 @@ button {
 
   .g-menu-panel {
     grid-template-columns: minmax(0, 1fr);
-    padding: 90px 28px 0;
+    padding: 90px 28px 32px;
   }
 
   .g-menu-card {
     display: none;
-  }
-
-  .g-menu-strip {
-    margin: 24px -28px 0;
   }
 }
 
