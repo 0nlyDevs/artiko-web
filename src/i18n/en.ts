@@ -326,6 +326,25 @@ export const en = {
   "work.close": "Close",
   "work.museum": "See the museum",
   "work.footprint": "Fingerprint {hash}.",
+
+  "works.one": "{n} work",
+  "works.other": "{n} works",
+  "artist.about": "The artist",
+  "artist.works": "Works",
+  "artist.votes": "Votes",
+  "artist.expositions": "Expositions",
+  "artist.proven": "{proven} of {total} works carry a proof of creation",
+  "artist.share": "Share the museum",
+  "artist.copied": "Link copied",
+  "artist.worksTitle": "Works",
+  "artist.allWorks": "All works",
+  "artist.sort": "Arrange the works",
+  "artist.byExposition": "By exposition",
+  "artist.byForm": "By art form",
+  "artist.related": "See also",
+  "artist.inHall": "In the Hall of Fame",
+  "artist.others": "Other museums",
+  "artist.heritage": "Living heritage",
 } as const;
 
 export type Key = keyof typeof en;
