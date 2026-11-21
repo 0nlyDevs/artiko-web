@@ -1220,25 +1220,12 @@ button {
 }
 
 .g-loader-mark {
-  overflow: visible;
-  transition: transform 1s var(--ease-in-out) 0.3s;
-}
-
-.g-preloader.is-done .g-loader-mark {
-  transform: scale(1.25);
-}
-
-.g-loader-flower {
-  transform-origin: 110px 110px;
+  display: block;
   animation: g-spin 2.2s var(--ease-in-out) infinite;
 }
 
-.g-loader-flower ellipse {
-  fill: #e76f51;
-}
-
-.g-loader-heart {
-  fill: #f5ebdd;
+.g-preloader.is-done .g-loader-mark {
+  animation-play-state: paused;
 }
 
 @keyframes g-spin {

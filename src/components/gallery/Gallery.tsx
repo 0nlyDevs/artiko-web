@@ -24,21 +24,15 @@ const APP_PAGES = [
   { href: "/me", label: "My space" },
 ];
 
-// Loader: just the ARTIKO flower, turning. When loading ends the screen lifts
+// Loader: just the ARTIKO icon (public/brand/artiko-icon.svg), turning. When loading ends the screen lifts
 // away like a curtain (skill "clip-path-bar-reveal").
 function Preloader() {
   const { progress, active } = useProgress();
   const done = !active && progress >= 100;
   return (
     <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite" aria-label="Loading">
-      <svg className="g-loader-mark" viewBox="0 0 220 220" width="132" height="132" aria-hidden="true">
-        <g className="g-loader-flower">
-          {[0, 60, 120, 180, 240, 300].map((angle) => (
-            <ellipse key={angle} cx="110" cy="58" rx="27" ry="52" transform={`rotate(${angle} 110 110)`} />
-          ))}
-          <circle cx="110" cy="110" r="21" className="g-loader-heart" />
-        </g>
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a small static SVG, no optimisation needed */}
+      <img className="g-loader-mark" src="/brand/artiko-icon.svg" width={120} height={120} alt="" />
     </div>
   );
 }
