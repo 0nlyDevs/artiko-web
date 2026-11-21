@@ -3,14 +3,21 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import * as THREE from "three";
 import { useT } from "@/i18n/locale";
-import { aboutTags, featureKeys, stops, works } from "./content";
-import { Bubble, Bulb, Crown, CurvedArrow, FeatureIcon, FrameHands, HatchedArrow, Hello, PaintBox, PaletteBrush, ScrollStar, Starburst } from "./Doodles";
+import { aboutTags, featureKeys, heroLines, stops, works } from "./content";
+import { FeatureIcon } from "./Doodles";
 
 // One scene unit is one CSS pixel when the viewport is 755 px tall, the
 // height the original camera was framed for; drei scales it from there.
 const PX = 400;
 
 const scratch = new THREE.Vector3();
+
+// Scene units (about one viewport is 1300 wide): boxes mount this close to the camera and unmount past the second value.
+const MOUNT_RANGE = 1600;
+const UNMOUNT_RANGE = 2200;
+
+// Titles that the dictionaries keep in capitals read better in sentence case.
+const sentence = (text: string) => (text === text.toUpperCase() ? text.charAt(0) + text.slice(1).toLowerCase() : text);
 
 // Stagger index for a revealed child, read by globals.css.
 const at = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -31,7 +38,21 @@ function Box({ x, y, z = 1, className, children }: BoxProps) {
   const shown = useRef(false);
   const cx = (x[0] + x[1]) / 2;
   const cy = (y[0] + y[1]) / 2;
+  // drei's Html recomputes a CSS 3D transform for every box on every frame. Only keep the boxes
+  // near the camera mounted (with hysteresis), so the number of live DOM layers stays small
+  // however long the visit is.
+  const [near, setNear] = useState(() => Math.abs(cx) < MOUNT_RANGE);
+  const nearRef = useRef(near);
   useFrame(({ camera }) => {
+    const distance = Math.abs(camera.position.x - cx);
+    if (nearRef.current && distance > UNMOUNT_RANGE) {
+      nearRef.current = false;
+      shown.current = false;
+      setNear(false);
+    } else if (!nearRef.current && distance < MOUNT_RANGE) {
+      nearRef.current = true;
+      setNear(true);
+    }
     const el = ref.current;
     if (!el) return;
     scratch.set(cx, cy, z).project(camera);
@@ -44,6 +65,7 @@ function Box({ x, y, z = 1, className, children }: BoxProps) {
       el.classList.remove("is-in");
     }
   });
+  if (!near) return null;
   return (
     <Html transform distanceFactor={PX} position={[cx, cy, z]} zIndexRange={[20, 10]}>
       <div ref={ref} className={`g-box ${className ?? ""}`} style={{ width: x[1] - x[0], height: y[1] - y[0] }}>
@@ -167,34 +189,21 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
 
   return (
     <>
-      {/* Hero wall */}
-      <Box x={[-562, -434]} y={[359, 464]} className="g-doodle g-pop">
-        <Starburst label={t("doodle.wow")} width={128} />
-      </Box>
-      <Box x={[316, 462]} y={[355, 463]} className="g-doodle g-float">
-        <Bubble label={t("hero.bubble")} icon width={146} />
-      </Box>
-      <Box x={[83, 365]} y={[106, 226]} className="g-descriptor">
-        <Line>{t("hero.descriptor")}</Line>
-      </Box>
-      <Box x={[78, 250]} y={[48, 98]}>
-        <div className="r" style={at(1)}>
+      {/* Hero wall: one serif statement, a line of explanation and the way in */}
+      <Box x={[-540, 30]} y={[120, 470]} className="g-hero">
+        <h1 className="g-title g-title-hero">
+          <Line>{sentence(heroLines.map((k) => t(k)).join(" "))}</Line>
+        </h1>
+        <p className="g-lead r" style={at(2)}>
+          {t("hero.descriptor")}
+        </p>
+        <div className="g-hero-actions r" style={at(3)}>
           <Cta onClick={() => goTo(featuresX)}>{t("hero.cta")}</Cta>
+          <span className="g-small g-scroll-hint">{t("hero.scroll")}</span>
         </div>
-      </Box>
-      <Box x={[374, 478]} y={[100, 176]} className="g-doodle g-nudge">
-        <CurvedArrow width={104} />
-      </Box>
-      <Box x={[363, 488]} y={[64, 88]} className="g-small">
-        <span className="r g-scroll-hint" style={at(2)}>
-          {t("hero.scroll")}
-        </span>
       </Box>
 
       {/* Features wall */}
-      <Box x={[1429, 1509]} y={[384, 464]} className="g-doodle g-pop">
-        <Crown width={80} />
-      </Box>
       <Box x={[1429, 2037]} y={[150, 376]}>
         <h2 className="g-title g-title-xl">
           <Line>{t("features.title")}</Line>
@@ -202,12 +211,6 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
         <p className="g-text r" style={at(3)}>
           {t("features.intro")}
         </p>
-      </Box>
-      <Box x={[1262, 1383]} y={[113, 196]} className="g-doodle g-nudge">
-        <HatchedArrow width={121} />
-      </Box>
-      <Box x={[2043, 2171]} y={[124, 210]} className="g-doodle g-wobble">
-        <PaletteBrush width={128} />
       </Box>
       {featureKeys.map((key, index) => {
         const x0 = 2255 + index * 440;
@@ -241,12 +244,6 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       </Box>
 
       {/* Hall of Fame wall */}
-      <Box x={[6610, 6746]} y={[102, 242]} className="g-doodle g-wobble">
-        <ScrollStar width={70} />
-      </Box>
-      <Box x={[7060, 7180]} y={[404, 480]} className="g-doodle g-pop">
-        <Hello label={t("doodle.winners")} width={110} />
-      </Box>
       <Box x={[6804, 7433]} y={[176, 400]}>
         <h2 className="g-title g-title-xl">
           <Line>{t("featured.title")}</Line>
@@ -259,9 +256,6 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
         <div className="r" style={at(3)}>
           <Cta onClick={() => goTo(worksX)}>{t("featured.cta")}</Cta>
         </div>
-      </Box>
-      <Box x={[7429, 7652]} y={[58, 264]} className="g-doodle">
-        <FrameHands width={220} />
       </Box>
 
       {/* Art forms: one block beside each frame */}
@@ -294,17 +288,11 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
       })}
 
       {/* About wall */}
-      <Box x={[14901, 14982]} y={[169, 270]} className="g-doodle g-glow">
-        <Bulb width={81} />
-      </Box>
-      <Box x={[15034, 15578]} y={[176, 422]}>
+      <Box x={[15034, 15578]} y={[196, 476]}>
         <div className="g-title-row">
           <h2 className="g-title g-title-xl">
             <Line>{t("about.title")}</Line>
           </h2>
-          <div className="g-doodle-inline">
-            <Hello label={t("doodle.hello")} width={100} />
-          </div>
         </div>
         <p className="g-text g-lead r" style={at(2)}>
           {t("about.text")}
@@ -322,20 +310,19 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
           <Cta onClick={() => goTo(contactX)}>{t("contact.cta")}</Cta>
         </div>
       </Box>
-      <Box x={[15584, 15733]} y={[89, 190]} className="g-doodle g-wobble">
-        <PaintBox width={149} />
-      </Box>
 
       {/* Contact wall */}
+      <Box x={[16460, 16990]} y={[210, 330]} className="g-hero">
+        <h2 className="g-title g-title-xl">
+          <Line>{t("stop.contact")}</Line>
+        </h2>
+      </Box>
       <Box x={[16467, 16677]} y={[127, 188]}>
         <div className="r" style={at(1)}>
           <Cta light onClick={() => goTo(contactX)}>
             {t("contact.cta")}
           </Cta>
         </div>
-      </Box>
-      <Box x={[16997, 17094]} y={[367, 435]} className="g-doodle g-float">
-        <Hello label={t("doodle.hello")} width={97} />
       </Box>
       <Box x={[17126, 17585]} y={[60, 479]}>
         <ContactForm />

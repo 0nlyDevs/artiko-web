@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArtikoLogo } from "@/components/brand/ArtikoLogo";
-import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useT } from "@/i18n/locale";
 
 const NAV = [
@@ -25,7 +24,6 @@ export function SiteHeader() {
             {t(item.label)}
           </Link>
         ))}
-        <LanguageSwitcher variant="site" />
         <Link href="/me" className="bg-ink px-4 py-2 text-paper">
           {t("nav.mySpace")}
         </Link>

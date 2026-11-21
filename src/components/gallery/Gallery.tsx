@@ -1,7 +1,7 @@
 "use client";
 
 import { useGSAP } from "@gsap/react";
-import { useProgress } from "@react-three/drei";
+import { PerformanceMonitor, useProgress } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import gsap from "gsap";
 import Lenis from "lenis";
@@ -17,6 +17,8 @@ import { GalleryScene, type CameraPath } from "./Scene";
 gsap.registerPlugin(useGSAP);
 
 const SCROLL_LENGTH = "1500vh";
+// Upper bound of the render resolution; the performance monitor drops it to 1 on slow GPUs.
+const MAX_DPR = 1.5;
 
 const APP_PAGES = [
   { href: "/explore", label: "menu.explore" },
@@ -95,6 +97,7 @@ export function Gallery() {
   const timeline = useRef<gsap.core.Timeline | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [dprMax, setDprMax] = useState(MAX_DPR);
 
   useEffect(() => {
     const instance = new Lenis({ lerp: 0.075, wheelMultiplier: 0.9, smoothWheel: true });
@@ -243,9 +246,6 @@ export function Gallery() {
               </button>
             ))}
           </nav>
-          <div className="g-bar-lang">
-            <LanguageSwitcher variant="gallery" />
-          </div>
         </div>
         <JoinButton onClick={() => navigate(stops.length - 1)} />
       </header>
@@ -292,19 +292,17 @@ export function Gallery() {
               <span>{t("menu.free")}</span>
             </div>
           </aside>
-          <div className="g-menu-lang">
-            <LanguageSwitcher variant="gallery" />
-          </div>
         </div>
       </div>
 
       <div className="g-stage" aria-hidden={menuOpen}>
         <Canvas
-          dpr={[1, 2]}
-          gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
+          dpr={[1, dprMax]}
+          gl={{ antialias: !(typeof window !== "undefined" && window.devicePixelRatio >= 1.5), powerPreference: "high-performance", toneMapping: THREE.NoToneMapping }}
           camera={{ fov: 22.9, near: 1, far: 12000, position: [0, 272, 1862] }}
-          onCreated={({ gl }) => gl.setClearColor("#e8e6e1")}
+          onCreated={({ gl }) => gl.setClearColor("#FBF0E4")}
         >
+          <PerformanceMonitor onDecline={() => setDprMax(1)} onIncline={() => setDprMax(MAX_DPR)} />
           <Suspense fallback={null}>
             <GalleryScene progress={progress} onPath={onPath} goTo={goTo} />
           </Suspense>
@@ -321,6 +319,7 @@ export function Gallery() {
         <span className="g-room-name">{t(stops[active].label)}</span>
       </div>
 
+      <LanguageSwitcher placement="home" />
       <button type="button" className="g-chat" aria-label={t("gallery.contactAria")} onClick={() => navigate(stops.length - 1)}>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <path d="M4 5 H16 V13 H9 L5 16 V13 H4 Z M18 8 H20 V17 H19 V20 L15.5 17 H10 V15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />

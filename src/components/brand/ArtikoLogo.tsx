@@ -11,7 +11,7 @@ type LogoProps = {
 };
 
 export function ArtikoLogo({ height = 28, tone = "ink", className }: LogoProps) {
-  const stroke = tone === "ink" ? "#1E2B4A" : "#F5EBDD";
+  const stroke = tone === "ink" ? "#2A1C1A" : "#FBF0E4";
   return (
     <svg viewBox="-6 -8 600 156" height={height} width={(height * 600) / 156} className={className} aria-hidden="true">
       <g fill="none" stroke={stroke} strokeWidth="20" strokeLinecap="round" strokeLinejoin="round">
@@ -22,7 +22,7 @@ export function ArtikoLogo({ height = 28, tone = "ink", className }: LogoProps) 
         <path d="M316 44 V116" />
         <path d="M368 12 V116 M426 46 L368 88 M394 72 L430 116" />
       </g>
-      <circle cx="316" cy="18" r="12" fill="#E76F51" />
+      <circle cx="316" cy="18" r="12" fill="#C8553D" />
       <ArtikoFlower cx={508} cy={80} size={52} />
     </svg>
   );
@@ -32,12 +32,12 @@ export function ArtikoLogo({ height = 28, tone = "ink", className }: LogoProps) 
 export function ArtikoFlower({ cx, cy, size }: { cx: number; cy: number; size: number }) {
   return (
     <g className="artiko-flower" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-      <g fill="#E76F51">
+      <g fill="#C8553D">
         {PETALS.map((angle) => (
           <ellipse key={angle} cx={cx} cy={cy - size / 2} rx={size * 0.26} ry={size / 2} transform={`rotate(${angle} ${cx} ${cy})`} />
         ))}
       </g>
-      <circle cx={cx} cy={cy} r={size * 0.2} fill="#F5EBDD" />
+      <circle cx={cx} cy={cy} r={size * 0.2} fill="#FBF0E4" />
     </g>
   );
 }
