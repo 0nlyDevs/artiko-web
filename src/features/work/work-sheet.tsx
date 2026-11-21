@@ -21,7 +21,8 @@ export function WorkSheet({ work, artist, exposition }: { work: Work; artist: Ar
   const vote = useVote(work);
   const [burst, setBurst] = useState(0);
 
-  const close = () => (window.history.length > 1 ? router.back() : router.push("/explore"));
+  // Back only when the visitor came from a page of this site; a shared link closes to Explore.
+  const close = () => (document.referrer.startsWith(window.location.origin) ? router.back() : router.push("/explore"));
   const doubleClick = () => {
     if (vote.vote()) setBurst((n) => n + 1);
   };
@@ -29,8 +30,9 @@ export function WorkSheet({ work, artist, exposition }: { work: Work; artist: Ar
   return (
     <article className="rise mx-auto flex max-w-[1180px] flex-col overflow-hidden rounded-md bg-white shadow-[0_0_0_1px_var(--line)] md:min-h-[640px] md:flex-row">
       <div
-        onDoubleClick={doubleClick}
-        title={vote.state === "open" ? t("vote.doubleClick") : undefined}
+        // Images only: a double-click on a video or sound player means full screen or seeking, not a vote.
+        onDoubleClick={work.media_kind === "image" ? doubleClick : undefined}
+        title={work.media_kind === "image" && vote.state === "open" ? t("vote.doubleClick") : undefined}
         className="relative flex min-h-[320px] items-center justify-center bg-[#1E1614] select-none md:flex-[2]"
       >
         {work.media_kind === "image" && (
