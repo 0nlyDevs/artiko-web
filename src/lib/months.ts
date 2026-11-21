@@ -1,10 +1,13 @@
+import { intlLocale, type Locale } from "@/i18n/locales";
+
 /** Contest months are UTC `YYYY-MM`, like the API's. */
 export function currentMonth(): string {
   return new Date().toISOString().slice(0, 7);
 }
 
-export function monthLabel(month: string): string {
-  return new Date(`${month}-01T00:00:00Z`).toLocaleDateString("en", {
+/** "November 2026", "novembre 2026"... in the given locale. */
+export function monthLabel(month: string, locale: Locale): string {
+  return new Date(`${month}-01T00:00:00Z`).toLocaleDateString(intlLocale(locale), {
     month: "long",
     year: "numeric",
     timeZone: "UTC",

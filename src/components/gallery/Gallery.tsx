@@ -8,6 +8,8 @@ import Lenis from "lenis";
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { LanguageSwitcher } from "@/i18n/language-switcher";
+import { PageTitle, useT } from "@/i18n/locale";
 import { ArtikoLogo } from "../brand/ArtikoLogo";
 import { stops } from "./content";
 import { GalleryScene, type CameraPath } from "./Scene";
@@ -17,12 +19,12 @@ gsap.registerPlugin(useGSAP);
 const SCROLL_LENGTH = "1500vh";
 
 const APP_PAGES = [
-  { href: "/explore", label: "Explore and vote" },
-  { href: "/hall-of-fame", label: "Hall of Fame" },
-  { href: "/heritage", label: "Heritage index" },
-  { href: "/scan", label: "Check a photo" },
-  { href: "/me", label: "My space" },
-];
+  { href: "/explore", label: "menu.explore" },
+  { href: "/hall-of-fame", label: "nav.hallOfFame" },
+  { href: "/heritage", label: "nav.heritage" },
+  { href: "/scan", label: "nav.scan" },
+  { href: "/me", label: "nav.mySpace" },
+] as const;
 
 // Loader: just the ARTIKO icon (public/brand/artiko-icon.svg), turning. When loading ends the screen lifts
 // away like a curtain (skill "clip-path-bar-reveal").
@@ -48,6 +50,7 @@ function ArrowIcon() {
 // Magnetic call to action: the button drifts toward the cursor and springs
 // back when it leaves (animation-workflow skill "magnetic-element").
 function JoinButton({ onClick }: { onClick: () => void }) {
+  const { t } = useT();
   const wrap = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {
@@ -74,7 +77,7 @@ function JoinButton({ onClick }: { onClick: () => void }) {
   return (
     <div ref={wrap} className="g-magnetic">
       <button type="button" className="g-join" onClick={onClick}>
-        <span className="g-join-label">Join ARTIKO</span>
+        <span className="g-join-label">{t("gallery.join")}</span>
         <span className="g-join-dot">
           <ArrowIcon />
         </span>
@@ -84,6 +87,7 @@ function JoinButton({ onClick }: { onClick: () => void }) {
 }
 
 export function Gallery() {
+  const { t } = useT();
   const progress = useRef(0);
   const lenis = useRef<Lenis | null>(null);
   const path = useRef<CameraPath | null>(null);
@@ -213,6 +217,7 @@ export function Gallery() {
 
   return (
     <>
+      <PageTitle k="meta.home" />
       <Preloader />
 
       <header className={`g-header ${menuOpen ? "is-menu" : ""}`}>
@@ -222,30 +227,33 @@ export function Gallery() {
             className="g-burger"
             aria-expanded={menuOpen}
             aria-controls="g-menu"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? t("gallery.menuClose") : t("gallery.menuOpen")}
             onClick={() => setMenuOpen((o) => !o)}
           >
             <span />
             <span />
           </button>
-          <Link className="g-logo" href="/" aria-label="ARTIKO, home">
+          <Link className="g-logo" href="/" aria-label={t("nav.homeAria")}>
             <ArtikoLogo height={26} />
           </Link>
-          <nav className="g-quick" aria-label="Quick links">
+          <nav className="g-quick" aria-label={t("gallery.quick")}>
             {[1, 3, 4, 5].map((i) => (
               <button key={stops[i].label} type="button" className={active === i ? "is-active" : ""} onClick={() => navigate(i)}>
-                {stops[i].label}
+                {t(stops[i].label)}
               </button>
             ))}
           </nav>
+          <div className="g-bar-lang">
+            <LanguageSwitcher variant="gallery" />
+          </div>
         </div>
         <JoinButton onClick={() => navigate(stops.length - 1)} />
       </header>
 
       <div id="g-menu" ref={menu} className="g-menu" inert={!menuOpen}>
         <div className="g-menu-veil" onClick={() => setMenuOpen(false)} />
-        <div className="g-menu-panel" role="dialog" aria-modal="true" aria-label="Menu">
-          <nav className="g-menu-cols" aria-label="Main">
+        <div className="g-menu-panel" role="dialog" aria-modal="true" aria-label={t("gallery.menu")}>
+          <nav className="g-menu-cols" aria-label={t("gallery.main")}>
             {columns.map((column, c) => (
               <ul key={c} className="g-menu-list">
                 {column.map((stop) => {
@@ -255,7 +263,7 @@ export function Gallery() {
                       <button type="button" className={index === active ? "is-active" : ""} onClick={() => navigate(index)}>
                         <span className="g-menu-num">{String(index + 1).padStart(2, "0")}</span>
                         <span className="g-menu-mask">
-                          <span className="g-menu-link-text">{stop.label}</span>
+                          <span className="g-menu-link-text">{t(stop.label)}</span>
                         </span>
                         <span className="g-menu-arrow" aria-hidden="true">
                           <ArrowIcon />
@@ -269,21 +277,24 @@ export function Gallery() {
             <span className="g-menu-divider" aria-hidden="true" />
           </nav>
           <aside className="g-menu-card">
-            <p className="g-menu-card-tag">Every art deserves a museum</p>
-            <p className="g-menu-card-text">Scan it. Show it in 3D. Pass it on.</p>
+            <p className="g-menu-card-tag">{t("menu.tag")}</p>
+            <p className="g-menu-card-text">{t("menu.text")}</p>
             <ul className="g-menu-card-links">
               {APP_PAGES.map((page) => (
                 <li key={page.href}>
-                  <Link href={page.href}>{page.label}</Link>
+                  <Link href={page.href}>{t(page.label)}</Link>
                 </li>
               ))}
             </ul>
             <div className="g-menu-card-row">
-              <span>Web</span>
-              <span>Android</span>
-              <span>Free</span>
+              <span>{t("menu.web")}</span>
+              <span>{t("menu.android")}</span>
+              <span>{t("menu.free")}</span>
             </div>
           </aside>
+          <div className="g-menu-lang">
+            <LanguageSwitcher variant="gallery" />
+          </div>
         </div>
       </div>
 
@@ -307,10 +318,10 @@ export function Gallery() {
         <span className="g-room-track">
           <span ref={bar} />
         </span>
-        <span className="g-room-name">{stops[active].label}</span>
+        <span className="g-room-name">{t(stops[active].label)}</span>
       </div>
 
-      <button type="button" className="g-chat" aria-label="Contact ARTIKO" onClick={() => navigate(stops.length - 1)}>
+      <button type="button" className="g-chat" aria-label={t("gallery.contactAria")} onClick={() => navigate(stops.length - 1)}>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <path d="M4 5 H16 V13 H9 L5 16 V13 H4 Z M18 8 H20 V17 H19 V20 L15.5 17 H10 V15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
         </svg>

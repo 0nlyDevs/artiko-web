@@ -12,6 +12,9 @@ const ink = {
 
 const salt = { fontFamily: "var(--font-salt), cursive", fill: "#111" };
 
+// Longer words in other languages shrink to the width the English label was drawn for.
+const fit = (size: number, label: string, chars: number) => size * Math.min(1, chars / label.length);
+
 export function Starburst({ label, width = 128 }: { label: string; width?: number }) {
   const points: string[] = [];
   const spikes = 14;
@@ -43,7 +46,7 @@ export function Bubble({ label, width = 150, icon = false }: { label: string; wi
           <path d="M18 37 H40 M24 26 V33 M34 26 V33" />
         </g>
       )}
-      <text x={icon ? 88 : 72} y="48" textAnchor="middle" fontSize={icon ? 11.5 : 14} transform="rotate(4 75 45)" style={salt}>
+      <text x={icon ? 88 : 72} y="48" textAnchor="middle" fontSize={fit(icon ? 11.5 : 14, label, icon ? 11 : 9)} transform="rotate(4 75 45)" style={salt}>
         {label}
       </text>
     </svg>
@@ -177,7 +180,7 @@ export function Hello({ width = 100, label = "HELLO" }: { width?: number; label?
     <svg viewBox="0 0 100 72" width={width} aria-hidden="true">
       <path d="M10 6 H90 C96 6 98 10 98 16 V40 C98 46 94 50 88 50 H48 L30 68 L34 50 H12 C6 50 2 46 2 40 V16 C2 10 4 6 10 6 Z" {...ink} />
       <path d="M14 10 H86" {...ink} strokeWidth={1.2} />
-      <text x="50" y="36" textAnchor="middle" fontSize="16" style={salt}>
+      <text x="50" y="36" textAnchor="middle" fontSize={fit(16, label, 7)} style={salt}>
         {label}
       </text>
     </svg>
