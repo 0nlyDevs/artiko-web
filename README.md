@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Artiko web
 
-## Getting Started
+Next.js app for exploring Artiko: artists' 3D museums and the monthly vote, the Hall of Fame, the Living Heritage Index and "Check a photo". It also runs sign-in (Better Auth) for the web and Android apps.
 
-First, run the development server:
+The API contract is `../artiko-api/openapi.yml`; its types are generated into `src/lib/api-types` (committed).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+## Setup
+
+1. Copy `.env.example` to `.env.local`: the same Neon `DATABASE_URL` as artiko-api, a random `BETTER_AUTH_SECRET`, and the API address.
+2. Create the Better Auth tables (schema `better_auth`, created by the API's first migration), then run:
+
+```
+pnpm install
+pnpm auth:migrate
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+After the contract changes in artiko-api: `pnpm gen:api`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+On a slow network, Node gives up on each database address after 250 ms and sign-in fails with `ETIMEDOUT`. Give it longer:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NODE_OPTIONS=--network-family-autoselection-attempt-timeout=5000 pnpm dev
+```
 
-## Learn More
+## Sign-in
 
-To learn more about Next.js, take a look at the following resources:
+- Web: email and password; `authClient.token()` gives the 15-minute JWT that the API checks against `/api/auth/jwks`.
+- Android: `POST /api/auth/sign-in/email` returns the session token in the `set-auth-token` header; `GET /api/auth/token` with `Authorization: Bearer <session token>` returns the JWT for the API.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Route | What it does |
+|---|---|
+| `/` | This month's leading works, endangered practices |
+| `/explore` | Works by category, artists |
+| `/artists/[id]` | The artist's 3D museum (simple gallery view for slow devices), vote panel |
+| `/hall-of-fame` | Top 5 per category and month |
+| `/heritage` | Living Heritage Index |
+| `/scan` | Check a photo |
+| `/sign-in`, `/sign-up`, `/me` | Account, artist profile, publishing a work with proof |
