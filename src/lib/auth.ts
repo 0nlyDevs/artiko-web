@@ -1,0 +1,38 @@
+// Better Auth server: owns users and sessions (schema `better_auth`) and signs the JWTs that
+// artiko-api verifies against /api/auth/jwks. Issuer and audience are the app's own URL,
+// which is what the API expects in AUTH_ISSUER / AUTH_AUDIENCE.
+import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
+import { bearer } from "better-auth/plugins/bearer";
+import { jwt } from "better-auth/plugins/jwt";
+import { Pool } from "pg";
+
+const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+
+function createAuth() {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  // The API owns schema `app`; Better Auth keeps its tables apart in `better_auth`.
+  pool.on("connect", (client) => client.query("SET search_path TO better_auth"));
+
+  return betterAuth({
+    baseURL,
+    // No fallback: Better Auth refuses to serve in production without BETTER_AUTH_SECRET.
+    secret: process.env.BETTER_AUTH_SECRET,
+    database: pool,
+    emailAndPassword: { enabled: true },
+    plugins: [
+      // EdDSA key pair by default, published at /api/auth/jwks.
+      jwt({ jwt: { issuer: baseURL, audience: baseURL } }),
+      // Lets the Android app exchange its session token for an API JWT.
+      bearer(),
+      nextCookies(),
+    ],
+  });
+}
+
+let instance: ReturnType<typeof createAuth> | undefined;
+
+/** Created on first use, so `next build` needs no secret but a misconfigured server fails on its first request. */
+export function getAuth() {
+  return (instance ??= createAuth());
+}
