@@ -35,7 +35,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <div className="flex flex-col gap-8">
       <h1 className="font-heading text-7xl">{signUp ? t("auth.signUpTitle") : t("auth.signInTitle")}</h1>
       {signUp && <p className="max-w-2xl text-xl">{t("auth.signUpIntro")}</p>}
-      <form action={submit} className="flex max-w-md flex-col gap-5">
+      <form onSubmit={(event) => {
+          // Not `action={...}`: React resets the fields after an action even when it fails, wiping what was typed.
+          event.preventDefault();
+          void submit(new FormData(event.currentTarget));
+        }} className="flex max-w-md flex-col gap-5">
         {signUp && (
           <div className="flex flex-col gap-1">
             <label htmlFor="name" className="font-bold">{t("auth.name")}</label>
