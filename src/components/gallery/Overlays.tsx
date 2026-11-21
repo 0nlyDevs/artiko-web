@@ -67,7 +67,7 @@ function ContactForm() {
         </button>
       </div>
       <p className="g-form-note" role="status">
-        {sent ? "Message ready. Sending opens when the Lova API goes live." : ""}
+        {sent ? "Message ready. Sending opens when the ARTIKO API goes live." : ""}
       </p>
     </form>
   );
@@ -192,7 +192,7 @@ export function Overlays({ goTo }: { goTo: (x: number) => void }) {
         <p className="g-text">{about.text}</p>
       </Box>
       <Box x={[15034, 15200]} y={[112, 156]}>
-        <a className="g-btn-outline g-btn-outline-lg" href="/museum">
+        <a className="g-btn-outline g-btn-outline-lg" href="#contact" onClick={(e) => { e.preventDefault(); goTo(contactX); }}>
           {about.cta} <Chevron />
         </a>
       </Box>

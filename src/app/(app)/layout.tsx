@@ -19,7 +19,7 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Lova: every art deserves a museum",
+  title: "ARTIKO: every art deserves a museum",
   description:
     "Scan any artwork, visit every artist's 3D museum, vote for the best works and learn the skills that keep art alive.",
 };

@@ -8,13 +8,13 @@ export const hero = {
 };
 
 export const features = {
-  title: "What Lova does",
+  title: "What ARTIKO does",
   intro:
-    "Lova is a free platform, on the web and on Android, that helps save, value and pass on art. Scan a painting or a song to learn who made it and whether it is proven human-made. Visit each artist's 3D museum, vote for the best works and learn endangered skills from the masters who still hold them.",
+    "ARTIKO is a free platform, on the web and on Android, that helps save, value and pass on art. Scan a painting or a song to learn who made it and whether it is proven human-made. Visit each artist's 3D museum, vote for the best works and learn endangered skills from the masters who still hold them.",
   items: [
     {
       title: "Scan any work",
-      text: "Point your phone at a painting, a mural or a poster, or let it listen to a song. Lova tells you who made it and shows its sources.",
+      text: "Point your phone at a painting, a mural or a poster, or let it listen to a song. ARTIKO tells you who made it and shows its sources.",
     },
     {
       title: "Artist museums",
@@ -102,9 +102,9 @@ export const works: Work[] = [
 export const neon = ["NO ART LEFT BEHIND,", "NO MASTER FORGOTTEN!"];
 
 export const about = {
-  title: "Why Lova",
-  text: "Lova means heritage in Malagasy. It is one platform where artists are credited, works are proven and skills are passed on. Every art form counts: crafts, painting, sculpture, music, dance, languages and the spoken word, like the Malagasy kabary. Artists choose what is shown, explained or kept private.",
-  cta: "About Lova",
+  title: "Why ARTIKO",
+  text: "ARTIKO is one platform where artists are credited, works are proven and skills are passed on. Every art form counts: crafts, painting, sculpture, music, dance, languages and the spoken word, like the Malagasy kabary. Artists choose what is shown, explained or kept private.",
+  cta: "About ARTIKO",
 };
 
 export const contact = {

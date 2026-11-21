@@ -17,7 +17,7 @@ function Preloader() {
   return (
     <div className={`g-preloader ${done ? "is-done" : ""}`} role="status" aria-live="polite">
       <p className="g-logo g-preloader-logo">
-        lova<span aria-hidden="true">·</span>
+        artiko<span aria-hidden="true">·</span>
       </p>
       <div className="g-preloader-bar">
         <span style={{ transform: `scaleX(${progress / 100})` }} />
@@ -120,8 +120,8 @@ export function Gallery() {
       <Preloader />
 
       <header className="g-header">
-        <Link className="g-logo" href="/" aria-label="Lova, home">
-          lova<span aria-hidden="true">·</span>
+        <Link className="g-logo" href="/" aria-label="ARTIKO, home">
+          artiko<span aria-hidden="true">·</span>
         </Link>
         <div className="g-header-actions">
           <button
@@ -135,7 +135,7 @@ export function Gallery() {
             <MenuIcon open={menuOpen} />
           </button>
           <button type="button" className="g-btn" onClick={() => navigate(stops.length - 1)}>
-            Join Lova
+            Join ARTIKO
           </button>
         </div>
       </header>
@@ -149,9 +149,6 @@ export function Gallery() {
               </button>
             </li>
           ))}
-          <li>
-            <Link href="/museum">Museum journey</Link>
-          </li>
         </ul>
         <div className="g-menu-side">
           <p className="g-menu-label">The apps</p>
@@ -161,13 +158,6 @@ export function Gallery() {
           <button type="button" className="g-menu-big g-menu-link" onClick={() => navigate(stops.length - 1)}>
             Contact form
           </button>
-          <p className="g-menu-label">More about us</p>
-          <a className="g-menu-big g-menu-link" href="/museum/assets/artwork-sources.json" target="_blank" rel="noopener noreferrer">
-            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-              <path d="M10 3 V13 M5 9 L10 14 L15 9 M4 17 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Sources and credits
-          </a>
         </div>
       </nav>
 
@@ -186,14 +176,7 @@ export function Gallery() {
 
       <div className="g-scroll" style={{ height: SCROLL_LENGTH }} aria-hidden="true" />
 
-      <footer className="g-footer">
-        <Link href="/museum">Museum journey</Link>
-        <a href="/museum/assets/artwork-sources.json" target="_blank" rel="noopener noreferrer">
-          Credits
-        </a>
-      </footer>
-
-      <button type="button" className="g-chat" aria-label="Contact Lova" onClick={() => navigate(stops.length - 1)}>
+      <button type="button" className="g-chat" aria-label="Contact ARTIKO" onClick={() => navigate(stops.length - 1)}>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <path d="M4 5 H16 V13 H9 L5 16 V13 H4 Z M18 8 H20 V17 H19 V20 L15.5 17 H10 V15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
         </svg>
