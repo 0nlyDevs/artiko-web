@@ -141,7 +141,6 @@ export const en = {
 
   // My space
   "space.title": "My space",
-  "space.loading": "Loading your space.",
   "space.intro":
     "Sign in to vote for the month's best works, or to open your own museum and publish your work with its proof of process.",
   "space.signIn": "Sign in",
@@ -151,7 +150,6 @@ export const en = {
   "space.noProfile": "Once your profile is saved you can publish works. <link>Explore other museums</link> meanwhile.",
 
   // Profile form
-  "profile.titleEdit": "Your artist profile",
   "profile.titleNew": "Become an artist",
   "profile.intro": "Your profile opens your own museum, where people visit and vote for your works.",
   "profile.name": "Name shown on your museum",
@@ -164,7 +162,6 @@ export const en = {
   "profile.visit": "Visit my museum",
 
   // Publish form
-  "publish.title": "Publish a work",
   "publish.intro":
     "Add 2 to 5 proof files of how you made it (sketches, progress photos, a timelapse, stems). With proof, the work gets the human-made seal and enters this month's vote.",
   "publish.workTitle": "Title",
@@ -406,6 +403,30 @@ export const en = {
   "auth.linkInvalid": "This link no longer works: it expired or was already used.",
   "auth.tooMany": "Too many attempts. Wait a minute, then try again.",
   "auth.unexpected": "That did not work. Check your connection and try again.",
+
+  "space.tabWorks": "My works",
+  "space.tabVotes": "My votes",
+  "space.tabProfile": "Artist profile",
+  "space.votesReceived": "{n} votes received",
+  "space.expositionCount": "{n} expositions",
+  "space.noWorks": "Your museum is still empty.",
+  "space.votesIntro": "Your votes this month. One vote per art form and per month.",
+  "space.noVote": "No vote yet: explore",
+  "publish.drop": "Drop a file or choose one",
+  "publish.addProof": "Add a proof file",
+  "publish.removeProof": "Remove {name}",
+  "publish.visibility": "Who sees the proof",
+  "publish.public": "Everyone",
+  "publish.reviewers": "The jury only",
+  "publish.exposition": "Exposition",
+  "publish.noExposition": "No exposition",
+  "publish.newExposition": "New exposition…",
+  "publish.expositionTitle": "Title of the new exposition",
+  "received.one": "{n} vote received",
+  "received.other": "{n} votes received",
+  "expositions.one": "{n} exposition",
+  "expositions.other": "{n} expositions",
+  "space.linkExpired": "That confirmation link no longer works. Sign in to receive a new one.",
 } as const;
 
 export type Key = keyof typeof en;

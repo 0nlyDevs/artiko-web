@@ -128,7 +128,6 @@ export const mg: Dictionary = {
   "auth.signUpSubmit": "Hamorona ny kaontiko",
 
   "space.title": "Ny toerako",
-  "space.loading": "Eo am-pakana ny toerananao.",
   "space.intro":
     "Midira hifidy ny asa tsara indrindra amin'ny volana, na hanokatra ny tranombakokanao ary hamoaka ny asanao miaraka amin'ny porofon'ny fanaovana.",
   "space.signIn": "Hiditra",
@@ -138,7 +137,6 @@ export const mg: Dictionary = {
   "space.noProfile":
     "Rehefa voatahiry ny mombamomba anao dia afaka mamoaka asa ianao. Raha miandry, <link>tsidiho ny tranombakoka hafa</link>.",
 
-  "profile.titleEdit": "Ny mombamomba anao ho mpanakanto",
   "profile.titleNew": "Ho mpanakanto",
   "profile.intro": "Ny mombamomba anao no manokatra ny tranombakokanao, izay itsidihan'ny olona sy ifidianany ny asanao.",
   "profile.name": "Anarana aseho eo amin'ny tranombakokanao",
@@ -150,7 +148,6 @@ export const mg: Dictionary = {
   "profile.failed": "Tsy voatahiry ny mombamomba. Andramo indray.",
   "profile.visit": "Tsidiho ny tranombakokako",
 
-  "publish.title": "Hamoaka asa",
   "publish.intro":
     "Ampio rakitra 2 ka hatramin'ny 5 manaporofo ny fomba nanaovanao azy (rakikira, sary isaky ny dingana, timelapse, feo tsirairay). Raha misy porofo, mahazo ny tombo-kase « nataon'olombelona » ny asa ary miditra amin'ny fifidianana amin'ity volana ity.",
   "publish.workTitle": "Lohateny",
@@ -393,4 +390,28 @@ export const mg: Dictionary = {
   "auth.linkInvalid": "Tsy miasa intsony io rohy io: lany daty na efa nampiasaina.",
   "auth.tooMany": "Be loatra ny andrana. Miandrasa iray minitra, dia andramo indray.",
   "auth.unexpected": "Tsy nety. Jereo ny aterineto dia andramo indray.",
+
+  "space.tabWorks": "Ny asako",
+  "space.tabVotes": "Ny vatoko",
+  "space.tabProfile": "Mombamomba ahy",
+  "space.votesReceived": "Vato {n} voaray",
+  "space.expositionCount": "Fampirantiana {n}",
+  "space.noWorks": "Mbola foana ny tranombakokanao.",
+  "space.votesIntro": "Ny vatonao amin'ity volana ity. Vato iray isaky ny karazana, isam-bolana.",
+  "space.noVote": "Mbola tsy nifidy: hitsidika",
+  "publish.drop": "Apetraho eto ny rakitra na safidio",
+  "publish.addProof": "Hanampy porofo",
+  "publish.removeProof": "Esory {name}",
+  "publish.visibility": "Iza no mahita ny porofo",
+  "publish.public": "Ny rehetra",
+  "publish.reviewers": "Ny mpitsara ihany",
+  "publish.exposition": "Fampirantiana",
+  "publish.noExposition": "Tsy misy fampirantiana",
+  "publish.newExposition": "Fampirantiana vaovao…",
+  "publish.expositionTitle": "Lohatenin'ny fampirantiana vaovao",
+  "received.one": "Vato {n} voaray",
+  "received.other": "Vato {n} voaray",
+  "expositions.one": "Fampirantiana {n}",
+  "expositions.other": "Fampirantiana {n}",
+  "space.linkExpired": "Tsy miasa intsony io rohy fanamafisana io. Midira mba hahazoana vaovao.",
 };

@@ -127,7 +127,6 @@ export const fr: Dictionary = {
   "auth.signUpSubmit": "Créer mon compte",
 
   "space.title": "Mon espace",
-  "space.loading": "Chargement de votre espace.",
   "space.intro":
     "Connectez-vous pour voter pour les meilleures œuvres du mois, ou pour ouvrir votre propre musée et publier votre travail avec sa preuve de création.",
   "space.signIn": "Se connecter",
@@ -137,7 +136,6 @@ export const fr: Dictionary = {
   "space.noProfile":
     "Une fois votre profil enregistré, vous pourrez publier des œuvres. En attendant, <link>explorez d’autres musées</link>.",
 
-  "profile.titleEdit": "Votre profil d’artiste",
   "profile.titleNew": "Devenir artiste",
   "profile.intro": "Votre profil ouvre votre propre musée, que le public visite et où il vote pour vos œuvres.",
   "profile.name": "Nom affiché sur votre musée",
@@ -149,7 +147,6 @@ export const fr: Dictionary = {
   "profile.failed": "Le profil n’a pas été enregistré. Réessayez.",
   "profile.visit": "Visiter mon musée",
 
-  "publish.title": "Publier une œuvre",
   "publish.intro":
     "Ajoutez 2 à 5 fichiers qui prouvent comment vous l’avez créée (croquis, photos d’étapes, timelapse, pistes séparées). Avec une preuve, l’œuvre reçoit le sceau « fait par un humain » et entre dans le vote du mois.",
   "publish.workTitle": "Titre",
@@ -392,4 +389,28 @@ export const fr: Dictionary = {
   "auth.linkInvalid": "Ce lien ne fonctionne plus : il a expiré ou a déjà servi.",
   "auth.tooMany": "Trop de tentatives. Attendez une minute, puis réessayez.",
   "auth.unexpected": "Cela n’a pas fonctionné. Vérifiez votre connexion et réessayez.",
+
+  "space.tabWorks": "Mes œuvres",
+  "space.tabVotes": "Mes votes",
+  "space.tabProfile": "Profil d’artiste",
+  "space.votesReceived": "{n} votes reçus",
+  "space.expositionCount": "{n} expositions",
+  "space.noWorks": "Votre musée est encore vide.",
+  "space.votesIntro": "Vos votes de ce mois-ci. Un vote par forme d’art et par mois.",
+  "space.noVote": "Pas encore de vote : explorer",
+  "publish.drop": "Glissez un fichier ou choisissez-le",
+  "publish.addProof": "Ajouter une preuve",
+  "publish.removeProof": "Retirer {name}",
+  "publish.visibility": "Qui voit les preuves",
+  "publish.public": "Tout le monde",
+  "publish.reviewers": "Le jury seulement",
+  "publish.exposition": "Exposition",
+  "publish.noExposition": "Aucune exposition",
+  "publish.newExposition": "Nouvelle exposition…",
+  "publish.expositionTitle": "Titre de la nouvelle exposition",
+  "received.one": "{n} vote reçu",
+  "received.other": "{n} votes reçus",
+  "expositions.one": "{n} exposition",
+  "expositions.other": "{n} expositions",
+  "space.linkExpired": "Ce lien de confirmation ne fonctionne plus. Connectez-vous pour en recevoir un nouveau.",
 };
