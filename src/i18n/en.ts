@@ -302,6 +302,13 @@ export const en = {
   "email.reset.body": "Hello {name}, someone asked to reset the password of your Artiko account. Choose a new one with this link, valid for one hour.",
   "email.reset.button": "Choose a new password",
   "email.ignore": "If you did not ask for this, ignore this email: nothing changes.",
+
+  "nav.main": "Main navigation",
+  "nav.home": "Home",
+  "nav.heritageShort": "Heritage",
+  "nav.scanShort": "Check",
+  "nav.publish": "Publish",
+  "nav.me": "Me",
 } as const;
 
 export type Key = keyof typeof en;

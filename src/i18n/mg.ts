@@ -289,4 +289,11 @@ export const mg: Dictionary = {
   "email.reset.body": "Salama {name}, nisy nangataka ny hanova ny tenimiafin'ny kaontinao Artiko. Misafidiana vaovao amin'ity rohy ity, ora iray no maha-manan-kery azy.",
   "email.reset.button": "Hisafidy tenimiafina vaovao",
   "email.ignore": "Raha tsy ianao no nangataka, aza raharahiana ity mailaka ity: tsy misy miova.",
+
+  "nav.main": "Fitetezana lehibe",
+  "nav.home": "Fandraisana",
+  "nav.heritageShort": "Lova",
+  "nav.scanShort": "Hamarino",
+  "nav.publish": "Hamoaka",
+  "nav.me": "Izaho",
 };

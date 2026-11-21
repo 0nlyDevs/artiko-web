@@ -9,6 +9,10 @@
   --cream: #FBF0E4;
   --paper: #ffffff;
   --wall: #FBF0E4;
+  /* App pages: a tone step for fields, chips and cards, and a hairline for the rare divider. */
+  --surface: #F6F0EA;
+  --surface-hover: #EFE6DD;
+  --line: #EDE5DD;
   --sans: var(--font-sans), system-ui, sans-serif;
   --serif: var(--font-serif), "Cormorant Garamond", Georgia, serif;
   --display: var(--font-sans), system-ui, sans-serif;
@@ -24,6 +28,9 @@
   --color-red: var(--red);
   --color-paper: var(--paper);
   --color-wall: var(--wall);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-red-deep: var(--red-deep);
   --font-heading: var(--font-sans);
 }
 
@@ -239,6 +246,18 @@ button {
   box-shadow:
     0 12px 26px -14px rgba(20, 17, 16, 0.55),
     inset 0 0 0 1px rgba(20, 17, 16, 0.08);
+}
+
+/* Inside the app pages' navigation instead of floating */
+.lang-pill--inline {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+  background: var(--surface);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* Leaves room for the chat button of the home gallery */
@@ -1441,4 +1460,101 @@ button {
     radial-gradient(60% 55% at 88% 6%, rgba(255, 196, 112, 0.6), rgba(255, 168, 96, 0) 68%),
     linear-gradient(180deg, rgba(255, 150, 96, 0.2) 0%, rgba(255, 150, 96, 0) 38%, rgba(96, 40, 72, 0.28) 100%);
   mix-blend-mode: soft-light;
+}
+
+/* ── App pages: controls and motion shared by explore, museums, Hall of Fame, heritage, scan and my space ── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, transform 0.15s, color 0.2s;
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.btn-ink { background: var(--ink); color: #fff; }
+.btn-ink:hover:not(:disabled) { background: #3d2a27; }
+.btn-soft { background: var(--surface); color: var(--ink); }
+.btn-soft:hover:not(:disabled) { background: var(--surface-hover); }
+/* White text needs the deep terracotta: the brand one is just under 4.5:1. */
+.btn-vote { background: var(--red-deep); color: #fff; font-weight: 700; }
+.btn-vote:hover:not(:disabled) { background: #85341F; }
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  transition: box-shadow 0.2s;
+}
+textarea.input { padding: 14px 20px; border-radius: 24px; line-height: 1.5; resize: vertical; }
+select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%232A1C1A' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; padding-right: 44px; }
+.input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--ink); }
+
+:where(.app) :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Category chips: a dark pill slides under the active one (measured in sliding-chips.tsx). */
+.chips-track { position: relative; display: flex; gap: 2px; width: max-content; padding: 4px; border-radius: 999px; background: var(--surface); }
+.chips-pill { position: absolute; top: 4px; left: 0; height: 40px; border-radius: 999px; background: var(--ink); transition: transform 0.38s cubic-bezier(0.3, 0.7, 0.2, 1), width 0.38s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.chip { position: relative; display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 999px; white-space: nowrap; font-weight: 600; font-size: 15px; color: var(--muted); text-decoration: none; transition: color 0.25s; }
+.chip:hover { color: var(--ink); }
+.chip[aria-current="page"], .chip[aria-pressed="true"] { color: #fff; }
+.chips-track:not([data-measured]) .chip[aria-current="page"], .chips-track:not([data-measured]) .chip[aria-pressed="true"] { background: var(--ink); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Tabs: the underline slides to the selected tab. */
+.tabs { position: relative; display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { height: 48px; padding: 0 16px; border: 0; background: none; white-space: nowrap; font-weight: 600; color: var(--muted); transition: color 0.25s; }
+.tab[aria-selected="true"] { color: var(--ink); }
+.tabs-line { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--ink); transition: transform 0.38s cubic-bezier(0.3, 0.7, 0.2, 1), width 0.38s cubic-bezier(0.3, 0.7, 0.2, 1); }
+
+/* Two-option switch: a pill slides between the halves. */
+.seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--surface); }
+.seg > :not(.seg-pill) { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; border: 0; border-radius: 999px; background: none; font-weight: 600; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+.seg > [aria-pressed="true"], .seg > [aria-current="page"] { color: #fff; }
+.seg-pill { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); border-radius: 999px; background: var(--ink); transition: transform 0.38s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.seg-pill[data-at="1"] { transform: translateX(100%); }
+.seg--light .seg-pill { background: #fff; box-shadow: 0 1px 3px rgba(42, 28, 26, 0.14); }
+.seg--light > [aria-pressed="true"] { color: var(--ink); }
+
+/* Entrances, loading and feedback */
+.rise { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+.skel { border-radius: 6px; background: linear-gradient(100deg, var(--surface) 30%, #fbf7f3 50%, var(--surface) 70%); background-size: 300% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+.pop { animation: pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes pop { from { transform: scale(0.4); } to { transform: scale(1); } }
+.bump { display: inline-block; animation: bump 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes bump { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.burst { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; pointer-events: none; color: #fff; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35)); animation: burst 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+@keyframes burst { 0% { opacity: 0; transform: scale(0.2); } 20% { opacity: 1; transform: scale(1.15); } 35% { transform: scale(0.95); } 50% { transform: scale(1); } 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(0.9) translateY(-40px); } }
+.spin { width: 18px; height: 18px; border-radius: 999px; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tile-media img { transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1); }
+.tile:hover .tile-media img { transform: scale(1.04); }
+.scan-sweep { position: absolute; left: 0; right: 0; top: 0; height: 30%; background: linear-gradient(180deg, rgba(200, 85, 61, 0) 0%, rgba(200, 85, 61, 0.28) 85%, #e8846c 100%); animation: sweep 1.3s cubic-bezier(0.6, 0, 0.4, 1) infinite alternate; }
+@keyframes sweep { from { transform: translateY(-100%); } to { transform: translateY(330%); } }
+.ken { animation: ken 24s ease-in-out infinite alternate, fade-in 1.2s ease both; }
+@keyframes ken { from { transform: scale(1); } to { transform: scale(1.08); } }
+@keyframes fade-in { from { opacity: 0; } }
+.fill-in { transform-origin: left; animation: fill-in 0.7s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s both; }
+@keyframes fill-in { from { transform: scaleX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .skel, .pop, .bump, .spin, .scan-sweep, .ken, .fill-in { animation: none; }
+  .burst { display: none; }
+  .chips-pill, .tabs-line, .seg-pill, .tile-media img, .btn { transition: none; }
 }

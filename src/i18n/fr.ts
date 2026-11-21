@@ -288,4 +288,11 @@ export const fr: Dictionary = {
   "email.reset.body": "Bonjour {name}, quelqu’un a demandé à réinitialiser le mot de passe de votre compte Artiko. Choisissez-en un nouveau avec ce lien, valable une heure.",
   "email.reset.button": "Choisir un nouveau mot de passe",
   "email.ignore": "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail : rien ne change.",
+
+  "nav.main": "Navigation principale",
+  "nav.home": "Accueil",
+  "nav.heritageShort": "Patrimoine",
+  "nav.scanShort": "Vérifier",
+  "nav.publish": "Publier",
+  "nav.me": "Moi",
 };
