@@ -706,6 +706,11 @@ function Showreel({ screen }: { screen: THREE.Mesh | null }) {
   return null;
 }
 
+// Turns the globe in the closing room around its own axis.
+function spinGlobe(globe: THREE.Object3D | null, delta: number) {
+  if (globe) globe.rotation.y += delta * 0.25;
+}
+
 export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
   const gltf = useGLTF(SCENE_URL);
 
@@ -779,6 +784,8 @@ export function GalleryScene({ progress, onPath, goTo }: SceneProps) {
   }, [gltf.scene]);
 
   const screen = useMemo(() => (gltf.scene.getObjectByName("screen_showreel") as THREE.Mesh | undefined) ?? null, [gltf.scene]);
+  const globe = useMemo(() => gltf.scene.getObjectByName("Planet_Rotation") ?? null, [gltf.scene]);
+  useFrame((_, delta) => spinGlobe(globe, delta));
 
   return (
     <>
