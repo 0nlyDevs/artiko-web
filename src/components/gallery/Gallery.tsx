@@ -16,6 +16,14 @@ gsap.registerPlugin(useGSAP);
 const SCROLL_LENGTH = "1500vh";
 const MARQUEE = ["Painting", "Music", "Dance", "Sculpture", "Crafts", "Photography", "Oral art", "Textile"];
 
+const APP_PAGES = [
+  { href: "/explore", label: "Explore and vote" },
+  { href: "/hall-of-fame", label: "Hall of Fame" },
+  { href: "/heritage", label: "Heritage index" },
+  { href: "/scan", label: "Check a photo" },
+  { href: "/me", label: "My space" },
+];
+
 function Preloader() {
   const { progress, active } = useProgress();
   const done = !active && progress >= 100;
@@ -269,6 +277,13 @@ export function Gallery() {
           <aside className="g-menu-card">
             <p className="g-menu-card-tag">Every art deserves a museum</p>
             <p className="g-menu-card-text">Scan it. Show it in 3D. Pass it on.</p>
+            <ul className="g-menu-card-links">
+              {APP_PAGES.map((page) => (
+                <li key={page.href}>
+                  <Link href={page.href}>{page.label}</Link>
+                </li>
+              ))}
+            </ul>
             <div className="g-menu-card-row">
               <span>Web</span>
               <span>Android</span>
