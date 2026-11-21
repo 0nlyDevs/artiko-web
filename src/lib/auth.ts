@@ -17,14 +17,19 @@ const SIGN_IN_WINDOW_SECONDS = 60;
 const SIGN_IN_MAX_ATTEMPTS = 5;
 const MIN_PASSWORD_LENGTH = 10;
 
-// The rate limit keys on the client IP, so this must be a header the hosting proxy sets and
-// overwrites (e.g. `x-real-ip`, `cf-connecting-ip`); a header the client can send lets an attacker
-// pick a fresh IP per attempt. `x-forwarded-for` is only safe when exactly one trusted proxy appends to it.
-const CLIENT_IP_HEADER = process.env.AUTH_CLIENT_IP_HEADER ?? "x-forwarded-for";
+// The rate limit keys on the client IP, so it must come from a header the hosting proxy sets and
+// overwrites (`x-real-ip`, `cf-connecting-ip`, the platform's own). Any header a client can send
+// lets an attacker pick a fresh IP per attempt, and `x-forwarded-for` is such a header: a proxy
+// that appends to it still passes along what the client wrote. No default in production.
+const CLIENT_IP_HEADER = process.env.AUTH_CLIENT_IP_HEADER?.trim().toLowerCase() || undefined;
 
 function createAuth() {
   if (process.env.NODE_ENV === "production" && !isSecureOrigin && !isLocalOrigin) {
     throw new Error("BETTER_AUTH_URL must be an https URL in production");
+  }
+  if (process.env.NODE_ENV === "production" && !isLocalOrigin) {
+    if (!CLIENT_IP_HEADER) throw new Error("AUTH_CLIENT_IP_HEADER must name the header your proxy overwrites with the client IP");
+    if (CLIENT_IP_HEADER === "x-forwarded-for") throw new Error("AUTH_CLIENT_IP_HEADER cannot be x-forwarded-for: clients can set it");
   }
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   // The API owns schema `app`; Better Auth keeps its tables apart in `better_auth`.
@@ -49,7 +54,8 @@ function createAuth() {
     },
     advanced: {
       useSecureCookies: isSecureOrigin,
-      ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
+      // Unset (local development only): Better Auth's own default.
+      ...(CLIENT_IP_HEADER && { ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] } }),
     },
     plugins: [
       // EdDSA key pair by default, published at /api/auth/jwks.

@@ -15,7 +15,7 @@ pnpm build
 
 - Copy `.env.example` to `.env.local` and fill it in. Use the same database as artiko-api (Better Auth keeps its tables in schema `better_auth`), then run `pnpm auth:migrate` once.
 - Better Auth signs a JWT (EdDSA, issuer and audience = `BETTER_AUTH_URL`) published at `/api/auth/jwks`. artiko-api verifies it. Web: `authClient.token()`. Android: sign in, read the `set-auth-token` header, then `GET /api/auth/token` with it as a bearer token.
-- Sign-in and sign-up are rate limited per client IP, with counters in the database (`rateLimit` table: rerun `pnpm auth:migrate` after upgrading). Set `AUTH_CLIENT_IP_HEADER` to the header your host's proxy overwrites with the real IP; never a header the client can send.
+- Sign-in and sign-up are rate limited per client IP, with counters in the database (`rateLimit` table: rerun `pnpm auth:migrate` after upgrading). `AUTH_CLIENT_IP_HEADER` is required in production and must be a header your host's proxy overwrites with the real IP (not `x-forwarded-for`, which clients can set); the server refuses to start otherwise.
 - `BETTER_AUTH_SECRET` has no fallback: the auth route fails on its first request without it, but `next build` needs none.
 - `src/lib/api.ts` is the only entry point to the API. Its client is generated from `artiko-api/openapi.yml`: run `pnpm api:generate` (set `OPENAPI_SPEC` to another path or URL) and commit the result.
 
