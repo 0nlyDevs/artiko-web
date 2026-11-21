@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored static assets of the LOVA museum journey.
     "public/**",
+    // Generated from artiko-api/openapi.yml by `pnpm api:generate`.
+    "src/lib/api-client/**",
   ]),
 ]);
 
