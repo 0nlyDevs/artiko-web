@@ -1,26 +1,525 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #111111;
+  --text: #4a4a4a;
+  --muted: #6b6b6b;
+  --red: #e5574a;
+  --paper: #ffffff;
+  --wall: #e8e6e1;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html {
+  background: var(--wall);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html.g-menu-open {
+  overflow: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--wall);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Stage and scroll */
+
+.g-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.g-scroll {
+  position: relative;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Header */
+
+.g-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 25px;
+  pointer-events: none;
+}
+
+.g-header > * {
+  pointer-events: auto;
+}
+
+.g-logo {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.g-logo span {
+  color: var(--red);
+  margin-left: 1px;
+}
+
+.g-header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.g-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Buttons */
+
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.g-btn:hover,
+.g-icon-btn:hover {
+  background: #333;
+}
+
+.g-btn-lg {
+  height: 44px;
+  padding: 0 36px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.g-btn-outline,
+.g-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: transparent;
+  color: #222;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.g-btn-outline:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+.g-btn-outline-lg {
+  padding: 0 20px;
+}
+
+.g-btn-ghost {
+  height: 60px;
+  padding: 0 24px;
+  border-width: 1px;
+  border-color: #555;
+  border-radius: 6px;
+  font-weight: 400;
+}
+
+.g-btn-ghost:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+/* Wall typography: one unit is one pixel at a 755 px tall viewport */
+
+.g-box {
+  box-sizing: border-box;
+  color: var(--ink);
+  font-family: var(--font-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.g-box > svg {
+  display: block;
+}
+
+.g-title {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  color: #161616;
+}
+
+.g-text {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text);
+}
+
+.g-meta {
+  margin: 8px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.g-num {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 22px;
+  color: #222;
+}
+
+.g-small {
+  font-size: 16px;
+  text-align: center;
+  color: #222;
+}
+
+.g-salt {
+  font-family: var(--font-salt), cursive;
+  color: #1a1a1a;
+}
+
+.g-descriptor {
+  font-size: 17px;
+  line-height: 1.5;
+  text-transform: capitalize;
+}
+
+.g-more {
+  font-size: 19px;
+  line-height: 1.45;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.g-item,
+.g-case {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.g-item .g-text {
+  flex: 1;
+}
+
+.g-title-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+/* Contact form */
+
+.g-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.g-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.g-form input,
+.g-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #b9b9b9;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+}
+
+.g-form input {
+  height: 60px;
+  padding: 0 16px;
+}
+
+.g-form textarea {
+  height: 100px;
+  padding: 14px 16px;
+  resize: none;
+}
+
+.g-form input:focus,
+.g-form textarea:focus {
+  border-color: #333;
+}
+
+.g-form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.g-form .g-attach {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 60px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.g-form .g-btn-lg {
+  height: 60px;
+  padding: 0 34px;
+}
+
+.g-form-note {
+  margin: 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Menu */
+
+.g-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  padding: 140px max(24px, 15vw) 60px;
+  background: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.35s,
+    visibility 0.35s;
+}
+
+.g-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.g-menu-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.g-menu-list button,
+.g-menu-list a {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(40px, 5.2vw, 62px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #c9c9c9;
+  transition: color 0.2s;
+}
+
+.g-menu-list button:hover,
+.g-menu-list a:hover {
+  color: #222;
+}
+
+.g-menu-list .is-active {
+  color: var(--red);
+}
+
+.g-menu-label {
+  margin: 28px 0 8px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 15px;
+  text-transform: uppercase;
+  color: #c4c4c4;
+}
+
+.g-menu-label:first-child {
+  margin-top: 8px;
+}
+
+.g-menu-big {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 30px;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.g-menu-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-decoration: none;
+}
+
+.g-menu-link:hover {
+  color: var(--red);
+}
+
+/* Fixed corners */
+
+.g-footer {
+  position: fixed;
+  left: 25px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  gap: 32px;
+}
+
+.g-footer a {
+  font-size: 14px;
+  color: #222;
+  text-decoration: none;
+}
+
+.g-footer a:hover {
+  text-decoration: underline;
+}
+
+.g-chat {
+  position: fixed;
+  right: 16px;
+  bottom: 58px;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+}
+
+/* Preloader */
+
+.g-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--wall);
+  transition:
+    opacity 0.8s 0.2s,
+    visibility 0.8s 0.2s;
+}
+
+.g-preloader.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.g-preloader-logo {
+  font-size: 64px;
+}
+
+.g-preloader-bar {
+  width: 180px;
+  height: 2px;
+  background: rgba(17, 17, 17, 0.12);
+  overflow: hidden;
+}
+
+.g-preloader-bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.g-preloader-count {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 18px;
+  color: #555;
+}
+
+@media (max-width: 640px) {
+  .g-header {
+    padding: 16px;
+  }
+
+  .g-menu {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 100px 24px 40px;
+    overflow-y: auto;
+  }
+
+  .g-footer {
+    left: 16px;
+    gap: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-preloader,
+  .g-menu {
+    transition: none;
+  }
 }

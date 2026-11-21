@@ -1,0 +1,26 @@
+[
+  {
+    "file": "wave.webp",
+    "title": "The Great Wave off Kanagawa",
+    "artist": "Katsushika Hokusai",
+    "date": "c. 1831",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  },
+  {
+    "file": "pearl.webp",
+    "title": "Girl with a Pearl Earring",
+    "artist": "Johannes Vermeer",
+    "date": "c. 1665",
+    "source_url": "https://commons.wikimedia.org/wiki/File:1665_Girl_with_a_Pearl_Earring.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  },
+  {
+    "file": "starry.webp",
+    "title": "The Starry Night",
+    "artist": "Vincent van Gogh",
+    "date": "1889",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+    "rights": "Public domain; see linked Wikimedia Commons file record."
+  }
+]
