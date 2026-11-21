@@ -24,7 +24,7 @@ const APP_PAGES = [
   { href: "/me", label: "My space" },
 ];
 
-const LOADING_STEPS = ["Opening the doors", "Hanging the paintings", "Tuning the music", "Lighting the rooms", "Welcome"];
+const LOADING_STEPS = ["Opening the doors", "Hanging the paintings", "Tuning the music", "Lighting the rooms"];
 
 // Loader: the ARTIKO flower blooms petal by petal while a thin ring traces
 // the progress around it. On completion the screen lifts away like a curtain
