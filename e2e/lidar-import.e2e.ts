@@ -29,7 +29,7 @@ describe.skipIf(!hasChrome)("LiDAR scan import journey in Chrome", () => {
     app = await startApp(await freePort());
     chrome = await launchBrowser();
     form = await chrome.newPage();
-    await form.goto(`${app.url}/me`);
+    await form.goto(`${app.url}/me?tab=publish`);
     await form.locator("#title").waitFor({ timeout: 60_000 });
     await form.fill("#title", "Sobika");
   }, 600_000);
@@ -86,7 +86,7 @@ describe.skipIf(!hasChrome)("LiDAR scan import journey in Chrome", () => {
         { ...baseWork, id: "w2", title: "Flaky", media_kind: "model", ...api.modelUrls("flaky", false) },
       ];
       museum = await chrome.newPage();
-      await museum.goto(`${app.url}/artists/a1`);
+      await museum.goto(`${app.url}/artists/a1/museum`);
     }, 120_000);
 
     it("CA10: opens the 1K variant in the detail panel and moves the camera to a preset view", async () => {
@@ -136,7 +136,7 @@ describe.skipIf(!hasChrome)("LiDAR scan import journey in Chrome", () => {
     const page = await chrome.newPage({ noWebGL: true });
     const before = chrome.requests.length;
 
-    await page.goto(`${app.url}/artists/a1`);
+    await page.goto(`${app.url}/artists/a1/museum`);
 
     await page.getByText("3D is not available on this device.").waitFor({ timeout: 60_000 });
     expect(await page.locator("aside model-viewer").count()).toBe(0);
@@ -156,7 +156,7 @@ describe.skipIf(!hasChrome)("LiDAR scan import journey in Chrome", () => {
       await new Promise((resolve) => setTimeout(resolve, 8_000));
       await route.continue();
     });
-    await page.goto(`${app.url}/artists/a1`);
+    await page.goto(`${app.url}/artists/a1/museum`);
     await page.locator("canvas").first().waitFor({ timeout: 60_000 });
     await page.waitForTimeout(3_000);
 

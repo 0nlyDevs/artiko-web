@@ -7,7 +7,7 @@ import { neon, showreel, works, type Work } from "./content";
 import { Overlays } from "./Overlays";
 import { Props } from "./Props";
 
-export const SCENE_URL = "/museum/assets/landscape.glb";
+export const SCENE_URL = "/gallery/landscape.glb";
 const DISPLAY_FONT = "/fonts/LeagueGothic.ttf";
 
 // Quads that carried the original studio's copy and doodles as runtime
@@ -151,7 +151,7 @@ async function pictureCanvas(url: string, fit: "cover" | "contain", caption?: { 
 }
 
 async function musicCanvas() {
-  const levels: number[] = await fetch("/museum/assets/satie-waveform.json").then((r) => r.json());
+  const levels: number[] = await fetch("/gallery/satie-waveform.json").then((r) => r.json());
   const sans = cssFont("--font-sans", "sans-serif");
   await document.fonts.load(`700 80px ${sans}`).catch(() => undefined);
   const canvas = document.createElement("canvas");

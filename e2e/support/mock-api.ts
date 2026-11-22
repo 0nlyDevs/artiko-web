@@ -30,8 +30,8 @@ export const baseWork = {
 };
 
 /**
- * Stands in for artiko-api on 127.0.0.1: the signed-in artist, POST /works (multipart kept for assertions,
- * files then served under /media/<field>), and a museum whose works the test sets.
+ * Stands in for artiko-api on 127.0.0.1: the signed-in artist with no works, expositions or votes yet, POST /works
+ * (multipart kept for assertions, files then served under /media/<field>), and the artist's museum, whose works the test sets.
  */
 export class MockApi {
   readonly posts: SentFields[] = [];
@@ -71,6 +71,8 @@ export class MockApi {
     if (path === "/api/v1/me") return json(200, { id: "u1", email: "rova@example.test", name: "Rova", artist });
     if (path === "/api/v1/categories") return json(200, [{ id: "crafts", label: "Crafts" }]);
     if (path === "/api/v1/works" && req.method === "POST") return json(201, await this.publish(req));
+    if (path === "/api/v1/works" || path === "/api/v1/expositions" || path === "/api/v1/votes/mine") return json(200, []);
+    if (path === "/api/v1/artists/a1") return json(200, artist);
     if (path === "/api/v1/artists/a1/museum") {
       const slots = this.museumWorks.map((work, i) => ({ work, kind: "plinth", position: [-1.5 + i * 3, 1, -1], rotation_y: 0 }));
       return json(200, { artist, room: { width: 8, depth: 8, height: 3.5 }, slots });

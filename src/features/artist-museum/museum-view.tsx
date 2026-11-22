@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { useT } from "@/i18n/locale";
 import { ProofSeal } from "@/lib/works/proof-seal";
+import { useVote, VotePanel } from "@/lib/works/vote";
 import { SlotErrorBoundary } from "@/features/artist-museum/slot-error-boundary";
-import { VoteButton } from "@/features/artist-museum/vote-button";
 import type { Museum, Work } from "@/lib/api";
 
 // three.js only runs in the browser.
@@ -25,11 +25,9 @@ function Building() {
 }
 
 export function MuseumView({ museum }: { museum: Museum }) {
-  const { t, plural } = useT();
+  const { t } = useT();
   const [mode, setMode] = useState<"3d" | "2d">("3d");
   const [selected, setSelected] = useState<Work>(museum.slots[0].work);
-  const [extraVotes, setExtraVotes] = useState<Record<string, number>>({});
-  const votes = (w: Work) => w.votes + (extraVotes[w.id] ?? 0);
   const workList = (
     <ul className="grid gap-4 sm:grid-cols-2">
       {museum.slots.map(({ work }) => (
@@ -86,12 +84,7 @@ export function MuseumView({ museum }: { museum: Museum }) {
           {selected.media_kind === "audio" && <audio controls src={selected.media_url} className="w-full" />}
           {selected.media_kind === "video" && <video controls src={selected.media_url} className="w-full" />}
           {selected.story && <p>{selected.story}</p>}
-          <p>{t("museum.votesMonth", { votes: plural("votes", votes(selected)) })}</p>
-          <VoteButton
-            key={selected.id}
-            work={selected}
-            onVoted={() => setExtraVotes((v) => ({ ...v, [selected.id]: (v[selected.id] ?? 0) + 1 }))}
-          />
+          <SelectedVote key={selected.id} work={selected} />
           {selected.proof_urls.length > 0 && (
             <div className="flex flex-col gap-2">
               <h3 className="font-bold">{t("museum.proof")}</h3>
@@ -112,6 +105,11 @@ export function MuseumView({ museum }: { museum: Museum }) {
       </div>
     </div>
   );
+}
+
+/** Keyed by work, so each piece keeps its own vote state while visitors walk around. */
+function SelectedVote({ work }: { work: Work }) {
+  return <VotePanel work={work} vote={useVote(work)} />;
 }
 
 /** Images show themselves; a 3D work shows its poster when it has one (2D mode loads no model). */

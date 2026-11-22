@@ -19,3 +19,8 @@ export function shiftMonth(month: string, by: number): string {
   d.setUTCMonth(d.getUTCMonth() + by);
   return d.toISOString().slice(0, 7);
 }
+
+/** The last `count` contest months, newest first, ending with `from` (the current month by default). */
+export function lastMonths(count: number, from: string = currentMonth()): string[] {
+  return Array.from({ length: count }, (_, i) => shiftMonth(from, -i));
+}

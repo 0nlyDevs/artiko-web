@@ -1,24 +1,39 @@
 "use client";
 
-import Link from "next/link";
 import type { Category, CategoryId } from "@/lib/api";
 import { useT } from "@/i18n/locale";
+import { SlidingChips } from "@/lib/ui/sliding-chips";
 import { CategoryLabel } from "@/lib/works/category-label";
 
-const CHIP = "border-2 border-ink px-3 py-1 aria-[current=page]:bg-ink aria-[current=page]:text-paper";
+/** `/explore` with the given filters; unset ones stay out of the address. */
+export function exploreHref(filters: { category?: string; month?: string; q?: string }): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
+  const query = params.toString();
+  return query ? `/explore?${query}` : "/explore";
+}
 
-export function ExploreCategories({ categories, selected }: { categories: Category[]; selected: CategoryId | undefined }) {
+export function ExploreCategories({
+  categories,
+  filters,
+}: {
+  categories: Category[];
+  filters: { category?: CategoryId; month?: string; q: string };
+}) {
   const { t } = useT();
+  const keep = { month: filters.month, q: filters.q };
   return (
-    <nav aria-label={t("explore.categories")} className="flex flex-wrap gap-2">
-      <Link href="/explore" aria-current={selected === undefined ? "page" : undefined} className={CHIP}>
-        {t("explore.all")}
-      </Link>
-      {categories.map((c) => (
-        <Link key={c.id} href={`/explore?category=${c.id}`} aria-current={c.id === selected ? "page" : undefined} className={CHIP}>
-          <CategoryLabel category={c} />
-        </Link>
-      ))}
-    </nav>
+    <SlidingChips
+      label={t("explore.categories")}
+      chips={[
+        { key: "all", href: exploreHref(keep), label: t("explore.all"), current: !filters.category },
+        ...categories.map((c) => ({
+          key: c.id,
+          href: exploreHref({ ...keep, category: c.id }),
+          label: <CategoryLabel category={c} />,
+          current: c.id === filters.category,
+        })),
+      ]}
+    />
   );
 }
