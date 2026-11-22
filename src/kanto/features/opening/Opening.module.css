@@ -1,0 +1,161 @@
+/*
+ * The opening of a full page load: the ivory wall, the wordmark that comes in
+ * letter by letter and a hairline at the bottom. Everything in this file
+ * works before the client bundle runs: the letters and the creep of the
+ * hairline are CSS animations.
+ */
+.opening {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--color-ink);
+}
+
+/* The cover is a path so the reveal can cut a real hole in it. */
+.cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+}
+
+.coverPath {
+  fill: var(--color-wall-ivory);
+}
+
+/* Ink drawn over the edge of the hole during the reveal, in the colour of the letters. */
+.seam {
+  fill: var(--color-ink);
+}
+
+/*
+ * The wordmark, as components/logo sets it: the display serif, uppercase,
+ * 0.06em of tracking. Its family resolves to the best display font at hand
+ * without showing a system serif first (see openingFontFace in boot.ts).
+ */
+.word {
+  position: relative;
+  display: block;
+
+  /* Balances the tracking that follows the last letter, so the ink is centred. */
+  padding-left: 0.06em;
+  font-family: 'KANTO Opening', var(--font-display);
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* K, then A, N, T and O, 130 ms apart: the last one is in 0.96 s after the first paint. */
+.letter {
+  display: inline-block;
+  animation: rise 360ms var(--ease-out) both;
+}
+
+.letter:nth-child(1) {
+  animation-delay: 80ms;
+}
+
+.letter:nth-child(2) {
+  animation-delay: 210ms;
+}
+
+.letter:nth-child(3) {
+  animation-delay: 340ms;
+}
+
+.letter:nth-child(4) {
+  animation-delay: 470ms;
+}
+
+.letter:nth-child(5) {
+  animation-delay: 600ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Zero-size mark on the baseline of the O, read by the reveal. */
+.baseline {
+  display: inline-block;
+  width: 0;
+  height: 0;
+}
+
+/* The hairline. `.creep` moves alone until the bundle runs; `.fill` then shows real progress over it. */
+.bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  overflow: hidden;
+  background: var(--color-ink-08);
+}
+
+.creep,
+.fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.creep {
+  animation: creep 9s cubic-bezier(0.1, 0.6, 0.3, 1) 80ms both;
+}
+
+.fill {
+  transition: transform 320ms var(--ease-out);
+}
+
+@keyframes creep {
+  to {
+    transform: scaleX(0.28);
+  }
+}
+
+/*
+ * A full load of a museum address, marked on <html> by the boot script before
+ * the first paint: a plain black wall, like the museum's own loading screen
+ * that follows.
+ */
+:global(html[data-kanto-boot='museum']) .coverPath {
+  fill: var(--color-gallery-black);
+}
+
+:global(html[data-kanto-boot='museum']) .word,
+:global(html[data-kanto-boot='museum']) .bar {
+  display: none;
+}
+
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--color-gallery-black);
+}
+
+/* Reduced motion: the word is simply there, and the hairline only shows real progress. */
+@media (prefers-reduced-motion: reduce) {
+  .letter,
+  .creep {
+    animation: none;
+  }
+}

@@ -1,0 +1,66 @@
+/* Sign-in and registration, in the hall style on a narrow column. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin-top: var(--space-8);
+}
+
+.submit {
+  align-self: flex-start;
+  margin-top: var(--space-8);
+}
+
+.alt {
+  margin: var(--space-32) 0 0;
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+.alt a,
+.inlineLink {
+  color: var(--color-ink);
+  text-underline-offset: 3px;
+}
+
+.fieldNote {
+  margin: calc(-1 * var(--space-14)) 0 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  margin-top: var(--space-56);
+  padding: var(--space-20);
+  background: var(--color-paper-tile);
+  border-radius: var(--radius-button);
+}
+
+.demoTitle {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+.demoText {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+.demoList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+}

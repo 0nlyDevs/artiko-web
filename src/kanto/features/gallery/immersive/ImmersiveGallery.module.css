@@ -1,0 +1,201 @@
+/*
+ * The WebGL room. The canvas fills the viewport and the FE-02 chrome (bars,
+ * wall text, wall label, dialogs) sits above it on the same 1440x900 stage
+ * coordinates as the photographic room, so both rooms read the same.
+ */
+.gallery {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-text);
+  color: var(--color-paper);
+  background: var(--color-gallery-black);
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  will-change: opacity;
+}
+
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+/* Darkens the edges like the photographic room's spot does. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 95% at 50% 46%,
+    rgb(0 0 0 / 0) 52%,
+    rgb(0 0 0 / 0.58) 100%
+  );
+}
+
+/*
+ * A work is in focus: a deeper veil closes on the room, right up to the
+ * work and never over it. Its clear centre is an ellipse around the work,
+ * whose half sizes the frame loop writes as shares of the viewport
+ * (FocusFraming). Under the work it darkens the ground the caption stands
+ * on, so the caption reads over a white pedestal as well. It is drawn off
+ * stage and faded in by useFocusChrome; the lights of the scene do the
+ * rest of the darkening.
+ */
+.focusVeil {
+  --hole-x: 14%;
+  --hole-y: 31%;
+
+  /* Where the ground under the work starts to darken, from the bottom. */
+  --ground-clear: 21%;
+  --ground-soft: 16%;
+  --ground-deep: 10%;
+
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to top,
+      var(--color-veil-ground) 0%,
+      var(--color-veil-deep) var(--ground-deep),
+      var(--color-veil-soft) var(--ground-soft),
+      var(--color-veil-clear) var(--ground-clear)
+    ),
+    radial-gradient(
+      ellipse calc(var(--hole-x) * 3.4) calc(var(--hole-y) * 3.4) at 50% 47.5%,
+      var(--color-veil-clear) 0%,
+      var(--color-veil-clear) 42%,
+      var(--color-veil-soft) 66%,
+      var(--color-veil-deep) 100%
+    );
+  opacity: 0;
+}
+
+/* A pedestal is part of the room: the ground darkens higher and slower. */
+.focusVeil[data-kind='sculpture'] {
+  --ground-clear: 31%;
+  --ground-soft: 21%;
+  --ground-deep: 11%;
+}
+
+/* A 3D work in focus turns under the hand. */
+.gallery[data-focus-kind='sculpture'] .stage canvas {
+  cursor: grab;
+}
+
+.gallery[data-focus-kind='sculpture'] .stage canvas:active {
+  cursor: grabbing;
+}
+
+/* The DOM layer over the canvas lets wheel and drag through, except on controls. */
+.room {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.room :where(button, a) {
+  pointer-events: auto;
+}
+
+/* The wall text of a new room fades in; the arrival sequence handles the first one. */
+.wallSwap {
+  animation: wall-swap 600ms var(--ease-out) both;
+}
+
+@keyframes wall-swap {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * The wall label hangs at a point projected from the 3D room each frame
+ * (LabelProjector). The label's bottom-right corner sits on that point.
+ */
+.cartelAnchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  will-change: transform, opacity;
+  transition: opacity 240ms var(--ease-out);
+}
+
+.cartelAnchor :where(button) {
+  pointer-events: none;
+}
+
+.cartelAnchor[data-visible='true'] :where(button) {
+  pointer-events: auto;
+}
+
+/*
+ * The keyboard target of the work, centred on it by the same projection.
+ * A pointer never meets it: the work itself is clicked in the canvas.
+ */
+.workAnchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.workAnchor .approach {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0 var(--space-20);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.workAnchor .approach:focus-visible {
+  opacity: 1;
+}
+
+/* Curtain continuation from the home transition */
+.curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  visibility: hidden;
+  background: var(--color-gallery-black);
+  opacity: 0;
+}
+
+@media (max-width: 767px), (max-aspect-ratio: 3/4) {
+  .gallery {
+    --u: min(100vw / 390, 100dvh / 844);
+  }
+
+  /* The caption is taller on a phone: the ground darkens from higher up. */
+  .focusVeil {
+    --ground-clear: 25%;
+    --ground-soft: 21%;
+    --ground-deep: 16%;
+  }
+
+  .focusVeil[data-kind='sculpture'] {
+    --ground-clear: 36%;
+    --ground-soft: 27%;
+    --ground-deep: 18%;
+  }
+}

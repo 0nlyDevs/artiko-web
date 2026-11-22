@@ -1,0 +1,127 @@
+/* Figma B5: the deposit slip and the tracker of a submission. */
+.slip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-24);
+  margin-bottom: var(--space-8);
+  background: var(--color-paper-tile);
+}
+
+.slipEyebrow {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.slipTitle {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: 28px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.slipMeta {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  color: var(--color-ink-60);
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: var(--space-16) 0 var(--space-24);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-14);
+}
+
+.note {
+  margin: var(--space-24) 0 0;
+  padding: var(--space-16) var(--space-20);
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--color-paper-tile);
+  border-left: 2px solid var(--color-accent);
+}
+
+.noteLabel {
+  display: block;
+  margin-bottom: var(--space-4);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.section {
+  margin-top: var(--space-40);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-14);
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.16em;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+}
+
+.verification {
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.verification a {
+  color: var(--color-ink);
+  text-underline-offset: 4px;
+}
+
+.history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-line-soft);
+}
+
+.event {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: var(--space-16);
+  padding: var(--space-10) 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.eventDate {
+  color: var(--color-ink-60);
+}
+
+.eventDetail {
+  display: block;
+  color: var(--color-ink-60);
+}
+
+@media (max-width: 600px) {
+  .event {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
