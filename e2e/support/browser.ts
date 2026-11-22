@@ -8,7 +8,8 @@ export interface RecordedBrowser {
   browser: Browser;
   /** Every request URL, in order, from every page. */
   requests: string[];
-  newPage(options?: { noWebGL?: boolean }): Promise<Page>;
+  /** `locale` is the browser language, which picks the language of the app: English unless the journey asks for another. */
+  newPage(options?: { noWebGL?: boolean; locale?: string }): Promise<Page>;
 }
 
 // SwiftShader renders WebGL on the CPU, so the 3D views work on machines without a GPU.
@@ -18,8 +19,9 @@ export async function launchBrowser(): Promise<RecordedBrowser> {
   return {
     browser,
     requests,
-    async newPage({ noWebGL = false } = {}) {
-      const context = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
+    async newPage({ noWebGL = false, locale = "en-US" } = {}) {
+      // Without a locale Chrome takes the machine's, and the texts the journeys wait for would depend on it.
+      const context = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale });
       context.on("request", (request) => requests.push(request.url()));
       await signIn(context);
       if (noWebGL) await context.addInitScript(disableWebGL);

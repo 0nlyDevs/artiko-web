@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import type { Work } from "@/lib/api";
 import { Avatar } from "@/lib/ui/avatar";
 import { IconHeart, IconSeal } from "@/lib/ui/icons";
+import { CategoryLabel } from "@/lib/works/category-label";
 
 const KIND = { audio: "work.kind.audio", video: "work.kind.video", model: "work.kind.model" } as const;
 
@@ -59,7 +59,7 @@ export function WorkTile({ work, index = 0, sizes = "(min-width: 1024px) 20vw, (
         <span className="flex min-w-0 flex-col">
           <span className="truncate text-[15px] leading-tight font-semibold">{work.title}</span>
           <span className="truncate text-[13px] leading-snug text-muted">
-            {work.artist_name} · {t(`category.${work.category}` as Key)}
+            {work.artist_name} · <CategoryLabel category={{ id: work.category }} />
           </span>
         </span>
       </span>

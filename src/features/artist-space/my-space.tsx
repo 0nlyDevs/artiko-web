@@ -4,47 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
-import {
-  ApiError,
-  getMe,
-  getWork,
-  listCategories,
-  listExpositions,
-  listMyVotes,
-  listWorks,
-  unwrap,
-  withToken,
-  type Category,
-  type Exposition,
-  type Me,
-  type Work,
-} from "@/lib/api";
-import { clearApiToken, getApiToken } from "@/lib/api-token";
+import { ApiError } from "@/lib/api";
+import { apiErrorText } from "@/lib/api-messages";
+import { clearApiToken } from "@/lib/api-token";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "@/lib/ui/avatar";
 import { HeartFilled } from "@/lib/ui/icons";
 import { SlidingTabs } from "@/lib/ui/sliding-tabs";
+import { CategoryLabel } from "@/lib/works/category-label";
 import { WorkMedia } from "@/lib/works/work-tile";
+import { loadSpace, type Space } from "@/features/artist-space/load-space";
 import { ProfileForm } from "@/features/artist-space/profile-form";
 import { PublishForm } from "@/features/artist-space/publish-form";
 import { MY_SPACE_VERIFIED_CALLBACK_URL, mySpaceVerificationNotice } from "@/features/auth/verification";
 import { VerificationNotice } from "@/features/auth/verification-notice";
 
 type Tab = "works" | "publish" | "votes" | "profile";
-type Space = { me: Me; categories: Category[]; works: Work[]; expositions: Exposition[]; votes: { category: string; work: Work | null }[] };
-
-async function loadSpace(): Promise<Space> {
-  const auth = withToken(await getApiToken());
-  const [me, categories, myVotes] = await Promise.all([getMe(auth).then(unwrap), listCategories().then(unwrap), listMyVotes(auth).then(unwrap)]);
-  const [works, expositions, voted] = await Promise.all([
-    me.artist ? listWorks({ query: { artist_id: me.artist.id, limit: 200 } }).then(unwrap) : [],
-    me.artist ? listExpositions({ query: { artist_id: me.artist.id } }).then(unwrap) : [],
-    Promise.all(myVotes.map((v) => getWork({ path: { work_id: v.work_id } }).then((r) => r.data ?? null))),
-  ]);
-  return { me, categories, works, expositions, votes: myVotes.map((v, i) => ({ category: v.category, work: voted[i] })) };
-}
 
 export function MySpace() {
   const router = useRouter();
@@ -52,8 +28,9 @@ export function MySpace() {
   const { t, plural, rich } = useT();
   const { data: session, isPending } = authClient.useSession();
   const [space, setSpace] = useState<Space | null>(null);
-  // "unverified": a session opened before email verification was required; the API refuses its token.
-  const [failed, setFailed] = useState<false | "error" | "unverified">(false);
+  // An ApiError says why the space did not load, `email_not_verified` for a session opened before email
+  // verification was required: the API refuses its token. "error" is any other failure.
+  const [failed, setFailed] = useState<false | "error" | ApiError>(false);
   const [picked, setPicked] = useState<Tab | null>(null);
   const [resent, setResent] = useState(false);
   const notice = mySpaceVerificationNotice(params, Boolean(session));
@@ -65,7 +42,7 @@ export function MySpace() {
         setFailed(false);
         setSpace(loaded);
       },
-      (e) => setFailed(e instanceof ApiError && e.code === "email_not_verified" ? "unverified" : "error"),
+      (e) => setFailed(e instanceof ApiError ? e : "error"),
     );
   }, [session]);
 
@@ -92,10 +69,10 @@ export function MySpace() {
     return (
       <div className="mx-auto flex max-w-2xl flex-col items-start gap-4 py-8">
         <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
-          {t(failed === "unverified" ? "space.unverified" : "space.error")}
+          {failed instanceof ApiError ? apiErrorText(failed, t, "space") : t("space.error")}
         </p>
         <div className="flex flex-wrap gap-2.5">
-          {failed === "unverified" && (
+          {failed instanceof ApiError && failed.code === "email_not_verified" && (
             <button
               type="button"
               disabled={resent}
@@ -206,7 +183,7 @@ export function MySpace() {
                 const vote = votes.find((v) => v.category === c.id);
                 return (
                   <li key={c.id} className={`flex min-h-16 items-center gap-4 rounded-md px-3.5 py-2.5 ${vote ? "bg-surface" : ""}`}>
-                    <span className="w-28 shrink-0 font-bold sm:w-36">{t(`category.${c.id}` as Key)}</span>
+                    <span className="w-28 shrink-0 font-bold sm:w-36"><CategoryLabel category={c} /></span>
                     {vote?.work ? (
                       <Link href={`/works/${vote.work.id}`} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
                         {vote.work.media_kind === "image" && (
