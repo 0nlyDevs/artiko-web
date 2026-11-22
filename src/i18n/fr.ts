@@ -386,6 +386,7 @@ export const fr: Dictionary = {
   "auth.compromised": "Ce mot de passe figure dans une fuite de données connue. Choisissez-en un autre.",
   "auth.checkUnavailable": "La vérification du mot de passe est momentanément indisponible. Réessayez dans quelques minutes.",
   "auth.tooShort": "Ce mot de passe est trop court.",
+  "auth.tooLong": "Ce mot de passe est trop long.",
   "auth.exists": "Un compte utilise déjà cet e-mail. Connectez-vous, ou réinitialisez son mot de passe.",
   "auth.linkInvalid": "Ce lien ne fonctionne plus : il a expiré ou a déjà servi.",
   "auth.verified": "Adresse confirmée, connectez-vous.",

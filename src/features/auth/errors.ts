@@ -8,6 +8,7 @@ const CODES = new Map<string, Key>([
   ["PASSWORD_COMPROMISED", "auth.compromised"],
   ["PASSWORD_CHECK_UNAVAILABLE", "auth.checkUnavailable"],
   ["PASSWORD_TOO_SHORT", "auth.tooShort"],
+  ["PASSWORD_TOO_LONG", "auth.tooLong"],
   ["USER_ALREADY_EXISTS", "auth.exists"],
   ["USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL", "auth.exists"],
   ["INVALID_TOKEN", "auth.linkInvalid"],

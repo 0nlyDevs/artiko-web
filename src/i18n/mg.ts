@@ -387,6 +387,7 @@ export const mg: Dictionary = {
   "auth.compromised": "Hita tao amin'ny angona nivoaka io tenimiafina io. Misafidiana hafa.",
   "auth.checkUnavailable": "Tsy azo atao vetivety ny fanamarinana ny tenimiafina. Andramo indray afaka minitra vitsy.",
   "auth.tooShort": "Fohy loatra io tenimiafina io.",
+  "auth.tooLong": "Lava loatra io tenimiafina io.",
   "auth.exists": "Efa misy kaonty mampiasa io mailaka io. Midira, na avereno ny tenimiafiny.",
   "auth.linkInvalid": "Tsy miasa intsony io rohy io: lany daty na efa nampiasaina.",
   "auth.verified": "Voamafy ny adiresy, midira.",

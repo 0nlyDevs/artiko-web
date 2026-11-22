@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import { authClient } from "@/lib/auth-client";
-import { MIN_PASSWORD_LENGTH, passwordProblems, passwordStrength } from "@/lib/password";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, passwordProblems, passwordStrength } from "@/lib/password";
 import { IconBack, IconCheck, IconMail } from "@/lib/ui/icons";
 import { useAuthScene } from "@/features/auth/auth-doors";
 import { authErrorKey } from "@/features/auth/errors";
@@ -44,7 +44,7 @@ export function SignUpForm() {
   useEffect(() => () => setScene(null), [setScene]);
 
   const problems = passwordProblems(password, confirm);
-  const ready = !problems.tooShort && !problems.mismatch && terms;
+  const ready = !problems.tooShort && !problems.tooLong && !problems.mismatch && terms;
   const meter = METER[passwordStrength(password)];
 
   async function create() {
@@ -162,6 +162,7 @@ export function SignUpForm() {
               onToggle={toggle}
               required
               minLength={MIN_PASSWORD_LENGTH}
+              maxLength={MAX_PASSWORD_LENGTH}
               autoComplete="new-password"
               aria-describedby="password-rules"
               value={password}
@@ -180,6 +181,7 @@ export function SignUpForm() {
             shown={shown}
             onToggle={toggle}
             required
+            maxLength={MAX_PASSWORD_LENGTH}
             autoComplete="new-password"
             aria-describedby="password-rules"
             value={confirm}
@@ -187,6 +189,7 @@ export function SignUpForm() {
           />
           <ul id="password-rules" className="flex flex-col gap-1.5 text-sm">
             <Rule ok={!problems.tooShort} text={t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH })} />
+            {problems.tooLong && <Rule ok={false} text={t("auth.tooLong")} />}
             <Rule ok={!problems.mismatch} text={t("auth.passwordsMatch")} />
           </ul>
           <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed">

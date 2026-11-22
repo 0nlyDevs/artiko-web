@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import { authClient } from "@/lib/auth-client";
-import { MIN_PASSWORD_LENGTH, passwordProblems } from "@/lib/password";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, passwordProblems } from "@/lib/password";
 import { authErrorKey } from "@/features/auth/errors";
 import { Notice, PasswordField, useToggle } from "@/features/auth/fields";
 
@@ -22,6 +22,7 @@ export function ResetForm() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<Key | null>(null);
   const problems = passwordProblems(password, confirm);
+  const blocked = problems.tooShort || problems.tooLong || problems.mismatch;
 
   async function submit() {
     if (!token) return;
@@ -54,7 +55,7 @@ export function ResetForm() {
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            if (!problems.tooShort && !problems.mismatch) void submit();
+            if (!blocked) void submit();
           }}
           className="flex flex-col gap-5"
         >
@@ -65,6 +66,7 @@ export function ResetForm() {
             onToggle={toggle}
             required
             minLength={MIN_PASSWORD_LENGTH}
+            maxLength={MAX_PASSWORD_LENGTH}
             autoComplete="new-password"
             aria-describedby="reset-help"
             value={password}
@@ -76,12 +78,13 @@ export function ResetForm() {
             shown={shown}
             onToggle={toggle}
             required
+            maxLength={MAX_PASSWORD_LENGTH}
             autoComplete="new-password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
           <p id="reset-help" className="text-sm text-muted">
-            {t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH })} {problems.mismatch && confirm ? t("auth.passwordsDiffer") : ""}
+            {t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH })} {problems.tooLong ? t("auth.tooLong") : ""} {problems.mismatch && confirm ? t("auth.passwordsDiffer") : ""}
           </p>
           {error && (
             <Notice>
@@ -93,7 +96,7 @@ export function ResetForm() {
               )}
             </Notice>
           )}
-          <button type="submit" disabled={busy || problems.tooShort || problems.mismatch} className="btn btn-ink min-h-[52px] font-bold">
+          <button type="submit" disabled={busy || blocked} className="btn btn-ink min-h-[52px] font-bold">
             {busy && <span className="spin" aria-hidden="true" />}
             {t("auth.resetSubmit")}
           </button>

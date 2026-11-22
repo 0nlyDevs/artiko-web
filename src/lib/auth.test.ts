@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_PASSWORD_LENGTH } from "./password";
 
 // The guards run before any database or Better Auth object exists, so they can be checked without either.
 async function authWith(env: Record<string, string | undefined>) {
@@ -49,6 +50,11 @@ describe("account security", () => {
 
   it("opens no session from a verification link", async () => {
     expect((await auth()).options.emailVerification?.autoSignInAfterVerification).toBe(false);
+  });
+
+  it("refuses passwords longer than the forms allow", async () => {
+    expect((await auth()).options.emailAndPassword?.maxPasswordLength).toBe(MAX_PASSWORD_LENGTH);
+    expect(MAX_PASSWORD_LENGTH).toBe(128);
   });
 
   it("reports a breach check outage from the plugin placed right after Have I Been Pwned", async () => {

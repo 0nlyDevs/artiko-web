@@ -400,6 +400,7 @@ export const en = {
   "auth.compromised": "This password appears in a known data breach. Choose another one.",
   "auth.checkUnavailable": "The password check is unavailable for now. Try again in a few minutes.",
   "auth.tooShort": "This password is too short.",
+  "auth.tooLong": "This password is too long.",
   "auth.exists": "An account already uses this email. Sign in, or reset its password.",
   "auth.linkInvalid": "This link no longer works: it expired or was already used.",
   "auth.verified": "Address confirmed, sign in.",

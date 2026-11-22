@@ -9,7 +9,7 @@ import { after } from "next/server";
 import { Pool } from "pg";
 import { breachedPasswordCheck } from "./breached-passwords";
 import { accountEmail, emailLocale, sendEmail, type AccountEmail } from "./email";
-import { MIN_PASSWORD_LENGTH } from "./password";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "./password";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
@@ -63,6 +63,7 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: MIN_PASSWORD_LENGTH,
+      maxPasswordLength: MAX_PASSWORD_LENGTH,
       // No session until the address is confirmed: fake addresses cannot vote or publish.
       requireEmailVerification: true,
       resetPasswordTokenExpiresIn: LINK_LIFETIME_SECONDS,

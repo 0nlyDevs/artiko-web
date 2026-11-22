@@ -44,3 +44,4 @@ All of `mg.ts` was written by a non-native speaker. These entries are the least 
 | error.title | This page could not load its works | Tsy mety mampiseho ny asa ity pejy ity | Check |
 | auth.verified | Address confirmed, sign in. | Voamafy ny adiresy, midira. | "Voamafy" (confirmed) assumed from "hamafiso" |
 | auth.checkUnavailable | The password check is unavailable for now. Try again in a few minutes. | Tsy azo atao vetivety ny fanamarinana ny tenimiafina. Andramo indray afaka minitra vitsy. | "vetivety" (for now) and "afaka minitra vitsy" (in a few minutes), check |
+| auth.tooLong | This password is too long. | Lava loatra io tenimiafina io. | Built like auth.tooShort with "lava" (long), check |

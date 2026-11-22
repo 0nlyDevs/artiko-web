@@ -7,6 +7,7 @@ describe("authErrorKey", () => {
     expect(authErrorKey({ code: "PASSWORD_COMPROMISED", status: 400 })).toBe("auth.compromised");
     expect(authErrorKey({ code: "TOKEN_EXPIRED" })).toBe("auth.linkInvalid");
     expect(authErrorKey({ code: "PASSWORD_CHECK_UNAVAILABLE", status: 503 })).toBe("auth.checkUnavailable");
+    expect(authErrorKey({ code: "PASSWORD_TOO_LONG", status: 400 })).toBe("auth.tooLong");
   });
 
   it("puts the rate limit before any code", () => {
