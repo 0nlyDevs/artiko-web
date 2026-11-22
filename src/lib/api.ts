@@ -12,7 +12,7 @@ export const withToken = (token: string) => ({ headers: { Authorization: `Bearer
 
 /**
  * A failed call, with the API's `{error: {code, message}}`. Two codes are ours: `unreachable` when no answer in
- * that shape came back, `not_found` for a path the API does not serve. `api-messages.ts` has the text of each code.
+ * that shape came back (from the API, or from /api/auth/token for the token), `not_found` for a path the API does not serve. `api-messages.ts` has the text of each code.
  */
 export class ApiError extends Error {
   constructor(
@@ -30,6 +30,9 @@ export class ApiError extends Error {
 
 type ErrorBody = { error?: { code?: string; message?: string; case_id?: string }; detail?: unknown };
 
+// An HTTP date as servers must write it (RFC 9110, IMF-fixdate): "Sun, 22 Nov 2026 10:01:30 GMT".
+const HTTP_DATE = /^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/;
+
 /**
  * `Retry-After` as seconds from now. The API sends whole seconds; a proxy may send an HTTP date instead.
  * Null when the header is absent or unreadable: a browser on another origin cannot read it until the API
@@ -39,7 +42,8 @@ function retryAfterSeconds(response: Response | undefined): number | null {
   const value = response?.headers.get("Retry-After")?.trim();
   if (!value) return null;
   if (/^\d+$/.test(value)) return Number(value);
-  const date = Date.parse(value);
+  // `Date.parse` alone reads far more than dates ("-5", "1.5", "retry in 5" all give one): only an HTTP date goes to it.
+  const date = HTTP_DATE.test(value) ? Date.parse(value) : NaN;
   return Number.isNaN(date) ? null : Math.max(0, Math.ceil((date - Date.now()) / 1000));
 }
 

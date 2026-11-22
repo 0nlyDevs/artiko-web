@@ -3,13 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { token } = vi.hoisted(() => ({ token: vi.fn() }));
 vi.mock("@/lib/auth-client", () => ({ authClient: { token } }));
 
+import { apiErrorKey } from "@/lib/api-messages";
 import { clearApiToken } from "@/lib/api-token";
 import { loadSpace } from "./load-space";
 
 type Call = { path: string; query: Record<string, string>; bearer: string | null };
 
-/** A JWT-shaped string that expires in 2100, so the token cache keeps it. */
-const jwt = (name: string) => `h.${btoa(JSON.stringify({ exp: 4_102_444_800 }))}.${name}`;
+/** A JWT-shaped string for the user u1 that expires in 2100, so the token cache keeps it. */
+const jwt = (name: string) => `h.${btoa(JSON.stringify({ exp: 4_102_444_800, sub: "u1" }))}.${name}`;
 const SESSION = `Bearer ${jwt("session")}`;
 
 const ARTIST = { id: "a1", display_name: "Rova", bio: "", region: "Analamanga" };
@@ -140,6 +141,19 @@ describe("loadSpace", () => {
     expect(to("/me").map((call) => call.bearer)).toEqual([`Bearer ${jwt("refused")}`, `Bearer ${jwt("renewed")}`]);
     expect(to("/works").map((call) => call.bearer)).toEqual([`Bearer ${jwt("renewed")}`]);
     expect(token).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([429, 500, 503])("fails as a space that could not load, not as a missing session, when /api/auth/token answers %i", async (status) => {
+    token.mockReset();
+    token.mockResolvedValue({ data: null, error: { status, statusText: "", message: "" } });
+    serve(space(1));
+
+    const failed = await loadSpace().catch((e: unknown) => e);
+
+    expect(failed).toMatchObject({ status, code: "unreachable" });
+    // What my space shows for it: "Your space could not load. Check your connection, then reload the page."
+    expect(apiErrorKey((failed as { code: string }).code, "space")).toBe("space.error");
+    expect(to("/me")).toEqual([]);
   });
 
   it("fails with the API's error when the token belongs to an unverified address", async () => {

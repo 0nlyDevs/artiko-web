@@ -1,4 +1,5 @@
 import type { Key } from "@/i18n/en";
+import type { Vars } from "@/i18n/locales";
 import type { ApiError } from "@/lib/api";
 
 // The error codes a person can meet on the web, each with the dictionary key of its text. They are artiko-api's
@@ -56,6 +57,15 @@ const CODES = new Map<string, Key>([
   ["not_ready", "api.not_ready"],
 ]);
 
+// A refused file is named at the start of the API's message (`read_upload` and `kind_of` in `app/platform/storage.py`).
+// The name is kept, with the limit it went over: someone who sent a work and five proofs must know which file to change.
+// A message in another shape, or without a file name (Python writes "None"), gets the sentence of CODES instead.
+const NAMED_FILES = new Map<string, { key: Key; shape: RegExp }>([
+  ["file_too_large", { key: "api.file_too_large.named", shape: /^(.+) is over (\d+) MB$/ }],
+  ["empty_file", { key: "api.empty_file.named", shape: /^(.+) is empty$/ }],
+  ["unsupported_file", { key: "api.unsupported_file.named", shape: /^(.+): type .* is not accepted$/ }],
+]);
+
 // A screen that says a refusal in its own words.
 const PLACES = {
   space: new Map<string, Key>([
@@ -72,7 +82,10 @@ export function apiErrorKey(code: string, place?: ApiErrorPlace): Key | undefine
 }
 
 /** What to show for a failed API call: our text for a code we know, else the API's own message. */
-export function apiErrorText(error: ApiError, t: (key: Key) => string, place?: ApiErrorPlace): string {
+export function apiErrorText(error: ApiError, t: (key: Key, vars?: Vars) => string, place?: ApiErrorPlace): string {
+  const named = NAMED_FILES.get(error.code);
+  const [, file, max = ""] = named?.shape.exec(error.message) ?? [];
+  if (named && file && file !== "None") return t(named.key, { file, max });
   const key = apiErrorKey(error.code, place);
   return key ? t(key) : error.message;
 }

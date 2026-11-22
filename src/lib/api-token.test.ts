@@ -4,14 +4,17 @@ const { token } = vi.hoisted(() => ({ token: vi.fn() }));
 vi.mock("@/lib/auth-client", () => ({ authClient: { token } }));
 
 import { ApiError } from "@/lib/api";
-import { callWithToken, clearApiToken, getApiToken, tokenExpiry } from "./api-token";
+import { callWithToken, clearApiToken, getApiToken, tokenExpiry, tokenSubject } from "./api-token";
 
 const NOW_SECONDS = 1_800_000_000;
 
-/** A JWT-shaped string whose payload carries `exp`. */
-function jwtExpiring(exp: number, name = "t"): string {
-  return `h.${btoa(JSON.stringify({ exp }))}.${name}`;
+/** A JWT-shaped string whose payload carries `exp` and the account it was signed for. */
+function jwtExpiring(exp: number, name = "t", sub: string | null = "user-a"): string {
+  return `h.${btoa(JSON.stringify(sub === null ? { exp } : { exp, sub }))}.${name}`;
 }
+
+/** What Better Auth's client gives when /api/auth/token answers with an error status: 401 when nobody is signed in. */
+const tokenRefused = (status = 401) => ({ data: null, error: { status, statusText: "", message: "" } });
 
 beforeEach(() => {
   token.mockReset();
@@ -37,8 +40,19 @@ describe("getApiToken", () => {
   });
 
   it("raises a 401 when nobody is signed in", async () => {
-    token.mockResolvedValue({ data: null, error: { message: "no session" } });
+    token.mockResolvedValue(tokenRefused());
     await expect(getApiToken()).rejects.toThrowError(expect.objectContaining({ status: 401, code: "unauthorized" }));
+    await expect(getApiToken()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("raises the same 401 when Better Auth gives neither a token nor an error", async () => {
+    token.mockResolvedValue({ data: null, error: null });
+    await expect(getApiToken()).rejects.toThrowError(expect.objectContaining({ status: 401, code: "unauthorized" }));
+  });
+
+  it.each([429, 500, 503])("reports /api/auth/token answering %i as a service that did not answer, not as a missing session", async (status) => {
+    token.mockResolvedValue(tokenRefused(status));
+    await expect(getApiToken()).rejects.toThrowError(expect.objectContaining({ status, code: "unreachable" }));
     await expect(getApiToken()).rejects.toBeInstanceOf(ApiError);
   });
 
@@ -58,7 +72,7 @@ describe("getApiToken", () => {
   });
 
   it("asks again after a shared request failed", async () => {
-    token.mockResolvedValueOnce({ data: null, error: { message: "no session" } });
+    token.mockResolvedValueOnce(tokenRefused());
     token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "later") } });
     const [first, second] = await Promise.allSettled([getApiToken(), getApiToken()]);
     expect([first.status, second.status]).toEqual(["rejected", "rejected"]);
@@ -124,6 +138,8 @@ describe("callWithToken", () => {
     new ApiError(409, "already_voted", "You already voted in this category this month"),
     new ApiError(0, "unreachable", "unreachable"),
     new ApiError(401, "something_else", "A 401 that is not about the token"),
+    new ApiError(403, "invalid_token", "A refused token, but not a 401"),
+    new ApiError(500, "unauthorized", "A token code on a server error"),
     new TypeError("not an API error"),
   ])("does not replay on another error (%s)", async (error) => {
     token.mockResolvedValue({ data: { token: jwtExpiring(NOW_SECONDS + 600) } });
@@ -136,7 +152,7 @@ describe("callWithToken", () => {
   });
 
   it("raises the 401 without calling when nobody is signed in", async () => {
-    token.mockResolvedValue({ data: null, error: { message: "no session" } });
+    token.mockResolvedValue(tokenRefused());
     const call = vi.fn();
 
     await expect(callWithToken(call)).rejects.toThrowError(expect.objectContaining({ status: 401, code: "unauthorized" }));
@@ -146,10 +162,61 @@ describe("callWithToken", () => {
 
   it("raises the 401 when the session ended between the call and its replay", async () => {
     token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "refused") } });
-    token.mockResolvedValueOnce({ data: null, error: { message: "no session" } });
+    token.mockResolvedValueOnce(tokenRefused());
     const call = vi.fn().mockRejectedValue(new ApiError(401, "invalid_token", "Invalid token"));
 
     await expect(callWithToken(call)).rejects.toThrowError(expect.objectContaining({ status: 401, code: "unauthorized" }));
+
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not replay when /api/auth/token is down after the refusal", async () => {
+    token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "refused") } });
+    token.mockResolvedValueOnce(tokenRefused(503));
+    const call = vi.fn().mockRejectedValue(new ApiError(401, "invalid_token", "Invalid token"));
+
+    await expect(callWithToken(call)).rejects.toThrowError(expect.objectContaining({ status: 503, code: "unreachable" }));
+
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not replay with the token of another account that signed in while the call was in flight", async () => {
+    token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "account-a", "user-a") } });
+    token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "account-b", "user-b") } });
+    let refuse: (error: ApiError) => void = () => {};
+    const call = vi.fn().mockReturnValueOnce(new Promise((_, reject) => (refuse = reject)));
+    const refusal = new ApiError(401, "invalid_token", "Invalid token: Signature has expired");
+
+    const published = callWithToken(call);
+    await vi.waitFor(() => expect(call).toHaveBeenCalledTimes(1));
+    clearApiToken(); // A signs out, B signs in on the same tab: sign-out and sign-in both clear the token.
+    expect(await getApiToken()).toMatch(/account-b$/);
+    refuse(refusal); // A's token expired during a long upload
+
+    await expect(published).rejects.toBe(refusal);
+    expect(sentTokens(call)).toEqual([expect.stringMatching(/account-a$/)]);
+    // B's token is untouched.
+    expect(await getApiToken()).toMatch(/account-b$/);
+    expect(token).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not replay when the new token is for another account, signed in from another tab", async () => {
+    token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "account-a", "user-a") } });
+    token.mockResolvedValueOnce({ data: { token: jwtExpiring(NOW_SECONDS + 600, "account-b", "user-b") } });
+    const refusal = new ApiError(401, "invalid_token", "Invalid token");
+    const call = vi.fn().mockRejectedValue(refusal);
+
+    await expect(callWithToken(call)).rejects.toBe(refusal);
+
+    expect(sentTokens(call)).toEqual([expect.stringMatching(/account-a$/)]);
+  });
+
+  it("does not replay when the account of the refused token cannot be read", async () => {
+    token.mockResolvedValue({ data: { token: jwtExpiring(NOW_SECONDS + 600, "no-subject", null) } });
+    const refusal = new ApiError(401, "invalid_token", "Invalid token");
+    const call = vi.fn().mockRejectedValue(refusal);
+
+    await expect(callWithToken(call)).rejects.toBe(refusal);
 
     expect(call).toHaveBeenCalledTimes(1);
   });
@@ -205,5 +272,22 @@ describe("tokenExpiry", () => {
     expect(tokenExpiry("garbage")).toBe(0);
     expect(tokenExpiry("h.!!!.s")).toBe(0);
     expect(tokenExpiry(`h.${base64url('{"sub":"1"}')}.s`)).toBe(0);
+    expect(tokenExpiry(`h.${base64url("null")}.s`)).toBe(0);
+  });
+});
+
+describe("tokenSubject", () => {
+  const base64url = (text: string) => btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+  it("reads the account a token was signed for", () => {
+    expect(tokenSubject(`h.${base64url('{"sub":"user-a","exp":1900000000}')}.s`)).toBe("user-a");
+  });
+
+  it("answers null for a token that names no account", () => {
+    expect(tokenSubject("garbage")).toBeNull();
+    expect(tokenSubject(`h.${base64url('{"exp":1900000000}')}.s`)).toBeNull();
+    expect(tokenSubject(`h.${base64url('{"sub":""}')}.s`)).toBeNull();
+    expect(tokenSubject(`h.${base64url('{"sub":42}')}.s`)).toBeNull();
+    expect(tokenSubject(`h.${base64url("null")}.s`)).toBeNull();
   });
 });

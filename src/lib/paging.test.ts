@@ -51,6 +51,25 @@ describe("readAll", () => {
     expect([PAGE_LIMIT, MAX_ITEMS, readPage.mock.calls.length]).toEqual([200, 1000, 5]);
   });
 
+  it.each([0, -5, 2.5, NaN, Infinity])("refuses a limit of %s before reading anything", async (limit) => {
+    // An endpoint that tolerates such a limit answers an empty page, never "shorter than limit": the reading would not end.
+    const readPage = vi.fn().mockResolvedValue([]);
+    await expect(readAll(readPage, { limit })).rejects.toThrowError(RangeError);
+    expect(readPage).not.toHaveBeenCalled();
+  });
+
+  it.each([Infinity, NaN])("refuses a cap of %s before reading anything", async (cap) => {
+    const readPage = endpoint(1_000_000);
+    await expect(readAll(readPage, { limit: 3, cap })).rejects.toThrowError(RangeError);
+    expect(readPage).not.toHaveBeenCalled();
+  });
+
+  it("reads nothing for a cap of 0", async () => {
+    const readPage = endpoint(10);
+    expect(await readAll(readPage, { limit: 3, cap: 0 })).toEqual([]);
+    expect(readPage).not.toHaveBeenCalled();
+  });
+
   it("lets a failed page fail the whole read", async () => {
     const readPage = vi.fn().mockResolvedValueOnce([1, 2, 3]).mockRejectedValueOnce(new Error("page 2 failed"));
     await expect(readAll(readPage, { limit: 3 })).rejects.toThrowError("page 2 failed");

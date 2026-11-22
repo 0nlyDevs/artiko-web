@@ -17,8 +17,8 @@ describe("categoryLabel", () => {
     expect(categoryLabel({ id: "street_art", label: "Street art" }, "fr")).toBe("Street art");
   });
 
-  it("shows the id where no label came with it, for example on a work", () => {
-    expect(categoryLabel({ id: "street_art" }, "fr")).toBe("street_art");
+  it("shows nothing, never the raw id, where no label came with it, for example on a work", () => {
+    expect(categoryLabel({ id: "street_art" }, "fr")).toBe("");
   });
 });
 
@@ -26,5 +26,6 @@ describe("CategoryLabel", () => {
   it("renders the same name as text", () => {
     expect(renderToStaticMarkup(<CategoryLabel category={{ id: "crafts" }} />)).toBe("Crafts");
     expect(renderToStaticMarkup(<CategoryLabel category={{ id: "street_art", label: "Street art" }} />)).toBe("Street art");
+    expect(renderToStaticMarkup(<CategoryLabel category={{ id: "street_art" }} />)).toBe("");
   });
 });
