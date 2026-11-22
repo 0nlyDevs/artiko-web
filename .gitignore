@@ -41,8 +41,6 @@ yarn-error.log*
 next-env.d.ts
 !.env.example
 
-# KANTO: licensed display fonts stay local, the OFL fallbacks in public/fonts/ofl are committed
-/public/fonts/licensed/
 
 # Draco codecs copied from node_modules by scripts/copy-draco.mjs
 /public/draco/
