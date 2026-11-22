@@ -8,6 +8,10 @@ export type Error = {
     error: {
         code: string;
         message: string;
+        /**
+         * Review case opened for a refused publication (`possible_copy`)
+         */
+        case_id?: string;
     };
 };
 
@@ -42,6 +46,42 @@ export type Me = {
 
 export type MediaKind = 'image' | 'audio' | 'video' | 'model';
 
+export type Challenge = {
+    nonce: string;
+    expires_at: string;
+};
+
+export type DeviceIn = {
+    nonce: string;
+    /**
+     * Base64 DER SubjectPublicKeyInfo of the P-256 key
+     */
+    public_key: string;
+    /**
+     * Base64 DER certificates, leaf first
+     */
+    attestation_chain: Array<string>;
+};
+
+export type Device = {
+    id: string;
+    attestation_level: 'strongbox' | 'tee' | 'software' | 'unverified';
+};
+
+export type Proof = {
+    id: string;
+    visibility: 'public' | 'reviewers';
+    /**
+     * Imported files never count for the badge
+     */
+    source: 'in_app' | 'imported';
+    /**
+     * The capture's signature
+     */
+    signed: boolean;
+    url: string;
+};
+
 export type Work = {
     id: string;
     artist_id: string;
@@ -53,8 +93,23 @@ export type Work = {
      * Always present; null when the work is in no exposition
      */
     exposition_id?: string | null;
+    /**
+     * Shared by an artist's works that are near-copies of each other
+     */
+    series_id?: string | null;
     media_url: string;
+    /**
+     * Detailed GLB of a 3D work
+     */
+    media_hd_url?: string | null;
+    /**
+     * Still image shown while a 3D work loads
+     */
+    poster_url?: string | null;
     media_kind: MediaKind;
+    /**
+     * The proofs the caller may open; private ones are short-lived signed links, for the owner and reviewers only
+     */
     proof_urls: Array<string>;
     sha256: string;
     /**
@@ -402,11 +457,38 @@ export type CreateWorkData = {
         category: CategoryId;
         ai_declared?: boolean;
         /**
+         * JSON list with one claim per proof file, in the same order. A claim is
+         * `{source: "in_app" | "imported"}`; an in-app capture adds `device_id`, `signature`
+         * (base64 DER ECDSA P-256 over `<sha256>|<captured_at_ms>|<draft_id>|<nonce>`),
+         * `captured_at_ms`, `draft_id`, optional `nonce`, `integrity_token` and `camera`.
+         * Only verified in-app captures count for the human-made badge. Errors (400):
+         * `bad_signature`, `unknown_device`, `capture_too_old` (older than 10 minutes),
+         * `capture_in_future`, `integrity_failed`, `incomplete_capture`, `invalid_proof_claims`.
+         *
+         */
+        proof_claims?: string;
+        /**
+         * Who may open the proof files; `reviewers` keeps them private to the artist and the reviewers
+         */
+        proof_visibility?: 'public' | 'reviewers';
+        /**
          * One of the artist's own expositions (`invalid_exposition`, 400, otherwise)
          */
         exposition_id?: string;
         file: Blob | File;
         proof?: Array<Blob | File>;
+        /**
+         * Detailed GLB of a 3D work, loaded on demand; only with a GLB `file`.
+         * Errors (400): `extras_need_model` when `file` is not a GLB, `invalid_model_hd`.
+         *
+         */
+        model_hd?: Blob | File;
+        /**
+         * Still image (jpeg, png, webp) shown while a 3D work loads; only with a GLB `file`.
+         * Errors (400): `extras_need_model` when `file` is not a GLB, `invalid_poster`.
+         *
+         */
+        poster?: Blob | File;
     };
     path?: never;
     query?: never;
@@ -473,6 +555,143 @@ export type GetWorkResponses = {
 };
 
 export type GetWorkResponse = GetWorkResponses[keyof GetWorkResponses];
+
+export type GetDeviceChallengeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/devices/challenge';
+};
+
+export type GetDeviceChallengeErrors = {
+    /**
+     * Missing or invalid token (`unauthorized`, `invalid_token`)
+     */
+    401: Error;
+    /**
+     * Rate limit hit (`rate_limited`); wait `Retry-After` seconds
+     */
+    429: Error;
+};
+
+export type GetDeviceChallengeError = GetDeviceChallengeErrors[keyof GetDeviceChallengeErrors];
+
+export type GetDeviceChallengeResponses = {
+    /**
+     * A nonce signed for this user, valid for ten minutes
+     */
+    200: Challenge;
+};
+
+export type GetDeviceChallengeResponse = GetDeviceChallengeResponses[keyof GetDeviceChallengeResponses];
+
+export type RegisterDeviceData = {
+    body: DeviceIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/devices';
+};
+
+export type RegisterDeviceErrors = {
+    /**
+     * The request breaks a rule; `error.code` says which
+     */
+    400: Error;
+    /**
+     * Missing or invalid token (`unauthorized`, `invalid_token`)
+     */
+    401: Error;
+    /**
+     * Rate limit hit (`rate_limited`); wait `Retry-After` seconds
+     */
+    429: Error;
+};
+
+export type RegisterDeviceError = RegisterDeviceErrors[keyof RegisterDeviceErrors];
+
+export type RegisterDeviceResponses = {
+    /**
+     * The device (registering the same key again returns it)
+     */
+    201: Device;
+};
+
+export type RegisterDeviceResponse = RegisterDeviceResponses[keyof RegisterDeviceResponses];
+
+export type ListWorkProofsData = {
+    body?: never;
+    path: {
+        work_id: string;
+    };
+    query?: never;
+    url: '/api/v1/works/{work_id}/proofs';
+};
+
+export type ListWorkProofsErrors = {
+    /**
+     * Missing or invalid token (`unauthorized`, `invalid_token`)
+     */
+    401: Error;
+    /**
+     * No such resource
+     */
+    404: Error;
+};
+
+export type ListWorkProofsError = ListWorkProofsErrors[keyof ListWorkProofsErrors];
+
+export type ListWorkProofsResponses = {
+    /**
+     * Public proofs for everyone, private ones for the owner and the reviewers
+     */
+    200: Array<Proof>;
+};
+
+export type ListWorkProofsResponse = ListWorkProofsResponses[keyof ListWorkProofsResponses];
+
+export type GetProofFileData = {
+    body?: never;
+    path: {
+        proof_id: string;
+    };
+    query: {
+        /**
+         * Unix time when the link expires
+         */
+        exp: number;
+        /**
+         * Signature issued with the link
+         */
+        sig: string;
+    };
+    url: '/api/v1/proofs/{proof_id}/file';
+};
+
+export type GetProofFileErrors = {
+    /**
+     * Signed in, but not allowed (`not_an_artist`)
+     */
+    403: Error;
+    /**
+     * No such resource
+     */
+    404: Error;
+    /**
+     * Rate limit hit (`rate_limited`); wait `Retry-After` seconds
+     */
+    429: Error;
+};
+
+export type GetProofFileError = GetProofFileErrors[keyof GetProofFileErrors];
+
+export type GetProofFileResponses = {
+    /**
+     * The file
+     */
+    200: Blob | File;
+};
+
+export type GetProofFileResponse = GetProofFileResponses[keyof GetProofFileResponses];
 
 export type ListExpositionsData = {
     body?: never;
