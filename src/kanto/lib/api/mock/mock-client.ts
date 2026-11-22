@@ -897,14 +897,16 @@ export function createMockClient(
             reason: 'Indiquez l’artiste ou l’atelier.',
           });
         }
+        // A scanned 3D model shows the work by itself: no photograph is needed then.
         if (
+          item.model3d.status !== 'ready' &&
           !item.media.some(
             (media) => media.kind === 'image' && media.status === 'ready',
           )
         ) {
           details.push({
             field: 'media',
-            reason: 'Ajoutez au moins une photographie.',
+            reason: 'Ajoutez une photographie ou un modèle 3D.',
           });
         }
         if (item.rights.relationship === null) {

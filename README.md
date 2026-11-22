@@ -40,7 +40,7 @@ Tasks that need Node first run `task check:versions`, which fails when Node or p
 - Its styles are CSS Modules: the Turbopack rule in `next.config.ts` keeps `*.module.css` out of the Tailwind loader.
 - Its tests are the `kanto` Vitest project (jsdom); the rest of the app stays in the `app` project (node).
 - The former home page (the 3D gallery walk of `src/components/gallery`) is no longer routed: KANTO owns `/`. Its components and assets are still in the repository.
-- The licensed display fonts are not in the repository (`public/fonts/licensed/` is ignored); the OFL fonts in `public/fonts/ofl/` are used instead. Media sources and licences: `docs/kanto/media-sources.md`.
+- Display fonts: New Icon Serif and Helvetica Now Display in `public/fonts/licensed/` (commercial licences, added at the request of the frontend lead), with the OFL fonts of `public/fonts/ofl/` as fallbacks. Media sources and licences: `docs/kanto/media-sources.md`.
 
 ## Layout
 

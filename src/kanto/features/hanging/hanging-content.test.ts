@@ -126,14 +126,24 @@ describe('hangingStand', () => {
     expect(hangingStand(scanned)).toBe('plinth');
   });
 
-  it('is a picture rail when the main media is an image', () => {
-    expect(hangingStand(pending)).toBe('rail');
+  it('is a picture rail when the main media of a picture is an image', () => {
+    expect(hangingStand({ ...pending, medium: 'painting' })).toBe('rail');
     expect(
       hangingStand({
         ...scanned,
+        medium: 'painting',
         model3d: { contentId: scanned.id, status: 'processing', variants: null },
       }),
     ).toBe('rail');
+  });
+
+  it('is a plinth for a sculpture or a craft object shown by its photograph', () => {
+    const photographed = {
+      ...scanned,
+      model3d: { contentId: scanned.id, status: 'missing' as const, variants: null },
+    };
+    expect(hangingStand({ ...photographed, medium: 'sculpture' })).toBe('plinth');
+    expect(hangingStand({ ...photographed, medium: 'craft' })).toBe('plinth');
   });
 
   it('is a wall label for a work with neither', () => {

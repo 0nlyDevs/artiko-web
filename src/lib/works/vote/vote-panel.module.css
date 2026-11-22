@@ -1,0 +1,209 @@
+/*
+ * Figma frame R7: the block « Concours du mois » and the actions of the notice. Used by the notice of a
+ * work and by the panel of an artist's museum, on any light ground.
+ */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.contest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: 17px 19px;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+  background: var(--color-hall);
+  border: 1px solid var(--color-line-soft);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/* The number in the display serif, the two lines of text beside it. */
+.count {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-14);
+  align-items: center;
+}
+
+.figure {
+  display: contents;
+  margin: 0;
+}
+
+.number {
+  grid-row: 1 / span 2;
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 57px;
+  font-variant-numeric: lining-nums;
+}
+
+.unit {
+  align-self: end;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 17px;
+}
+
+.rule {
+  align-self: start;
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--color-ink-60);
+}
+
+/* Actions */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* The pill of the frame: 48 px high, sentence case. `.secondary` is exported for the action beside it. */
+.button {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.primary {
+  color: var(--color-paper);
+  background: var(--color-ink);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-wine);
+  border-color: var(--color-wine);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.primary:disabled {
+  cursor: not-allowed;
+  background: var(--color-ink-40);
+  border-color: transparent;
+}
+
+.secondary {
+  color: var(--color-ink);
+  background: transparent;
+  border-color: var(--color-ink-40);
+}
+
+.secondary:hover {
+  background: var(--color-ink-08);
+  border-color: var(--color-ink);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: turn 0.8s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The vote is cast: the place of the button says so, and nothing withdraws it. */
+.done {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: 48px;
+  padding: var(--space-8) 22px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  color: var(--color-success);
+  background: var(--color-success-tint);
+  border-radius: var(--radius-pill);
+}
+
+.heart {
+  flex: none;
+  color: var(--color-accent);
+}
+
+.note,
+.reason {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.note {
+  color: var(--color-ink-60);
+}
+
+/* The reason the vote is closed, beside the disabled button. */
+.reason {
+  padding-left: var(--space-10);
+  color: var(--color-ink);
+  border-left: 2px solid var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}
