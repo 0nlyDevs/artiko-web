@@ -2,9 +2,13 @@
 
 import { OrbitControls, Resize, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { Museum, MuseumSlot, Work } from "@/lib/api";
+import { DRACO_DECODER_PATH } from "@/lib/draco";
 import { SlotErrorBoundary } from "./slot-error-boundary";
+
+// drei 10.7.9 fetches the Draco decoder from www.gstatic.com unless told otherwise (core/Gltf.js:8).
+useGLTF.setDecoderPath(DRACO_DECODER_PATH);
 
 type Props = { museum: Museum; selectedId: string; onSelect: (work: Work) => void };
 
@@ -12,6 +16,7 @@ const WALL = "#FBF0E4";
 const FLOOR = "#4a4a4a";
 const ACCENT = "#C8553D";
 const INK = "#111111";
+const PENDING = "#9a9a9a";
 const FRAME_HEIGHT = 1.2;
 
 /** One room laid out by the API (same data as the Android app), entrance at +z. */
@@ -40,7 +45,7 @@ export default function Museum3D({ museum, selectedId, onSelect }: Props) {
       </mesh>
       {museum.slots.map((slot) => (
         <SlotErrorBoundary key={slot.work.id}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<SlotPlaceholder slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />}>
             {slot.kind === "wall" ? (
               <Frame slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
             ) : (
@@ -97,7 +102,43 @@ function Picture({ slot, selected, onSelect }: SlotProps) {
   );
 }
 
+/** Stands in for a work while its image or model downloads, so the room never shows an empty spot. */
+function SlotPlaceholder({ slot, selected, onSelect }: SlotProps) {
+  const [x, y, z] = slot.position;
+  if (slot.kind === "wall") {
+    return (
+      <mesh position={[x, y, z]} rotation-y={slot.rotation_y} onClick={() => onSelect(slot.work)}>
+        <planeGeometry args={[FRAME_HEIGHT * 1.6, FRAME_HEIGHT]} />
+        <meshStandardMaterial color={selected ? ACCENT : PENDING} />
+      </mesh>
+    );
+  }
+  return (
+    <PlinthBase slot={slot} selected={selected} onSelect={onSelect}>
+      <mesh>
+        <icosahedronGeometry args={[0.2, 0]} />
+        <meshStandardMaterial color={PENDING} wireframe />
+      </mesh>
+    </PlinthBase>
+  );
+}
+
 function Plinth({ slot, selected, onSelect }: SlotProps) {
+  return (
+    <PlinthBase slot={slot} selected={selected} onSelect={onSelect}>
+      {slot.work.media_kind === "model" ? (
+        <Model url={slot.work.media_url} />
+      ) : (
+        <mesh>
+          <sphereGeometry args={[0.2, 32, 16]} />
+          <meshStandardMaterial color={ACCENT} />
+        </mesh>
+      )}
+    </PlinthBase>
+  );
+}
+
+function PlinthBase({ slot, selected, onSelect, children }: SlotProps & { children: ReactNode }) {
   const [x, y, z] = slot.position;
   return (
     <group position={[x, 0, z]} onClick={() => onSelect(slot.work)}>
@@ -105,16 +146,7 @@ function Plinth({ slot, selected, onSelect }: SlotProps) {
         <boxGeometry args={[0.7, y, 0.7]} />
         <meshStandardMaterial color={selected ? ACCENT : WALL} />
       </mesh>
-      <group position-y={y + 0.3}>
-        {slot.work.media_kind === "model" ? (
-          <Model url={slot.work.media_url} />
-        ) : (
-          <mesh>
-            <sphereGeometry args={[0.2, 32, 16]} />
-            <meshStandardMaterial color={ACCENT} />
-          </mesh>
-        )}
-      </group>
+      <group position-y={y + 0.3}>{children}</group>
     </group>
   );
 }
