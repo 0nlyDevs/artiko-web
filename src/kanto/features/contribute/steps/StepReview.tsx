@@ -10,6 +10,7 @@ import {
   stepForField,
 } from '../contribute-content';
 import { IMPORT_MODEL_GONE_REVIEW } from '../model-import-copy';
+import { standsOnPlinth } from '../../hanging/hanging-content';
 import styles from '../WizardPage.module.css';
 import { useModelAvailability } from './model-availability';
 import {
@@ -59,6 +60,14 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
         ? 'modèle 3D à importer de nouveau'
         : 'modèle 3D';
   const medium = form.medium ?? item.medium;
+  // An object stands on a plinth: its 3D model when there is one, else its photograph.
+  const readyPoster =
+    item.model3d.status === 'ready' && !modelGone
+      ? (item.model3d.variants?.poster ?? '')
+      : '';
+  const onPlinth = standsOnPlinth(medium) || readyPoster !== '';
+  const plinthImage =
+    readyPoster !== '' ? readyPoster : (primary?.url ?? null);
   const consents = form.consentShare && form.consentDisplay;
 
   const rows: readonly { label: string; value: string; step: WizardStep }[] = [
@@ -75,7 +84,9 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
       label: 'Médias',
       value: joinParts([
         images.length === 0
-          ? 'Aucune photographie'
+          ? hasModel
+            ? ''
+            : 'Aucune photographie'
           : `${String(images.length)} image${images.length > 1 ? 's' : ''}`,
         images.length === 0 ? '' : '1 image principale',
         videos > 0 ? `${String(videos)} vidéo${videos > 1 ? 's' : ''}` : '',
@@ -146,12 +157,22 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
       )}
       <HallSection title="Aperçu dans la salle">
         <div className={styles.preview} aria-hidden="true">
-          <div className={styles.previewFrame}>
-            <div className={styles.previewArt}>
-              {primary !== undefined && <img src={primary.url} alt="" />}
+          {onPlinth ? (
+            <div className={styles.previewPlinth}>
+              <div className={styles.previewObject}>
+                {plinthImage !== null && <img src={plinthImage} alt="" />}
+              </div>
+              <span className={styles.previewPlinthTop} />
+              <span className={styles.previewPlinthBody} />
             </div>
-            <img className={styles.previewGilded} src={frameGilded} alt="" />
-          </div>
+          ) : (
+            <div className={styles.previewFrame}>
+              <div className={styles.previewArt}>
+                {primary !== undefined && <img src={primary.url} alt="" />}
+              </div>
+              <img className={styles.previewGilded} src={frameGilded} alt="" />
+            </div>
+          )}
           <div className={styles.previewLabel}>
             <span className={styles.previewEyebrow}>Nouvelle œuvre</span>
             <span className={styles.previewTitle}>
@@ -162,10 +183,11 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
             </span>
           </div>
         </div>
-        {primary === undefined && (
+        {plinthImage === null && primary === undefined && (
           <p className={styles.previewNote}>
-            Ajoutez une photographie à l’étape 2 pour voir l’œuvre dans le
-            cadre.
+            {onPlinth
+              ? 'Ajoutez une photographie ou un modèle 3D à l’étape 2 pour voir l’œuvre sur son socle.'
+              : 'Ajoutez une photographie à l’étape 2 pour voir l’œuvre dans le cadre.'}
           </p>
         )}
       </HallSection>

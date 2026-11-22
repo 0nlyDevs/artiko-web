@@ -169,15 +169,24 @@ function readyModel(item: Pick<Item, 'model3d'>): string | null {
     : null;
 }
 
+/** Objects stand on a plinth even when only photographed; pictures hang on the rail. */
+export function standsOnPlinth(medium: Item['medium']): boolean {
+  return medium === 'sculpture' || medium === 'craft';
+}
+
 /**
- * A plinth for a work with a ready 3D model, a picture rail for a work whose
- * main media is an image, a wall label for a work with neither.
+ * A plinth for a work with a ready 3D model or for an object (sculpture,
+ * craft), a picture rail for a work whose main media is an image, a wall
+ * label for a work with nothing to show.
  */
 export function hangingStand(item: Item): HangingStand {
   if (readyModel(item) !== null) {
     return 'plinth';
   }
-  return primaryImage(item) === null ? 'label' : 'rail';
+  if (primaryImage(item) === null) {
+    return 'label';
+  }
+  return standsOnPlinth(item.medium) ? 'plinth' : 'rail';
 }
 
 export function hangingSources(item: Item): HangingSources {
