@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
+import { APIError } from "better-auth/api";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { breachedPasswordCheck } from "./breached-passwords";
 
@@ -8,13 +9,13 @@ const PASSWORD = "correct horse battery staple";
 const hashSuffix = createHash("sha1").update(PASSWORD).digest("hex").toUpperCase().slice(5);
 
 // The real Better Auth sign-up, in memory: only the call to Have I Been Pwned is simulated.
-function signUp() {
+function signUp(hash?: (password: string) => Promise<string>) {
   const db: Record<string, unknown[]> = { user: [], session: [], account: [], verification: [] };
   const auth = betterAuth({
     baseURL: "http://localhost:3000",
     secret: "a".repeat(32),
     database: memoryAdapter(db),
-    emailAndPassword: { enabled: true },
+    emailAndPassword: { enabled: true, password: { hash } },
     plugins: [...breachedPasswordCheck()],
   });
   const attempt = auth.api.signUpEmail({ body: { name: "Rova", email: "rova@example.test", password: PASSWORD } });
@@ -45,6 +46,14 @@ describe("breached password check on /sign-up/email", () => {
   it("still refuses a breached password with PASSWORD_COMPROMISED", async () => {
     breachServiceAnswers(async () => new Response(`0000000000000000000000000000000000A:1\r\n${hashSuffix}:42\r\n`));
     await expect(signUp().attempt).rejects.toMatchObject({ statusCode: 400, body: { code: "PASSWORD_COMPROMISED" } });
+  });
+
+  it("lets through any other internal error of the hash, untouched", async () => {
+    breachServiceAnswers(async () => new Response("0000000000000000000000000000000000A:1\r\n"));
+    const failure = new APIError("INTERNAL_SERVER_ERROR", { message: "Hashing failed" });
+    const { attempt, db } = signUp(() => Promise.reject(failure));
+    await expect(attempt).rejects.toBe(failure);
+    expect(db.user).toEqual([]);
   });
 
   it("accepts a password absent from the breaches", async () => {

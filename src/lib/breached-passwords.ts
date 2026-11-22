@@ -2,6 +2,12 @@ import type { BetterAuthPlugin } from "better-auth";
 import { APIError, isAPIError } from "better-auth/api";
 import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 
+// The official plugin's messages for an outage (`haveibeenpwned/index.mjs:37,41`), its only mark of one.
+const OUTAGE_MESSAGE_PREFIX = "Failed to check password";
+
+const isBreachServiceOutage = (error: unknown) =>
+  isAPIError(error) && error.statusCode === 500 && error.message.startsWith(OUTAGE_MESSAGE_PREFIX);
+
 const PASSWORD_CHECK_UNAVAILABLE = {
   code: "PASSWORD_CHECK_UNAVAILABLE",
   message: "The password could not be checked against known breaches. Try again in a few minutes.",
@@ -24,7 +30,7 @@ function reportPasswordCheckOutage(): BetterAuthPlugin {
               try {
                 return await hash(password);
               } catch (error) {
-                if (isAPIError(error) && error.statusCode === 500) throw APIError.from("SERVICE_UNAVAILABLE", PASSWORD_CHECK_UNAVAILABLE, { cause: error });
+                if (isBreachServiceOutage(error)) throw APIError.from("SERVICE_UNAVAILABLE", PASSWORD_CHECK_UNAVAILABLE, { cause: error });
                 throw error;
               }
             },
