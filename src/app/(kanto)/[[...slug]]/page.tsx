@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { KantoShell } from "@/kanto/KantoShell";
 import { readMuseumPlan } from "@/kanto/lib/museum-data/read-museum-plan";
+import { readPublishedWorks } from "@/kanto/lib/museum-data/read-published-works";
 
 // One optional catch-all route serves every KANTO address (/, /musee/…, /oeuvres, /contribuer/…,
 // /numerisation/…, /admin…). The KANTO router reads the address in the browser and moves with the
@@ -13,7 +14,7 @@ export default function KantoPage() {
   // for the plan, so this one never shows a fallback.
   return (
     <Suspense>
-      <KantoShell museumPlan={readMuseumPlan()} />
+      <KantoShell museumPlan={readMuseumPlan()} publishedWorks={readPublishedWorks()} />
     </Suspense>
   );
 }

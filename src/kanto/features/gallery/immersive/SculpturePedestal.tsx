@@ -82,7 +82,8 @@ interface LoadedModelProps {
 
 /** A downloaded glTF, scaled to its display height, centred and standing on the pedestal. */
 function LoadedModel({ src, height, mediaId }: LoadedModelProps) {
-  const gltf = useGLTF(src, false);
+  // Scans prepared by the import are Draco-compressed: decode them with the codec served by this site.
+  const gltf = useGLTF(src, '/draco/');
   const { fit, footprint } = useMemo(() => {
     const measure = measureModel(gltf.scene);
     const fitted = fitModel(measure.bounds, height);

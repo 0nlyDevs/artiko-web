@@ -119,7 +119,7 @@ export function WallText({
   const subtitle =
     artwork === undefined
       ? room.subtitle
-      : `${artwork.artist}, ${artwork.year}`;
+      : [artwork.artist, artwork.year].filter((part) => part !== '').join(', ');
   const paragraphs = artwork === undefined ? room.wallText : artwork.story;
   return (
     <section

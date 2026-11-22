@@ -1,7 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRef } from 'react';
+import { Suspense, use, useRef } from 'react';
+import type { ReactNode } from 'react';
+import { installPublishedWorks } from './features/gallery/data/published';
 import { Opening } from './features/opening/Opening';
 import {
   beginOpening,
@@ -10,6 +12,7 @@ import {
 } from './features/opening/opening-store';
 import { MuseumPlanFeed } from './lib/museum-data/MuseumPlanFeed';
 import type { MuseumPlan } from './lib/museum-data/plan';
+import type { PublishedWork } from './lib/museum-data/published-works';
 
 /*
  * The KANTO app renders in the browser only: its router reads
@@ -38,9 +41,23 @@ export interface KantoShellProps {
    * the shell renders at once and the plan fills in when the answer arrives.
    */
   museumPlan?: Promise<MuseumPlan> | undefined;
+  /** The works published on the real API, hung in the rooms before the museum renders. */
+  publishedWorks?: Promise<PublishedWork[]> | undefined;
 }
 
-export function KantoShell({ museumPlan }: KantoShellProps) {
+/** Waits for the published works, hangs them, then lets the museum load. */
+function WithPublishedWorks({
+  works,
+  children,
+}: {
+  works: Promise<PublishedWork[]>;
+  children: ReactNode;
+}) {
+  installPublishedWorks(use(works));
+  return children;
+}
+
+export function KantoShell({ museumPlan, publishedWorks }: KantoShellProps) {
   const appRef = useRef<HTMLDivElement>(null);
   const phase = useOpeningPhase();
   // Under the ivory cover the app is not reachable, by keyboard or otherwise.
@@ -52,7 +69,15 @@ export function KantoShell({ museumPlan }: KantoShellProps) {
       <Opening appRef={appRef} />
       {museumPlan !== undefined && <MuseumPlanFeed plan={museumPlan} />}
       <div id="root" ref={appRef} inert={covered}>
-        <App />
+        {publishedWorks === undefined ? (
+          <App />
+        ) : (
+          <Suspense>
+            <WithPublishedWorks works={publishedWorks}>
+              <App />
+            </WithPublishedWorks>
+          </Suspense>
+        )}
       </div>
     </>
   );
