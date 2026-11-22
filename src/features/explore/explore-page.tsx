@@ -6,6 +6,7 @@ import { ExploreFilters } from "@/features/explore/explore-filters";
 import { ExploreCategories } from "@/features/explore/explore-categories";
 import { listArtists, listCategories, listWorks, unwrap, type CategoryId } from "@/lib/api";
 import { lastMonths } from "@/lib/months";
+import { readAll } from "@/lib/paging";
 import { Avatar } from "@/lib/ui/avatar";
 import { matchesQuery } from "@/lib/works/search";
 import { WorkTile } from "@/lib/works/work-tile";
@@ -34,11 +35,16 @@ async function Explore({ searchParams }: { searchParams: SearchParams }) {
   await connection(); // the month list depends on today's date
   const params = await searchParams;
   const months = lastMonths(12);
-  const [categories, artists] = await Promise.all([listCategories().then(unwrap), listArtists().then(unwrap)]);
+  const q = one(params.q).trim().slice(0, 100);
+  const [categories, artists] = await Promise.all([
+    listCategories().then(unwrap),
+    // A search looks through every artist, page after page; without one the row only shows the first names.
+    q ? readAll((page) => listArtists({ query: page }).then(unwrap)) : listArtists().then(unwrap),
+  ]);
   const filters: Filters = {
     category: categories.find((c) => c.id === params.category)?.id as CategoryId | undefined,
     month: months.includes(one(params.month)) ? one(params.month) : undefined,
-    q: one(params.q).trim().slice(0, 100),
+    q,
   };
   const shownArtists = artists.filter((a) => matchesQuery([a.display_name, a.region, a.bio], filters.q)).slice(0, 12);
 

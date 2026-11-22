@@ -4,12 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import type { Artist, Exposition, Work } from "@/lib/api";
 import { monthLabel } from "@/lib/months";
 import { Avatar } from "@/lib/ui/avatar";
 import { IconClose, IconSeal } from "@/lib/ui/icons";
+import { categoryLabel } from "@/lib/works/category-label";
 import { useVote, VotePanel } from "@/lib/works/vote";
 
 const IMAGE = /\.(jpe?g|png|webp)$/i;
@@ -81,7 +81,7 @@ export function WorkSheet({ work, artist, exposition }: { work: Work; artist: Ar
           <div>
             <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.04em]">{work.title}</h1>
             <p className="mt-1.5 text-sm text-muted first-letter:uppercase">
-              {[t(`category.${work.category}` as Key), monthLabel(work.month, locale), exposition?.title].filter(Boolean).join(" · ")}
+              {[categoryLabel({ id: work.category }, locale), monthLabel(work.month, locale), exposition?.title].filter(Boolean).join(" · ")}
             </p>
           </div>
           {work.story && <p className="font-serif text-[22px] leading-snug italic">{work.story}</p>}

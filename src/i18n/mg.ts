@@ -423,6 +423,33 @@ export const mg: Dictionary = {
 
   "space.unverified": "Hamafiso ny adiresy mailakao mba hampiasana ny toerananao: ao amin'ny boaty fandraisanao ny rohy.",
 
+  // API errors: the text of each code, picked by src/lib/api-messages.ts
+  "api.unreachable": "Tsy namaly ny tolotra. Jereo ny fifandraisanao amin'ny aterineto, dia andramo indray.",
+  "api.not_found": "Tsy misy an'izany ao amin'ny tolotra amin'izao fotoana izao.",
+  "api.unauthorized": "Midira aloha.",
+  "api.invalid_token": "Lany daty ny fidiranao. Midira indray.",
+  "api.not_an_artist": "Tehirizo aloha ny mombamomba anao ho mpanakanto.",
+  "api.duplicate_work": "Efa navoaka ao amin'i Artiko io rakitra io mihitsy.",
+  "api.possible_copy": "Mitovitovy amin'ny asa hafa ity sary ity. Hojeren'ny mpitsara izy vao azo avoaka.",
+  "api.invalid_exposition": "Misafidiana iray amin'ireo fampirantianao.",
+  "api.too_many_proofs": "Rakitra porofo 5 farafahabetsany isaky ny asa.",
+  "api.extras_need_model": "Ny modely HD sy ny sary fiandrasana dia miaraka amin'ny modely 3D ihany.",
+  "api.invalid_model_hd": "Tsy rakitra GLB mety ny modely HD.",
+  "api.invalid_poster": "Tsy maintsy sary JPEG, PNG na WebP ny sary fiandrasana.",
+  "api.file_too_large": "Misy rakitra mihoatra ny habe azo ekena.",
+  "api.empty_file": "Misy rakitra foana. Misafidiana hafa.",
+  "api.unsupported_file": "Tsy ekena io karazana rakitra io.",
+  "api.not_an_image": "Mandefasa sary (JPEG, PNG na WebP).",
+  "api.work_not_found": "Tsy hita io asa io.",
+  "api.artist_not_found": "Tsy hita io mpanakanto io.",
+  "api.exposition_not_found": "Tsy hita io fampirantiana io.",
+  "api.practice_not_found": "Tsy hita io fanao io.",
+  "api.file_not_found": "Tsy hita io rakitra io.",
+  "api.invalid_link": "Tsy mety na lany daty io rohy io.",
+  "api.invalid_request": "Misy zavatra nalefa tsy mety. Jereo izay nosoratanao, dia andramo indray.",
+  "api.internal_error": "Nisy olana teo anilanay. Andramo indray afaka fotoana fohy.",
+  "api.not_ready": "Tsy azo ampiasaina vetivety ny tolotra. Andramo indray afaka minitra vitsy.",
+
   // 3D import (publish form) and 3D viewer
   "import.previewAlt": "Topy maso ny modely 3D-nao",
   "import.preparing": "Eo am-panomanana ny modely 3D-nao ato amin'ity navigateur ity. Tsy misy alefa raha tsy mamoaka ianao.",

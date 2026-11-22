@@ -2,20 +2,13 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
-import { ApiError, castVote, unwrap, withToken, type Work } from "@/lib/api";
-import { getApiToken } from "@/lib/api-token";
+import { ApiError, castVote, unwrap, type Work } from "@/lib/api";
+import { apiErrorText } from "@/lib/api-messages";
+import { callWithToken } from "@/lib/api-token";
 import { currentMonth } from "@/lib/months";
 import { HeartFilled, IconHeart } from "@/lib/ui/icons";
-
-const REFUSED: Record<string, Key> = {
-  already_voted: "vote.already_voted",
-  own_work: "vote.own_work",
-  not_eligible: "vote.notEligible",
-  not_in_contest: "vote.notInContest",
-  email_not_verified: "vote.emailNotVerified",
-};
+import { CategoryLabel } from "@/lib/works/category-label";
 
 export type VoteState = "open" | "done" | "signin" | { blocked: string };
 
@@ -31,12 +24,12 @@ export function useVote(work: Work) {
     if (shown !== "open" || pending) return false;
     startTransition(async () => {
       try {
-        unwrap(await castVote({ body: { work_id: work.id }, ...withToken(await getApiToken()) }));
+        await callWithToken((auth) => castVote({ body: { work_id: work.id }, ...auth }).then(unwrap));
         setState("done");
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) setState("signin");
-        // A known refusal is translated; any other API error keeps its own message.
-        else if (e instanceof ApiError) setState({ blocked: e.code in REFUSED ? t(REFUSED[e.code]) : e.message });
+        // A known refusal is translated (api-messages.ts); any other API error keeps its own message.
+        else if (e instanceof ApiError) setState({ blocked: apiErrorText(e, t) });
         else setState({ blocked: t("vote.failed") });
       }
     });
@@ -59,7 +52,7 @@ export function VotePanel({ work, vote }: { work: Work; vote: ReturnType<typeof 
           </strong>{" "}
           {t("vote.thisMonth")}
         </p>
-        <p className="text-sm text-muted">{t(`category.${work.category}` as Key)}</p>
+        <p className="text-sm text-muted"><CategoryLabel category={{ id: work.category }} /></p>
       </div>
       {state === "open" && (
         <>

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Key } from "@/i18n/en";
 import { T } from "@/i18n/locale";
 import { listPractices, unwrap, type Practice } from "@/lib/api";
+import { CategoryLabel } from "@/lib/works/category-label";
 
 const STATUS = {
   red: { label: "heritage.red", number: "text-[#9B3F2B]", pill: "bg-[#FBE9E3] text-[#8E3524]", dot: "bg-red" },
@@ -56,7 +57,7 @@ async function Practices() {
               <span>
                 <span className="block font-bold">{p.name}</span>
                 <span className="block text-sm text-muted">
-                  {p.region} · <T k={`category.${p.category}` as Key} />
+                  {p.region} · <CategoryLabel category={{ id: p.category }} />
                 </span>
               </span>
               <span className={`inline-flex h-[28px] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-bold ${STATUS[p.status].pill}`}>
@@ -96,7 +97,7 @@ async function Practices() {
                   {p.description && <span className="mt-1 block max-w-[52ch] text-sm">{p.description}</span>}
                 </td>
                 <td className="py-4 pr-4">
-                  <T k={`category.${p.category}` as Key} />
+                  <CategoryLabel category={{ id: p.category }} />
                 </td>
                 <td className="py-4 pr-4 text-right tabular-nums">{p.practitioners}</td>
                 <td className="py-4 pr-4 text-right tabular-nums">{p.learners}</td>
