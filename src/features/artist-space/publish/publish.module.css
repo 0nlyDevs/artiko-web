@@ -1,0 +1,811 @@
+/*
+ * Publishing a work, Figma frames R1 (182:490), R2 (182:577), R5 (182:834) and R6 (182:876). Two columns
+ * from 1024 px as on the 1440 x 900 frames: what the screen says on the left, what the artist does on the
+ * right. One column below, in the same order.
+ */
+.page {
+  display: grid;
+  gap: var(--space-40);
+  width: 100%;
+  max-width: 1328px;
+  padding-top: var(--space-8);
+  margin: 0 auto;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+.aside,
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-24);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/* The display headline of the frames: capitals on tight lines, its last words in the accent. */
+.headline {
+  max-width: 100%;
+  margin: 0 0 var(--space-32);
+  font-family: var(--font-display);
+  font-size: clamp(46px, 12.5vw, 72px);
+  font-weight: 400;
+  line-height: 0.88;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.headline:focus,
+.headline:focus-visible {
+  outline: none;
+}
+
+/* The accent words stand on their own line, as on the frames; so do the three lines of the thanks. */
+.accent,
+.line {
+  display: block;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.lede {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+/* Two classes: the stepper of the kit resets its own margin. */
+.aside .steps {
+  margin-top: var(--space-40);
+}
+
+/* R2: what the first step holds, kept in sight under the steps. */
+.recap {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: var(--space-16);
+  align-items: center;
+  padding: var(--space-14);
+  margin-top: var(--space-40);
+  background: var(--color-paper-tile);
+}
+
+.recapTitle {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-display-italic);
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recapLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+  overflow-wrap: anywhere;
+}
+
+/* The picture of a file: an image shown whole in its tile, or a pictogram for a sound, a video, a model. */
+.thumb {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 68px;
+  overflow: hidden;
+  color: var(--color-ink-60);
+  background: var(--color-paper-tile);
+}
+
+.thumb img {
+  object-fit: cover;
+}
+
+/* Right column */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-40);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.sectionLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-8);
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.sectionNumber {
+  color: var(--color-ink);
+}
+
+.fieldLabel {
+  padding: 0;
+  margin: 0 0 var(--space-10);
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-ink-60);
+}
+
+.group {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.fieldError,
+.fileError {
+  margin: var(--space-8) 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-error);
+}
+
+/* R1: the chosen file, with its picture, what the browser reads of it and two quiet links. */
+.fileCard {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--space-20);
+  align-items: start;
+  padding: var(--space-14);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-button);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+
+.fileCard[data-over='true'] {
+  border-color: var(--color-accent);
+}
+
+.fileCard .thumb {
+  width: 64px;
+  height: 78px;
+}
+
+.fileBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.fileName {
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+  margin-top: var(--space-2);
+}
+
+/* « Remplacer », « Retirer », « Modifier »: an underlined word, tall enough for a finger. */
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-button);
+}
+
+.textLink:hover {
+  color: var(--color-accent);
+}
+
+.textLink:disabled {
+  color: var(--color-ink-40);
+  cursor: default;
+}
+
+/* The 3D import: its steps, its errors, then the preview with the sizes of the three files. */
+.importPanel:empty {
+  display: none;
+}
+
+/* R2: proofs */
+
+.proofs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-20) var(--space-14);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.proof {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.proofTile {
+  position: relative;
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 156 / 92;
+  margin-bottom: var(--space-6);
+  overflow: hidden;
+  font-family: var(--font-display-italic);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--color-ink);
+  background: var(--color-paper-tile);
+}
+
+.proofTile img {
+  object-fit: cover;
+}
+
+.proofTile[data-refused='true'] {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-style: normal;
+  color: var(--color-error);
+  background: var(--color-error-tint);
+  border: 1px solid var(--color-error);
+}
+
+.proofName {
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proofMeta {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+.proofMeta[data-refused='true'] {
+  color: var(--color-error);
+}
+
+.proofAdd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 156 / 92;
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+  font: inherit;
+  color: var(--color-ink);
+  cursor: pointer;
+  background: var(--color-hall);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-button);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.proofAdd:hover {
+  background: var(--color-paper-tile);
+  border-color: var(--color-ink);
+}
+
+.proofAddTitle {
+  font-family: var(--font-display-italic);
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.proofAddHint {
+  font-size: 11px;
+  color: var(--color-ink-60);
+}
+
+/* The forecast of the badge: a paper band, green once two proofs are in, brass when AI is declared. */
+.gauge {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: var(--space-14);
+  align-items: start;
+  padding: var(--space-16) var(--space-20);
+  background: var(--color-paper-tile);
+}
+
+.gaugeMark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  color: var(--color-paper);
+  border: 1.5px solid var(--color-line);
+  border-radius: 50%;
+}
+
+.gauge[data-forecast='expected'] .gaugeMark {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.gauge[data-forecast='ai'] .gaugeMark {
+  color: var(--color-ink);
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.gaugeTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+}
+
+.gaugeHint {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+/* Settings: a name, the value in force and « Modifier », which opens the choice in place. */
+.settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-16);
+  align-items: center;
+  padding: var(--space-10) 0;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.settingName {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.settingValue {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.settingPanel {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / -1;
+  gap: var(--space-14);
+  padding: var(--space-14) 0 var(--space-10);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--space-2) var(--space-14);
+  align-items: start;
+  min-height: 44px;
+  padding: var(--space-10) var(--space-14);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
+}
+
+.option:hover {
+  background: var(--color-paper-tile);
+}
+
+.option:has(input:checked) {
+  background: var(--color-paper-tile);
+  border-color: var(--color-ink);
+}
+
+.option input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--color-accent);
+}
+
+.optionLabel {
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.optionHint {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.newExposition {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-4) 0 0 var(--space-14);
+  border-left: 2px solid var(--color-ink);
+}
+
+.quiet {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+/* The row that closes a step: what to know on the left, then the way back and the way forward. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: stretch;
+  padding-top: var(--space-8);
+}
+
+.note {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.note svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-accent);
+}
+
+.warning {
+  color: var(--color-accent);
+}
+
+.backIcon {
+  display: inline;
+  margin-right: var(--space-6);
+  vertical-align: -2px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-8);
+  align-items: stretch;
+}
+
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  font-size: 13px;
+}
+
+.under {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.under:empty {
+  display: none;
+}
+
+/* The artist profile asked for by a 403 `not_an_artist`: two fields, in place. */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: flex-start;
+  padding: var(--space-20);
+  background: var(--color-paper-tile);
+}
+
+.profile > * {
+  width: 100%;
+}
+
+.profile > button {
+  width: auto;
+}
+
+/* R5 and R6: the outcome on the left, its facts on the right. */
+
+.outcomeText {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.outcomeActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  align-items: stretch;
+  margin-top: var(--space-32);
+}
+
+.outcomeNote {
+  margin: var(--space-14) 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-24);
+  background: var(--color-paper);
+}
+
+.card[data-tone='refused'] {
+  background: var(--color-error-tint);
+}
+
+.cardEyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  overflow-wrap: anywhere;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display-italic);
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.caseId {
+  user-select: all;
+}
+
+/* The ceremony: a full-screen stage over the page, in gallery black. */
+.ceremony {
+  --app-focus: var(--color-gold);
+
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-paper);
+  background: var(--color-gallery-black);
+  border: 0;
+}
+
+.ceremony::backdrop {
+  background: var(--color-gallery-black);
+}
+
+.ceremonyBrand {
+  color: var(--color-paper);
+}
+
+@media (min-width: 480px) {
+  .proofs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .outcomeActions {
+    flex-flow: row wrap;
+    align-items: center;
+  }
+}
+
+@media (min-width: 640px) {
+  .proofs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .setting {
+    grid-template-columns: 124px minmax(0, 1fr) auto;
+  }
+
+  .settingName {
+    grid-column: auto;
+  }
+
+  .actions {
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .buttons {
+    flex-direction: row;
+    gap: var(--space-16);
+    align-items: center;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .headline {
+    font-size: clamp(64px, 8.6vw, 80px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page {
+    grid-template-columns: minmax(0, 540fr) minmax(0, 664fr);
+    gap: clamp(40px, 8.6vw, 124px);
+    align-items: start;
+    padding-top: var(--space-24);
+  }
+
+  .headline {
+    font-size: clamp(58px, 6.1vw, 88px);
+    line-height: 0.86;
+  }
+
+  /* R5 and R6 give more room to the sentence and start the facts under the eyebrow. */
+  .outcome {
+    grid-template-columns: minmax(0, 640fr) minmax(0, 564fr);
+    padding-top: var(--space-40);
+  }
+
+  .outcome .headline {
+    font-size: clamp(52px, 5vw, 72px);
+    line-height: 0.9;
+  }
+
+  .outcome .facts {
+    padding-top: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fileCard,
+  .proofAdd {
+    transition: none;
+  }
+}
+
+/* Optional fields folded under one line, so the form stays short. */
+.more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  border-top: 1px solid var(--color-line-soft);
+  padding-top: var(--space-16);
+}
+
+.moreSummary {
+  cursor: pointer;
+  font-family: var(--font-text);
+  font-size: 14px;
+  color: var(--color-ink-60);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.more[open] > .moreSummary {
+  margin-bottom: var(--space-16);
+}

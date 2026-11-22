@@ -2,16 +2,31 @@
 
 import { OrbitControls, Resize, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { Museum, MuseumSlot, Work } from "@/lib/api";
+import { DRACO_DECODER_PATH } from "@/lib/draco";
 import { SlotErrorBoundary } from "./slot-error-boundary";
+
+// drei 10.7.9 fetches the Draco decoder from www.gstatic.com unless told otherwise (core/Gltf.js:8).
+useGLTF.setDecoderPath(DRACO_DECODER_PATH);
 
 type Props = { museum: Museum; selectedId: string; onSelect: (work: Work) => void };
 
-const WALL = "#FBF0E4";
-const FLOOR = "#4a4a4a";
-const ACCENT = "#C8553D";
-const INK = "#111111";
+// three.js cannot read CSS variables: these are the values of src/kanto/styles/tokens.css.
+/** The red wall of the KANTO rooms: the lit centre of `--wall-red`. */
+const WALL = "#5a1712";
+/** `--color-media-missing`: the dark floor. */
+const FLOOR = "#2a2420";
+/** `--color-gold`: the brass that marks the work open in the side panel. */
+const SELECTED = "#c8a174";
+/** The dark wood of the frames (`--frame-wood-outer`), and of what hangs without a picture. */
+const WOOD = "#26211e";
+/** `--color-paper`: the plinths. */
+const PAPER = "#f0ece4";
+/** `--color-accent`: a sound on its plinth. */
+const ACCENT = "#7e2a20";
+/** A work still on its way. */
+const PENDING = "#8c8078";
 const FRAME_HEIGHT = 1.2;
 
 /** One room laid out by the API (same data as the Android app), entrance at +z. */
@@ -40,7 +55,7 @@ export default function Museum3D({ museum, selectedId, onSelect }: Props) {
       </mesh>
       {museum.slots.map((slot) => (
         <SlotErrorBoundary key={slot.work.id}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<SlotPlaceholder slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />}>
             {slot.kind === "wall" ? (
               <Frame slot={slot} selected={slot.work.id === selectedId} onSelect={onSelect} />
             ) : (
@@ -71,7 +86,7 @@ function Frame({ slot, selected, onSelect }: SlotProps) {
       ) : (
         <mesh onClick={() => onSelect(slot.work)}>
           <planeGeometry args={[FRAME_HEIGHT * 1.6, FRAME_HEIGHT]} />
-          <meshStandardMaterial color={selected ? ACCENT : INK} />
+          <meshStandardMaterial color={selected ? SELECTED : WOOD} />
         </mesh>
       )}
     </group>
@@ -84,10 +99,10 @@ function Picture({ slot, selected, onSelect }: SlotProps) {
   const w = Math.min(FRAME_HEIGHT * (image.width / image.height), 2.4);
   return (
     <>
-      {/* the frame: an accent border when the work is open in the side panel */}
+      {/* the frame: dark wood, brass when the work is open in the side panel */}
       <mesh position-z={-0.01}>
         <planeGeometry args={[w + 0.12, FRAME_HEIGHT + 0.12]} />
-        <meshStandardMaterial color={selected ? ACCENT : INK} />
+        <meshStandardMaterial color={selected ? SELECTED : WOOD} />
       </mesh>
       <mesh onClick={() => onSelect(slot.work)}>
         <planeGeometry args={[w, FRAME_HEIGHT]} />
@@ -97,24 +112,51 @@ function Picture({ slot, selected, onSelect }: SlotProps) {
   );
 }
 
+/** Stands in for a work while its image or model downloads, so the room never shows an empty spot. */
+function SlotPlaceholder({ slot, selected, onSelect }: SlotProps) {
+  const [x, y, z] = slot.position;
+  if (slot.kind === "wall") {
+    return (
+      <mesh position={[x, y, z]} rotation-y={slot.rotation_y} onClick={() => onSelect(slot.work)}>
+        <planeGeometry args={[FRAME_HEIGHT * 1.6, FRAME_HEIGHT]} />
+        <meshStandardMaterial color={selected ? SELECTED : PENDING} />
+      </mesh>
+    );
+  }
+  return (
+    <PlinthBase slot={slot} selected={selected} onSelect={onSelect}>
+      <mesh>
+        <icosahedronGeometry args={[0.2, 0]} />
+        <meshStandardMaterial color={PENDING} wireframe />
+      </mesh>
+    </PlinthBase>
+  );
+}
+
 function Plinth({ slot, selected, onSelect }: SlotProps) {
+  return (
+    <PlinthBase slot={slot} selected={selected} onSelect={onSelect}>
+      {slot.work.media_kind === "model" ? (
+        <Model url={slot.work.media_url} />
+      ) : (
+        <mesh>
+          <sphereGeometry args={[0.2, 32, 16]} />
+          <meshStandardMaterial color={ACCENT} />
+        </mesh>
+      )}
+    </PlinthBase>
+  );
+}
+
+function PlinthBase({ slot, selected, onSelect, children }: SlotProps & { children: ReactNode }) {
   const [x, y, z] = slot.position;
   return (
     <group position={[x, 0, z]} onClick={() => onSelect(slot.work)}>
       <mesh position-y={y / 2}>
         <boxGeometry args={[0.7, y, 0.7]} />
-        <meshStandardMaterial color={selected ? ACCENT : WALL} />
+        <meshStandardMaterial color={selected ? SELECTED : PAPER} />
       </mesh>
-      <group position-y={y + 0.3}>
-        {slot.work.media_kind === "model" ? (
-          <Model url={slot.work.media_url} />
-        ) : (
-          <mesh>
-            <sphereGeometry args={[0.2, 32, 16]} />
-            <meshStandardMaterial color={ACCENT} />
-          </mesh>
-        )}
-      </group>
+      <group position-y={y + 0.3}>{children}</group>
     </group>
   );
 }

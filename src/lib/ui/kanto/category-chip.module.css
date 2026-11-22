@@ -1,0 +1,80 @@
+/* Figma "Révision / Puce catégorie" (200:449): Défaut and Sélectionnée. */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--space-14);
+  font-family: var(--font-display-italic);
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--color-hall);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-button);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.static {
+  cursor: default;
+}
+
+.chip:hover:not(.static, .disabled) {
+  border-color: var(--color-line);
+}
+
+/* Selected: the ink frame, the paper tile and the wine dot. The outline keeps the box from growing. */
+.selected,
+.chip:has(.input:checked) {
+  background: var(--color-paper-tile);
+  border-color: var(--color-ink);
+  outline: 0.5px solid var(--color-ink);
+}
+
+.selected::before,
+.chip:has(.input:checked)::before {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  content: '';
+  background: var(--color-accent);
+  border-radius: 50%;
+}
+
+/* The real radio stays in the page for the keyboard and for forms; only its drawing is hidden. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.chip:has(.input:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.disabled {
+  color: var(--color-ink-40);
+  cursor: not-allowed;
+  border-style: dashed;
+}

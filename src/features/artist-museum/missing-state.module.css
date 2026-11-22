@@ -1,0 +1,54 @@
+/* The not-found state of an artist or an exposition: the headline of the light frames (R11), two ways out. */
+.missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  align-items: flex-start;
+  max-width: 720px;
+  padding: var(--space-32) 0 var(--space-56);
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 8vw, 72px);
+  font-weight: 400;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.text {
+  max-width: 48ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+  margin-top: var(--space-8);
+}
+
+.actions .action {
+  height: auto;
+  min-height: 52px;
+  padding: var(--space-10) var(--space-24);
+  text-align: center;
+  white-space: normal;
+}

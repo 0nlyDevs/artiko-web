@@ -1,0 +1,5 @@
+[tools]
+node = "24.22.3"
+pnpm = "10.16.0"
+task = "3.54.0"
+gitleaks = "8.30.1"

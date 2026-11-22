@@ -1,30 +1,55 @@
 # Artiko Web
 
-Next.js web app for Artiko: the ARTIKO museum journey today, artist and gallery pages next. It signs users in with Better Auth and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api). SOLUTION-6 names Keycloak for identity; the team chose Better Auth instead, and the API only needs a different JWKS URL, issuer and audience to switch.
+Next.js web app for Artiko: the home gallery, explore, artist museums, the Hall of Fame, the heritage index, photo checks and each artist's space. It signs users in with Better Auth and talks to [artiko-api](https://github.com/0nlyDevs/artiko-api). SOLUTION-6 names Keycloak for identity; the team chose Better Auth instead, and the API only needs a different JWKS URL, issuer and audience to switch.
 
 ## Develop
 
+Prerequisite: [mise](https://mise.jdx.dev/getting-started.html). It installs the exact Node, pnpm, Task and gitleaks versions pinned in `mise.toml`; run every command below from the mise environment (`mise activate` in your shell, or prefix with `mise exec --`).
+
 ```
-pnpm install
-pnpm dev      # http://localhost:3000
-pnpm lint
-pnpm build
+mise install          # Node, pnpm, Task, gitleaks at the mise.toml versions
+task --list           # every task with its description
+task build            # pnpm install --frozen-lockfile (skipped while the lockfile is unchanged), then next build
+task dev              # http://localhost:3000
+task ci               # install, audit, lint, typecheck, test, build: the same steps as CI, stops at the first failure
+task hooks:install    # once per clone: gitleaks pre-commit hook via core.hooksPath=.githooks
+task test:e2e         # real-browser journeys in e2e/ (not in ci): rebuilds .next against a mock API, needs Chrome at CHROME_PATH (default /usr/bin/google-chrome-stable), skipped without it
 ```
+
+Tasks that need Node first run `task check:versions`, which fails when Node or pnpm differs from `mise.toml` or when `mise.toml` and `packageManager` in `package.json` disagree. The pre-commit hook refuses a commit whose staged changes contain a secret; the `gitleaks` CI job scans the commits of every pull request and push too, so a commit made with `--no-verify` is still caught.
 
 ## Auth and API
 
 - Copy `.env.example` to `.env.local` and fill it in. Use the same database as artiko-api (Better Auth keeps its tables in schema `better_auth`), then run `pnpm auth:migrate` once.
 - Better Auth signs a JWT (EdDSA, issuer and audience = `BETTER_AUTH_URL`) published at `/api/auth/jwks`. artiko-api verifies it. Web: `authClient.token()`. Android: sign in, read the `set-auth-token` header, then `GET /api/auth/token` with it as a bearer token.
 - Sign-in and sign-up are rate limited per client IP, with counters in the database (`rateLimit` table: rerun `pnpm auth:migrate` after upgrading). `AUTH_CLIENT_IP_HEADER` is required in production and must be a header your host's proxy overwrites with the real IP (not `x-forwarded-for`, which clients can set); the server refuses to start otherwise.
+- Accounts must confirm their email before they can sign in (no session, so no API token, until the link is opened); artiko-api also refuses any token whose `emailVerified` claim is not true. Verification and password-reset links last one hour, a reset closes every open session, and passwords found in known breaches (Have I Been Pwned, k-anonymity) are refused. The emails go through Resend: `RESEND_API_KEY` and `EMAIL_FROM` are required in production. Without the key, sending fails, except in development where the email is printed to the server log. Android: sign-up answers without a token, the person opens the emailed link, then signs in as before.
 - `BETTER_AUTH_SECRET` has no fallback: the auth route fails on its first request without it, but `next build` needs none.
 - `src/lib/api.ts` is the only entry point to the API. Its client is generated from `artiko-api/openapi.yml`: run `pnpm api:generate` (set `OPENAPI_SPEC` to another path or URL) and commit the result.
+- In the browser, a call that needs the token goes through `callWithToken` (`src/lib/api-token.ts`): simultaneous calls share one request to `/api/auth/token`, and when the API answers 401 `unauthorized` or `invalid_token` the token is dropped, a new one is fetched and the call is replayed once, only if the new token is for the same account (`sub`). When `/api/auth/token` itself fails (429, 5xx) the error is `unreachable`, not `unauthorized`. Reads made by the server carry no token.
+- A failed call is an `ApiError` with the API's `status`, `code` and `message`, plus `caseId` (the review case of a 409 `possible_copy`) and `retryAfter` (seconds; null in a browser until the API exposes `Retry-After` to other origins). `apiErrorText` (`src/lib/api-messages.ts`) gives its text in English, French and Malagasy, or the API's own message for a code it has no row for: add a row when the API gains a code. A refused file keeps its name, read from the API's message.
+- `readAll` (`src/lib/paging.ts`) reads a list page by page (`limit` 200, 1000 items at most). It is used where a screen presents a list as complete: an artist's works in my space, and the artists a search on Explore looks through.
+- How the screens use these (token, replay, texts of refusals) is checked in a browser by `e2e/api-foundations.e2e.ts`, not by `pnpm test`.
+
+## KANTO museum frontend
+
+`/` and every address that no other route declares are served by the KANTO museum frontend in `src/kanto`, mounted by `src/app/(kanto)/[[...slug]]/page.tsx` with its own root layout. It is a client-side app with its own router (`src/kanto/app/routes.ts`): the home, the museum rooms under `/musee/…` (WebGL, with a photographic fallback), the works, the contribution wizard, the hanging ceremony shown once a work is sent, and the end of the visit.
+
+- It runs on an API simulated in the browser (`src/kanto/lib/api/mock`, demo accounts in `docs/kanto/MVP-DEMO.md`). Its screens are labelled as demonstration data. Wiring them to artiko-api is planned screen by screen in `docs/parite-fonctionnelle.md`.
+- The contribution wizard prepares a LiDAR scan (`.usdz`) or a `.glb` with the engine of `src/features/model-import`, in the browser.
+- Its styles are CSS Modules: the Turbopack rule in `next.config.ts` keeps `*.module.css` out of the Tailwind loader.
+- Its tests are the `kanto` Vitest project (jsdom); the rest of the app stays in the `app` project (node).
+- The former home page (the 3D gallery walk of `src/components/gallery`) is no longer routed: KANTO owns `/`. Its components and assets are still in the repository.
+- Display fonts: New Icon Serif and Helvetica Now Display in `public/fonts/licensed/` (commercial licences, added at the request of the frontend lead), with the OFL fonts of `public/fonts/ofl/` as fallbacks. Media sources and licences: `docs/kanto/media-sources.md`.
 
 ## Layout
 
-- `src/app/`: routing only. Route groups carry their own root layout: `(museum)` ships a standalone stylesheet and must not inherit Tailwind's preflight, `(app)` is the Tailwind-styled app shell.
-- `src/features/<feature>/`: the code behind a route. `museum/` holds the ARTIKO journey shell and its static markup.
+- `src/app/`: routing only. `(app)` is the root layout; inside it `(pages)` wraps the app pages in the navigation (`features/site/app-shell.tsx`) and `(auth)` puts sign-in, sign-up and password reset beside a video (`public/auth/`, credits in `CREDITS.md`).
+- `src/features/<feature>/`: the code behind a route.
 - `src/components/`: the 3D gallery walk of the home page (`gallery/`), still to be moved under `src/features/gallery/` to follow the same rule.
-- `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `api.ts` and `api-client/` (generated, do not edit).
-- `public/museum/`: vendored static assets (stylesheet, fonts, GSAP, Lenis, the journey script).
+- `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `email.ts` (account emails), `api.ts` and `api-client/` (generated, do not edit), `ui/` (sliding chips and tabs, icons, avatars), `works/` (work tile, vote).
+- `public/gallery/`: the home gallery's pictures, landscape and Satie files, credited in `sources.json`.
+- Motion (sliding pills, skeletons, staggered entrances, the vote heart) lives in `globals.css` and stops under `prefers-reduced-motion`.
+- `public/draco/` and `public/draco3d/`: Draco codecs copied from `three` and `draco3d` by `scripts/copy-draco.mjs` before `pnpm dev` and `pnpm build` (not committed), so no visitor or artist fetches them from www.gstatic.com.
 
 Rule: a page file only imports from `src/features` and `src/app`, never the reverse. Shared code goes in `src/lib/` once two features need it.

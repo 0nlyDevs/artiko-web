@@ -1,0 +1,99 @@
+/* The proofs of the notice: the team's block (seal in words, files, fingerprint) in the KANTO dress. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: 30px;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 12px;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.seal {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
+}
+
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.tile {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  color: var(--color-ink);
+  text-decoration: none;
+  background: var(--color-paper-tile);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-button);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+
+.tile:hover {
+  border-color: var(--color-ink);
+}
+
+.thumb {
+  object-fit: cover;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* « Privée »: a proof the public never sees. */
+.private {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 2px 0;
+  font-size: 8px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--color-paper);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--color-ink);
+}
+
+.text {
+  max-width: 60ch;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

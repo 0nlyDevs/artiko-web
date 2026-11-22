@@ -1,24 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import type { Category, CategoryId } from "@/lib/api";
 import { useT } from "@/i18n/locale";
+import { exploreHref } from "@/features/explore/explore-logic";
+import { SlidingChips } from "@/lib/ui/sliding-chips";
 import { CategoryLabel } from "@/lib/works/category-label";
 
-const CHIP = "border-2 border-ink px-3 py-1 aria-[current=page]:bg-ink aria-[current=page]:text-paper";
-
-export function ExploreCategories({ categories, selected }: { categories: Category[]; selected: CategoryId | undefined }) {
+/** The art forms as chips: « All », then the categories the API gives. The month and the searched text are kept. */
+export function ExploreCategories({
+  categories,
+  filters,
+}: {
+  categories: Category[];
+  filters: { category?: CategoryId; month?: string; q: string };
+}) {
   const { t } = useT();
+  const keep = { month: filters.month, q: filters.q };
   return (
-    <nav aria-label={t("explore.categories")} className="flex flex-wrap gap-2">
-      <Link href="/explore" aria-current={selected === undefined ? "page" : undefined} className={CHIP}>
-        {t("explore.all")}
-      </Link>
-      {categories.map((c) => (
-        <Link key={c.id} href={`/explore?category=${c.id}`} aria-current={c.id === selected ? "page" : undefined} className={CHIP}>
-          <CategoryLabel category={c} />
-        </Link>
-      ))}
-    </nav>
+    <SlidingChips
+      label={t("explore.categories")}
+      chips={[
+        { key: "all", href: exploreHref(keep), label: t("explore.all"), current: !filters.category },
+        ...categories.map((c) => ({
+          key: c.id,
+          href: exploreHref({ ...keep, category: c.id }),
+          label: <CategoryLabel category={c} />,
+          current: c.id === filters.category,
+        })),
+      ]}
+    />
   );
 }

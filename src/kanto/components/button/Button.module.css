@@ -1,0 +1,111 @@
+/* Figma "Boutons du hall": right angles, capitals, ink or outline. */
+.button {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 var(--space-24);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-button);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.primary {
+  color: var(--color-paper);
+  background: var(--color-ink);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-wine);
+  border-color: var(--color-wine);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.secondary {
+  color: var(--color-ink);
+  background: transparent;
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-ink-08);
+}
+
+/* Quiet text action, for "Annuler" and "← Retour". */
+.ghost {
+  height: auto;
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-ink-60);
+  background: transparent;
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+
+.small {
+  height: 40px;
+  padding: 0 var(--space-16);
+  font-size: 12px;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.primary:disabled {
+  background: var(--color-ink-40);
+  border-color: transparent;
+  opacity: 1;
+}
+
+.arrow {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.primary:hover:not(:disabled) .arrow {
+  transform: translateX(4px);
+}
+
+/* Loading: a turning ring replaces the arrow, as in "Envoi…". */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

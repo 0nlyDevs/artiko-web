@@ -1,0 +1,97 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--font-ui);
+  color: var(--color-paper);
+  background: var(--color-gallery-black);
+}
+
+.bar {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--space-24);
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-serif-italic);
+  font-size: 18px;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-style: normal;
+  color: var(--color-paper-70);
+}
+
+.close {
+  flex: none;
+  height: 36px;
+  padding: 0 var(--space-16);
+  font-size: 13px;
+  color: var(--color-paper);
+  cursor: pointer;
+  background: var(--color-glass-dark);
+  border: 1px solid var(--color-paper-16);
+  border-radius: var(--radius-pill);
+}
+
+.stage {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 var(--space-24);
+}
+
+/*
+ * The artwork viewer (features/artwork-viewer) reads its own token names.
+ * They are defined here, on the museum's palette, so the viewer keeps its
+ * markup and the room keeps its look.
+ */
+.viewer {
+  --space-1: var(--space-4);
+  --space-2: var(--space-8);
+  --space-3: var(--space-14);
+  --space-6: var(--space-24);
+  --radius-md: var(--radius-pill);
+  --radius-lg: 0;
+  --color-surface: var(--color-glass-dark);
+  --color-surface-muted: var(--color-media-missing);
+  --color-border: var(--color-paper-16);
+  --color-text: var(--color-paper);
+  --color-text-muted: var(--color-paper-70);
+  --color-accent-text: var(--color-paper);
+  --color-focus: var(--color-gold);
+  --focus-ring-width: 3px;
+  --font-size-sm: 13px;
+  --font-weight-strong: var(--font-weight-bold);
+  --target-size-min: 44px;
+  --viewer-max-height: calc(100dvh - 220px);
+
+  width: min(100%, calc(100dvh - 220px));
+}
+
+@media (min-width: 48rem) {
+  .viewer {
+    width: min(100%, calc((100dvh - 220px) * 4 / 3));
+  }
+}
+
+.hint {
+  margin: 0;
+  padding: var(--space-10) var(--space-24) var(--space-16);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--color-paper-40);
+  text-align: center;
+}

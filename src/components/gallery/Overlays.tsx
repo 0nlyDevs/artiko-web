@@ -116,7 +116,7 @@ function ListenButton() {
   useEffect(() => () => audio.current?.pause(), []);
   const toggle = () => {
     if (!audio.current) {
-      audio.current = new Audio("/museum/assets/satie-excerpt.mp3");
+      audio.current = new Audio("/gallery/satie-excerpt.mp3");
       audio.current.addEventListener("ended", () => setPlaying(false));
     }
     if (playing) {

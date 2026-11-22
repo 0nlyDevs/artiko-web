@@ -1,17 +1,26 @@
 import { ScanForm } from "@/features/scan/scan-form";
 import { T } from "@/i18n/locale";
+import styles from "./scan.module.css";
 
 export function ScanPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <h1 className="font-heading text-7xl">
-          <T k="scan.title" />
+    <div className={styles.page}>
+      <header className={styles.lead}>
+        <p className={styles.eyebrow}>
+          <T k="scan.eyebrow" />
+        </p>
+        <h1 className={styles.headline}>
+          <span>
+            <T k="scan.headline1" />
+          </span>
+          <span className={styles.accent}>
+            <T k="scan.headline2" />
+          </span>
         </h1>
-        <p className="max-w-2xl text-xl">
+        <p className={styles.intro}>
           <T k="scan.intro" />
         </p>
-      </div>
+      </header>
       <ScanForm />
     </div>
   );

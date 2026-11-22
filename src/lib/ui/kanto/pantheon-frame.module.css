@@ -1,0 +1,60 @@
+/*
+ * Figma frame R10: the gilded frame of the Panthéon. The picture is src/kanto/assets/gallery/frame-gilded
+ * (600 x 600, the moulding from 89,49 to 510,546), cropped here to the moulding, so the width given to
+ * the component is the width of the frame on the wall. The work shows through the opening.
+ */
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 422 / 498;
+  margin: 0;
+  filter: drop-shadow(0 14px 22px var(--color-contact-shadow));
+}
+
+/* The opening of the Figma frame (249 x 321 at 137,105 of 538), a little under the lip of the moulding. */
+.opening {
+  position: absolute;
+  top: 13.7%;
+  left: 15.1%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 65.8%;
+  height: 71.9%;
+  overflow: hidden;
+  background: var(--color-media-missing);
+}
+
+.opening > :is(img, video, picture) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gilded {
+  position: absolute;
+  top: calc(-49 / 498 * 100%);
+  left: calc(-89 / 422 * 100%);
+  width: calc(600 / 422 * 100%);
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* An empty frame: the dark ground of the opening and a caption in the italic serif. */
+.caption {
+  padding: var(--space-8);
+  font-family: var(--font-serif-italic);
+  font-size: clamp(11px, 0.75em, 16px);
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-paper-70);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.empty .gilded {
+  opacity: 0.72;
+}

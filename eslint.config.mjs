@@ -5,6 +5,12 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // The KANTO museum renders responsive <img srcSet> for local public media on a fixed
+    // 1440x900 stage and does not go through the Next image optimizer.
+    files: ["src/kanto/**"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,0 +1,322 @@
+/*
+ * Photographic room, Figma node 114:3877 (1440x900). Coordinates are Figma
+ * pixels multiplied by --u. The wall photo is placed by useScenePlacement so
+ * the artwork keeps its spot in the spotlight at any viewport size. The bars,
+ * wall text, wall label and sheets are styled in GalleryChrome.module.css.
+ */
+.gallery {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-text);
+  color: var(--color-paper);
+  background: var(--color-gallery-black);
+}
+
+/* Scene */
+.scene {
+  position: absolute;
+  top: var(--scene-top, 0);
+  left: var(--scene-left, 0);
+  width: var(--scene-width, 100%);
+  height: var(--scene-height, 100%);
+  will-change: opacity;
+}
+
+.sceneImage,
+.sceneWall {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.sceneWall {
+  background: var(--wall-red);
+}
+
+.gallery[data-wall='stone'] .sceneWall {
+  background: var(--wall-stone);
+}
+
+.gallery[data-wall='ochre'] .sceneWall {
+  background: var(--wall-ochre);
+}
+
+.gallery[data-wall='indigo'] .sceneWall {
+  background: var(--wall-indigo);
+}
+
+/* Stage helpers: the 1440x900 box centred in the viewport */
+.spot,
+.room {
+  position: absolute;
+}
+
+.spot {
+  top: calc(50% - 450 * var(--u));
+  left: calc(50% - 720 * var(--u));
+  width: calc(1440 * var(--u));
+  height: calc(900 * var(--u));
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.spotBeam,
+.spotCore {
+  position: absolute;
+}
+
+.spotBeam {
+  top: calc(100 * var(--u));
+  left: calc(243 * var(--u));
+  width: calc(492 * var(--u));
+  height: calc(817 * var(--u));
+}
+
+.spotCore {
+  top: calc(132 * var(--u));
+  left: calc(283 * var(--u));
+  width: calc(420 * var(--u));
+  height: calc(591 * var(--u));
+}
+
+/*
+ * Focus: the room dims around the hung work. The veil lies over the wall
+ * and the spot and under the work, its clear centre on the frame. It stays
+ * off stage until useFocusChrome fades it in.
+ */
+.focusVeil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse calc(560 * var(--u)) calc(620 * var(--u)) at
+      calc(50% + (507 - 720) * var(--u)) calc(50% + (428 - 450) * var(--u)),
+    var(--color-veil-clear) 0%,
+    var(--color-veil-clear) 54%,
+    var(--color-veil-soft) 80%,
+    var(--color-veil-deep) 100%
+  );
+  opacity: 0;
+}
+
+/* Rooms without a wall photograph get a softer spot. */
+.gallery[data-scene='tone'] .spotBeam,
+.gallery[data-scene='tone'] .spotCore {
+  opacity: 0.5;
+}
+
+/* Room content */
+.room {
+  inset: 0;
+}
+
+/* Featured artwork: 538x538 frame at (238,159), opening 249x321 at (375,264) */
+.hung {
+  position: absolute;
+  top: calc(50% + (159 - 450) * var(--u));
+  left: calc(50% + (238 - 720) * var(--u));
+  width: calc(538 * var(--u));
+  height: calc(538 * var(--u));
+  margin: 0;
+}
+
+/* The content of the figure, which grows around its centre in focus. */
+.zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* The click target of the work: the gilded frame, not the shadow around it. */
+.hungButton {
+  position: absolute;
+  top: 8%;
+  right: 15%;
+  bottom: 8%;
+  left: 15%;
+  padding: 0;
+  cursor: zoom-in;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-button);
+}
+
+.hungButton[aria-pressed='true'] {
+  cursor: zoom-out;
+}
+
+.hungButton[aria-haspopup='dialog'] {
+  cursor: pointer;
+}
+
+.artwork {
+  position: absolute;
+  top: calc(105 / 538 * 100%);
+  left: calc(137 / 538 * 100%);
+  width: calc(249 / 538 * 100%);
+  height: calc(321 / 538 * 100%);
+  overflow: hidden;
+  background: var(--color-media-missing);
+}
+
+.artworkImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gildedFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Rooms in preparation */
+/* Figma A5: the message sits inside the frame opening. */
+.artworkImageWrap {
+  width: 100%;
+  height: 100%;
+}
+
+.loadError {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  text-align: center;
+  color: var(--color-paper);
+  background: var(--color-media-missing);
+}
+
+.loadErrorTitle {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: calc(20 * var(--u));
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.loadErrorHint {
+  margin: 0 0 var(--space-8);
+  font-size: 12px;
+  color: var(--color-paper-70);
+}
+
+.placeholder {
+  position: absolute;
+  top: calc(50% + (159 - 450) * var(--u));
+  left: calc(50% + (238 - 720) * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  align-items: center;
+  justify-content: center;
+  width: calc(538 * var(--u));
+  height: calc(538 * var(--u));
+  padding: var(--space-24);
+  text-align: center;
+  background: rgb(0 0 0 / 0.22);
+  border: 1px solid var(--color-paper-16);
+}
+
+.placeholderTitle {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: calc(28 * var(--u));
+  font-style: italic;
+}
+
+.placeholderHint {
+  max-width: 32ch;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-paper-70);
+}
+
+.mediumSlot {
+  display: none;
+}
+
+/* Curtain continuation from the home transition */
+.curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  visibility: hidden;
+  background: var(--color-gallery-black);
+  opacity: 0;
+}
+
+/* Mobile, no mockup yet: artwork on top, room title below, wall text behind "Lire". */
+@media (max-width: 767px), (max-aspect-ratio: 3/4) {
+  .gallery {
+    --u: min(100vw / 390, 100dvh / 844);
+  }
+
+  .scene {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .sceneImage {
+    object-fit: cover;
+    object-position: 36% 50%;
+  }
+
+  .spot {
+    top: 0;
+    left: 50%;
+    width: 100vw;
+    height: 60dvh;
+    transform: translateX(-50%);
+  }
+
+  .spotBeam {
+    top: -8%;
+    left: 50%;
+    width: 110vw;
+    height: 100%;
+    transform: translateX(-50%);
+  }
+
+  .spotCore {
+    top: 2%;
+    left: 50%;
+    width: 90vw;
+    height: 80%;
+    transform: translateX(-50%);
+  }
+
+  .hung,
+  .placeholder {
+    top: calc(72 * var(--u));
+    left: 50%;
+    width: min(84vw, calc(330 * var(--u)));
+    height: min(84vw, calc(330 * var(--u)));
+    transform: translateX(-50%);
+  }
+
+  /* The frame is centred at the top of a phone: the veil follows it. */
+  .focusVeil {
+    background: radial-gradient(
+      ellipse min(84vw, calc(330 * var(--u)))
+        calc(0.95 * min(84vw, calc(330 * var(--u)))) at 50%
+        calc(72 * var(--u) + min(84vw, calc(330 * var(--u))) / 2),
+      var(--color-veil-clear) 0%,
+      var(--color-veil-clear) 54%,
+      var(--color-veil-soft) 80%,
+      var(--color-veil-deep) 100%
+    );
+  }
+}

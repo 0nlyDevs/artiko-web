@@ -1,0 +1,12 @@
+/* Gallery black over the whole screen: the wizard fades to it, the ceremony starts from it. */
+.fade,
+.fallback {
+  position: fixed;
+  inset: 0;
+  background: var(--color-gallery-black);
+}
+
+.fade {
+  z-index: 40;
+  opacity: 0;
+}

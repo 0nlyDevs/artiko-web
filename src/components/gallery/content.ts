@@ -22,7 +22,7 @@ export const works: Work[] = [
   {
     id: "water",
     kind: "art.painting",
-    image: "/museum/assets/monet.webp",
+    image: "/gallery/monet.webp",
     source: "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Water_Lilies_-_1933.1157_-_Art_Institute_of_Chicago.jpg",
   },
   {

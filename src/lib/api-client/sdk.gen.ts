@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { CastVoteData, CastVoteErrors, CastVoteResponses, CreateExpositionData, CreateExpositionErrors, CreateExpositionResponses, CreateWorkData, CreateWorkErrors, CreateWorkResponses, GetArtistData, GetArtistErrors, GetArtistResponses, GetExpositionData, GetExpositionErrors, GetExpositionResponses, GetHallOfFameData, GetHallOfFameResponses, GetMeData, GetMeErrors, GetMeResponses, GetMuseumData, GetMuseumErrors, GetMuseumResponses, GetPracticeData, GetPracticeErrors, GetPracticeResponses, GetWorkData, GetWorkErrors, GetWorkResponses, HealthData, HealthResponses, ListArtistsData, ListArtistsResponses, ListCategoriesData, ListCategoriesResponses, ListExpositionsData, ListExpositionsResponses, ListMyVotesData, ListMyVotesErrors, ListMyVotesResponses, ListPracticesData, ListPracticesResponses, ListWorksData, ListWorksResponses, ReadyData, ReadyErrors, ReadyResponses, ScanImageData, ScanImageErrors, ScanImageResponses, UpsertMyArtistData, UpsertMyArtistErrors, UpsertMyArtistResponses } from './types.gen';
+import type { CastVoteData, CastVoteErrors, CastVoteResponses, CreateExpositionData, CreateExpositionErrors, CreateExpositionResponses, CreateWorkData, CreateWorkErrors, CreateWorkResponses, GetArtistData, GetArtistErrors, GetArtistResponses, GetDeviceChallengeData, GetDeviceChallengeErrors, GetDeviceChallengeResponses, GetExpositionData, GetExpositionErrors, GetExpositionResponses, GetHallOfFameData, GetHallOfFameResponses, GetMeData, GetMeErrors, GetMeResponses, GetMuseumData, GetMuseumErrors, GetMuseumResponses, GetPracticeData, GetPracticeErrors, GetPracticeResponses, GetProofFileData, GetProofFileErrors, GetProofFileResponses, GetWorkData, GetWorkErrors, GetWorkResponses, HealthData, HealthResponses, ListArtistsData, ListArtistsResponses, ListCategoriesData, ListCategoriesResponses, ListExpositionsData, ListExpositionsResponses, ListMyVotesData, ListMyVotesErrors, ListMyVotesResponses, ListPracticesData, ListPracticesResponses, ListWorkProofsData, ListWorkProofsErrors, ListWorkProofsResponses, ListWorksData, ListWorksResponses, ReadyData, ReadyErrors, ReadyResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, ScanImageData, ScanImageErrors, ScanImageResponses, UpsertMyArtistData, UpsertMyArtistErrors, UpsertMyArtistResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -63,7 +63,10 @@ export const listWorks = <ThrowOnError extends boolean = false>(options?: Option
  * Publish a work with its proof of process (artists only)
  *
  * The work is `human_proven` when it has at least 2 proof files and is not declared
- * AI-assisted. The same file (SHA-256) cannot be published twice.
+ * AI-assisted. The same file (SHA-256) cannot be published twice. An image that looks like another
+ * artist's work or a known work (CLIP similarity or perceptual hash) is refused with 409 `possible_copy`
+ * and the id of the review case; one that looks like the artist's own earlier work is accepted and the two
+ * works share a `series_id`.
  * Files: up to 20 MB each; images (jpeg, png, webp), audio (mpeg, wav, ogg),
  * video (mp4, webm), 3D (glb).
  *
@@ -80,6 +83,47 @@ export const createWork = <ThrowOnError extends boolean = false>(options: Option
 });
 
 export const getWork = <ThrowOnError extends boolean = false>(options: Options<GetWorkData, ThrowOnError>): RequestResult<GetWorkResponses, GetWorkErrors, ThrowOnError> => (options.client ?? client).get<GetWorkResponses, GetWorkErrors, ThrowOnError>({ url: '/api/v1/works/{work_id}', ...options });
+
+/**
+ * The nonce a phone puts into its key attestation
+ */
+export const getDeviceChallenge = <ThrowOnError extends boolean = false>(options?: Options<GetDeviceChallengeData, ThrowOnError>): RequestResult<GetDeviceChallengeResponses, GetDeviceChallengeErrors, ThrowOnError> => (options?.client ?? client).get<GetDeviceChallengeResponses, GetDeviceChallengeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/devices/challenge',
+    ...options
+});
+
+/**
+ * Register the attested hardware key of a phone
+ *
+ * The key is generated in the Android Keystore with the nonce as attestation challenge. The server
+ * checks the certificate chain up to Google's attestation roots, that the attested key is the
+ * registered key, that the challenge is the nonce, and that the key is hardware-backed.
+ *
+ */
+export const registerDevice = <ThrowOnError extends boolean = false>(options: Options<RegisterDeviceData, ThrowOnError>): RequestResult<RegisterDeviceResponses, RegisterDeviceErrors, ThrowOnError> => (options.client ?? client).post<RegisterDeviceResponses, RegisterDeviceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/devices',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * The proofs the caller may open, with fresh links
+ */
+export const listWorkProofs = <ThrowOnError extends boolean = false>(options: Options<ListWorkProofsData, ThrowOnError>): RequestResult<ListWorkProofsResponses, ListWorkProofsErrors, ThrowOnError> => (options.client ?? client).get<ListWorkProofsResponses, ListWorkProofsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/works/{work_id}/proofs',
+    ...options
+});
+
+/**
+ * A proof file, for the holder of a valid signed link
+ */
+export const getProofFile = <ThrowOnError extends boolean = false>(options: Options<GetProofFileData, ThrowOnError>): RequestResult<GetProofFileResponses, GetProofFileErrors, ThrowOnError> => (options.client ?? client).get<GetProofFileResponses, GetProofFileErrors, ThrowOnError>({ url: '/api/v1/proofs/{proof_id}/file', ...options });
 
 export const listExpositions = <ThrowOnError extends boolean = false>(options?: Options<ListExpositionsData, ThrowOnError>): RequestResult<ListExpositionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ListExpositionsResponses, unknown, ThrowOnError>({ url: '/api/v1/expositions', ...options });
 

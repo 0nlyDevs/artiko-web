@@ -1,76 +1,116 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useT } from "@/i18n/locale";
-import { getMe, listCategories, unwrap, withToken, type Category, type Me } from "@/lib/api";
-import { clearApiToken, getApiToken } from "@/lib/api-token";
+import { ApiError } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
-import { ProfileForm } from "@/features/artist-space/profile-form";
+import { loadSpace, type Space } from "@/features/artist-space/load-space";
 import { PublishForm } from "@/features/artist-space/publish-form";
+import { signOutOfSpace } from "@/features/artist-space/space/sign-out";
+import { resolveTab, withPublished } from "@/features/artist-space/space/space-logic";
+import { SignedOut, SpaceDashboard, SpaceFailure, SpaceSkeleton } from "@/features/artist-space/space/space-view";
+import { MY_SPACE_VERIFIED_CALLBACK_URL, mySpaceVerificationNotice } from "@/features/auth/verification";
 
+/**
+ * My space, `/me`. One page (frame R11) whose sections were tabs: `?tab=works`, `votes` and `profile` scroll to
+ * their section (`profile` opens the edition in place) and `?tab=publish` gives the page to the publication form.
+ */
 export function MySpace() {
   const router = useRouter();
-  const { t, rich } = useT();
+  const params = useSearchParams();
   const { data: session, isPending } = authClient.useSession();
-  const [me, setMe] = useState<Me | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [failed, setFailed] = useState(false);
+  const [space, setSpace] = useState<Space | null>(null);
+  // An ApiError says why the space did not load, `email_not_verified` for a session opened before email
+  // verification was required: the API refuses its token. "error" is any other failure.
+  const [failed, setFailed] = useState<false | "error" | ApiError>(false);
+  const [attempt, setAttempt] = useState(0);
+  const [resent, setResent] = useState(false);
+  const [signOutFailed, setSignOutFailed] = useState(false);
+  // The publication form stays mounted once opened, so a visit to another section keeps what was typed and
+  // chosen. After a publication it starts afresh the next time it is left: `run` is its key.
+  const [publication, setPublication] = useState({ opened: false, published: false, run: 0 });
+  const notice = mySpaceVerificationNotice(params, Boolean(session));
 
   useEffect(() => {
     if (!session) return;
-    (async () => {
-      try {
-        const token = await getApiToken();
-        const [profile, list] = await Promise.all([getMe(withToken(token)), listCategories()]);
-        setMe(unwrap(profile));
-        setCategories(unwrap(list));
-      } catch {
-        setFailed(true);
-      }
-    })();
-  }, [session]);
-
-  if (isPending) return <p>{t("space.loading")}</p>;
-  if (!session)
-    return (
-      <div className="flex flex-col gap-6">
-        <h1 className="font-heading text-7xl">{t("space.title")}</h1>
-        <p className="max-w-2xl text-xl">{t("space.intro")}</p>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/sign-in" className="bg-ink px-5 py-3 font-bold text-paper">{t("space.signIn")}</Link>
-          <Link href="/sign-up" className="border-2 border-ink px-5 py-3 font-bold">{t("space.signUp")}</Link>
-        </div>
-      </div>
+    let current = true;
+    loadSpace().then(
+      (loaded) => {
+        if (!current) return;
+        setFailed(false);
+        setSpace(loaded);
+      },
+      (e) => current && setFailed(e instanceof ApiError ? e : "error"),
     );
-  if (failed) return <p role="alert" className="border-l-4 border-red pl-3">{t("space.error")}</p>;
-  if (!me) return <p>{t("space.loading")}</p>;
+    return () => {
+      current = false;
+    };
+  }, [session, attempt]);
 
   async function signOut() {
-    await authClient.signOut();
-    clearApiToken();
-    router.push("/");
+    setSignOutFailed(false);
+    if (await signOutOfSpace()) router.push("/");
+    else setSignOutFailed(true);
   }
 
+  if (isPending || (session && !space && !failed)) return <SpaceSkeleton />;
+  // Signing in brings the visitor back to the section they asked for (`?tab=publish` from « Publier »).
+  const asked = params.get("tab");
+  if (!session) return <SignedOut notice={notice} back={asked ? `/me?tab=${encodeURIComponent(asked)}` : "/me"} />;
+  if (failed || !space)
+    return (
+      <SpaceFailure
+        error={failed instanceof ApiError ? failed : null}
+        signOutFailed={signOutFailed}
+        resent={resent}
+        onResend={async () => {
+          const { error } = await authClient.sendVerificationEmail({ email: session.user.email, callbackURL: MY_SPACE_VERIFIED_CALLBACK_URL });
+          if (!error) setResent(true);
+        }}
+        onRetry={() => {
+          setFailed(false);
+          setAttempt(attempt + 1);
+        }}
+        onSignOut={signOut}
+      />
+    );
+
+  const artist = space.me.artist;
+  const tab = resolveTab(params.get("tab"), Boolean(artist));
+  const publishing = tab === "publish";
+  if (publishing && !publication.opened) setPublication({ ...publication, opened: true });
+  if (!publishing && publication.published) setPublication({ opened: false, published: false, run: publication.run + 1 });
+
   return (
-    <div className="flex flex-col gap-16">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-heading text-7xl">{me.name ?? me.email ?? t("space.title")}</h1>
-        <button type="button" onClick={signOut} className="underline underline-offset-4">{t("space.signOut")}</button>
+    <>
+      <div hidden={publishing}>
+        <SpaceDashboard
+          space={space}
+          tab={tab}
+          signOutFailed={signOutFailed}
+          onSignOut={signOut}
+          onProfileSaved={(saved) => {
+            setSpace({ ...space, me: { ...space.me, artist: saved } });
+            // A first profile opens the way to publish, as it did when the space had tabs.
+            if (!artist) router.push("/me?tab=publish");
+          }}
+          onExpositionCreated={(exposition) => setSpace({ ...space, expositions: [exposition, ...space.expositions] })}
+        />
       </div>
-      <ProfileForm artist={me.artist} onSaved={(artist) => setMe({ ...me, artist })} />
-      {me.artist ? (
-        <PublishForm artistId={me.artist.id} categories={categories} />
-      ) : (
-        <p>
-          {rich("space.noProfile", {
-            link: (text) => (
-              <Link href="/explore" className="underline underline-offset-4">{text}</Link>
-            ),
-          })}
-        </p>
+      {artist && (publishing || publication.opened) && (
+        <div hidden={!publishing}>
+          <PublishForm
+            key={publication.run}
+            categories={space.categories}
+            expositions={space.expositions}
+            artist={artist}
+            onPublished={(work, exposition) => {
+              setSpace({ ...space, ...withPublished(space, work, exposition) });
+              setPublication({ ...publication, opened: true, published: true });
+            }}
+          />
+        </div>
       )}
-    </div>
+    </>
   );
 }

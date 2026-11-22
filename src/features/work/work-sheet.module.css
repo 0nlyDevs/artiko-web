@@ -1,0 +1,445 @@
+/*
+ * Figma frame R7 (182:918): the notice of a work. The room on the left (red wall, the work in its gilded
+ * frame, the bar of the eight rooms), the paper panel on the right, 560 px of the 1440. Under 1024 px
+ * the room comes first and the panel follows. The page asks the shell for its dark dress and no gutter.
+ */
+.notice {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+  background: var(--color-gallery-black);
+}
+
+/* Room */
+
+.room {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 300px;
+  overflow: hidden;
+  color: var(--color-paper);
+  background-color: var(--color-gallery-black);
+  background-image: url('../../kanto/assets/gallery/scene-red-room-1280.webp');
+  background-repeat: no-repeat;
+  /* The photograph has a lit spot on its left edge: the frame keeps the plain wall, as the mockup does. */
+  background-position: 85% 50%;
+  background-size: cover;
+}
+
+/* Legibility of the label on top, and the veil the open notice lays on the room. */
+.room::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(180deg, var(--color-veil-deep) 0, var(--color-veil-clear) 190px),
+    radial-gradient(90% 70% at 50% 48%, var(--color-veil-clear) 40%, var(--color-veil-soft) 100%);
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-24);
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-20) var(--app-gutter) 0;
+}
+
+.roomLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-14);
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--color-paper-70);
+  text-align: center;
+}
+
+.dots {
+  display: inline-flex;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-paper-40);
+  border-radius: var(--radius-dot);
+}
+
+.dot[data-current] {
+  width: 18px;
+  background: var(--color-paper);
+}
+
+/*
+ * The work on the wall, centred in what the label and the bar leave. The wall is the measure of what
+ * hangs on it (cqw in work-media.module.css).
+ */
+.wall {
+  position: relative;
+  display: flex;
+  flex: 1;
+  gap: clamp(24px, 4cqw, 56px);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-8) 0 var(--space-24);
+  container: wall / inline-size;
+}
+
+/* The beam of the spot behind the work (Figma « Faisceau du spot »). */
+.wall::before {
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  width: min(92%, 560px);
+  height: 116%;
+  pointer-events: none;
+  content: '';
+  background: var(--spot-light);
+  transform: translateX(-50%);
+}
+
+.hung {
+  position: relative;
+  flex: none;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The wall label beside the work, a little under its middle, as drawn; room for it from 1280 px only. */
+.cartel {
+  position: relative;
+  display: none;
+  flex: none;
+  align-self: center;
+  margin-top: 234px;
+}
+
+/* Bar of the rooms: the eight art forms, on one line that scrolls sideways on a phone. */
+.rooms {
+  position: relative;
+  display: flex;
+  gap: var(--space-20);
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--app-gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid var(--color-paper-16);
+}
+
+.rooms::-webkit-scrollbar {
+  display: none;
+}
+
+.roomLink {
+  flex: none;
+  padding: var(--space-14) 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  color: var(--color-paper-70);
+  text-decoration: underline transparent;
+  text-underline-offset: 5px;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) linear,
+    text-decoration-color var(--duration-fast) linear;
+}
+
+.roomLink:hover,
+.roomLink[aria-current] {
+  color: var(--color-paper);
+  text-decoration-color: var(--color-gold);
+}
+
+/* Panel */
+
+.panel {
+  /* The shell's dark dress turns the focus outline to brass: on paper it is ink again. */
+  --app-focus: var(--color-ink);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-24) var(--app-gutter) var(--space-32);
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+
+.head {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 12px;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.close {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  margin: -4px 0;
+  font-size: 13px;
+  line-height: 15px;
+  color: var(--color-ink-60);
+  background: none;
+  border: 0;
+}
+
+.closeDisc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink-40);
+  border-radius: 50%;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.close:hover {
+  color: var(--color-ink);
+}
+
+.close:hover .closeDisc {
+  background: var(--color-ink-08);
+  border-color: var(--color-ink);
+}
+
+.badge {
+  align-self: flex-start;
+  margin-top: 22px;
+}
+
+.title {
+  max-width: 14em;
+  margin: 22px 0 0;
+  font-family: var(--font-serif-italic);
+  font-size: clamp(30px, 8vw, 40px);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
+}
+
+.maker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 22px 0 0;
+  font-size: 15px;
+  line-height: 18px;
+  color: var(--color-ink-60);
+}
+
+.makerName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+  text-decoration: underline transparent;
+  text-underline-offset: 4px;
+}
+
+.makerName:hover {
+  text-decoration-color: currentcolor;
+}
+
+.museum {
+  font-size: 13px;
+  color: var(--color-ink-60);
+  text-decoration: underline;
+  text-decoration-color: var(--color-line);
+  text-underline-offset: 4px;
+}
+
+.museum:hover {
+  color: var(--color-ink);
+  text-decoration-color: currentcolor;
+}
+
+/* The record: one line per field of the Work schema, key on the left. */
+.facts {
+  margin: 22px 0 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  column-gap: var(--space-16);
+  align-items: baseline;
+  min-height: 40px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.fact dt {
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 12px;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 17px;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: 30px;
+}
+
+.story {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--color-ink-60);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.contest {
+  margin-top: 22px;
+}
+
+.proofs {
+  display: flex;
+  flex-direction: column;
+}
+
+.actions {
+  margin-top: var(--space-24);
+}
+
+.waiting {
+  gap: 22px;
+}
+
+.arrow {
+  flex: none;
+}
+
+/* From 1024 px: the two columns of the frame. The room stays in view while the panel scrolls. */
+@media (min-width: 1024px) {
+  .room {
+    background-image: url('../../kanto/assets/gallery/scene-red-room-1920.webp');
+  }
+
+  .notice {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(420px, 38.9vw, 560px);
+    min-height: calc(100dvh - var(--app-bar-height));
+  }
+
+  .room {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: calc(100dvh - var(--app-bar-height));
+    min-height: 520px;
+  }
+
+  .stage {
+    padding-top: 30px;
+  }
+
+  .rooms {
+    gap: 22px;
+    min-height: 80px;
+    padding-bottom: var(--space-32);
+    border-top: 0;
+  }
+
+  .panel {
+    padding: var(--space-40) clamp(32px, 3.9vw, 56px) 0;
+  }
+
+  .title {
+    font-size: 40px;
+    line-height: 44px;
+  }
+
+  /* The actions stay at the foot of the panel, as drawn, whatever its length. */
+  .actions {
+    position: sticky;
+    bottom: 0;
+    padding: var(--space-20) 0 var(--space-40);
+    margin-top: auto;
+    background: linear-gradient(180deg, transparent 0, var(--color-paper) 20px);
+  }
+
+  /* What the keyboard reaches under the actions scrolls clear of them. */
+  .panel :is(a, button) {
+    scroll-margin-bottom: 180px;
+  }
+
+  /*
+   * The contest comes right after the story, as drawn; the proofs, which the frame does not draw,
+   * follow it. On a phone the count stays just above the button instead.
+   */
+  .proofs {
+    order: 1;
+    margin-bottom: var(--space-8);
+  }
+
+  .actions {
+    order: 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cartel {
+    display: flex;
+  }
+
+  /* The label takes its place on the wall: the work keeps what is left. */
+  .cartel + .hung {
+    --beside: 190px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roomLink,
+  .closeDisc {
+    transition: none;
+  }
+}
