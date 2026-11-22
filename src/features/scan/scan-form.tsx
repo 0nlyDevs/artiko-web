@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/locale";
 import { ApiError, scanImage, unwrap, type ScanResult } from "@/lib/api";
+import { apiErrorText } from "@/lib/api-messages";
 import { IconCamera, IconSeal, IconUpload } from "@/lib/ui/icons";
 
 const BADGE: Record<ScanResult["status"], string> = {
@@ -19,8 +20,8 @@ export function ScanForm() {
   const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  // A failed check keeps the API's own message; a network failure is stored as null and translated on render.
-  const [state, setState] = useState<"idle" | "checking" | ScanResult | { error: string | null }>("idle");
+  // A failed check keeps the API's error, translated on render (api-messages.ts); any other failure is stored as null and translated too.
+  const [state, setState] = useState<"idle" | "checking" | ScanResult | { error: ApiError | null }>("idle");
 
   // The previous preview's object URL is released when a new photo replaces it.
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
@@ -31,7 +32,7 @@ export function ScanForm() {
     try {
       setState(unwrap(await scanImage({ body: { file } })));
     } catch (e) {
-      setState({ error: e instanceof ApiError ? e.message : null });
+      setState({ error: e instanceof ApiError ? e : null });
     }
   }
 
@@ -109,7 +110,7 @@ export function ScanForm() {
         )}
         {typeof state === "object" && "error" in state && (
           <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
-            {state.error ?? t("scan.failed")}
+            {state.error ? apiErrorText(state.error, t) : t("scan.failed")}
           </p>
         )}
         {typeof state === "object" && "status" in state && <Answer result={state} />}

@@ -2,14 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useT } from "@/i18n/locale";
-import { ApiError, unwrap, upsertMyArtist, withToken, type Artist } from "@/lib/api";
-import { getApiToken } from "@/lib/api-token";
+import { ApiError, unwrap, upsertMyArtist, type Artist } from "@/lib/api";
+import { apiErrorText } from "@/lib/api-messages";
+import { callWithToken } from "@/lib/api-token";
 
 export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSaved: (artist: Artist) => void }) {
   const { t } = useT();
   const [pending, startTransition] = useTransition();
-  // "saved" and "failed" are translated on render; an API error keeps its own message.
-  const [status, setStatus] = useState<"saved" | "failed" | { message: string } | null>(null);
+  // "saved", "failed" and an API error (api-messages.ts) are translated on render.
+  const [status, setStatus] = useState<"saved" | "failed" | ApiError | null>(null);
 
   const save = (form: FormData) =>
     startTransition(async () => {
@@ -19,10 +20,10 @@ export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSave
           bio: String(form.get("bio") ?? ""),
           region: String(form.get("region") ?? ""),
         };
-        onSaved(unwrap(await upsertMyArtist({ body, ...withToken(await getApiToken()) })));
+        onSaved(await callWithToken((auth) => upsertMyArtist({ body, ...auth }).then(unwrap)));
         setStatus("saved");
       } catch (e) {
-        setStatus(e instanceof ApiError ? { message: e.message } : "failed");
+        setStatus(e instanceof ApiError ? e : "failed");
       }
     });
 
@@ -54,7 +55,7 @@ export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSave
       </button>
       {status && (
         <p role="status" className={status === "saved" ? "font-semibold" : "text-[#8E3524]"}>
-          {typeof status === "object" ? status.message : t(status === "saved" ? "profile.saved" : "profile.failed")}
+          {status instanceof ApiError ? apiErrorText(status, t) : t(status === "saved" ? "profile.saved" : "profile.failed")}
         </p>
       )}
     </form>

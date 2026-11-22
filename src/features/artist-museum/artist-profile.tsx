@@ -3,12 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import type { Artist, CategoryId, Exposition, Practice, Work } from "@/lib/api";
 import { Avatar } from "@/lib/ui/avatar";
 import { HeartFilled, IconMuseum, IconPin, IconSeal, IconShare } from "@/lib/ui/icons";
 import { SlidingTabs } from "@/lib/ui/sliding-tabs";
+import { categoryLabel } from "@/lib/works/category-label";
 import { WorkMedia } from "@/lib/works/work-tile";
 
 export type HallPlace = { rank: number; work: Work; votes: number };
@@ -35,7 +35,7 @@ export function ArtistProfile({
   others: Artist[];
   practices: Practice[];
 }) {
-  const { t, plural } = useT();
+  const { t, plural, locale } = useT();
   const [view, setView] = useState<"expo" | "genre">("expo");
   const [expo, setExpo] = useState<string>("all");
   const categories = [...new Set(works.map((w) => w.category))];
@@ -75,7 +75,7 @@ export function ArtistProfile({
             <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.04em]">{artist.display_name}</h1>
             <p className="mt-2 flex items-center gap-1.5 text-muted">
               <IconPin size={16} strokeWidth={2} />
-              {[artist.region, ...categories.map((c) => t(`category.${c}` as Key))].filter(Boolean).join(" · ")}
+              {[artist.region, ...categories.map((c) => categoryLabel({ id: c }, locale))].filter(Boolean).join(" · ")}
             </p>
           </div>
         </div>
@@ -133,14 +133,14 @@ export function ArtistProfile({
             <div className="mt-4 flex flex-wrap gap-2">
               {categories.map((c) => (
                 <button key={c} type="button" aria-pressed={c === genre} onClick={() => setGenre(c)} className="chip bg-surface aria-pressed:bg-ink">
-                  {t(`category.${c}` as Key)} · {works.filter((w) => w.category === c).length}
+                  {categoryLabel({ id: c }, locale)} · {works.filter((w) => w.category === c).length}
                 </button>
               ))}
             </div>
           )}
           <div className="mt-6 mb-5 flex flex-col gap-1.5">
             <h2 className="text-[26px] font-extrabold tracking-[-0.03em]">
-              {view === "genre" ? (genre ? t(`category.${genre}` as Key) : t("artist.worksTitle")) : current ? current.title : t("artist.allWorks")}
+              {view === "genre" ? (genre ? categoryLabel({ id: genre }, locale) : t("artist.worksTitle")) : current ? current.title : t("artist.allWorks")}
             </h2>
             {view === "expo" && current?.description && <p className="max-w-[60ch] font-serif text-[21px] leading-snug italic">{current.description}</p>}
             <p className="text-sm text-muted">{plural("works", shown.length)}</p>
@@ -183,7 +183,7 @@ export function ArtistProfile({
                     </span>
                     <span className="flex flex-col gap-0.5">
                       <span className="text-[28px] leading-none font-extrabold tracking-[-0.04em]">#{p.rank}</span>
-                      <span className="text-sm font-semibold">{t(`category.${p.work.category}` as Key)}</span>
+                      <span className="text-sm font-semibold">{categoryLabel({ id: p.work.category }, locale)}</span>
                       <span className="text-[13px] text-muted">
                         {p.work.title}, {plural("votes", p.votes)}
                       </span>

@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n/locale";
-import { ApiError, createExposition, createWork, unwrap, withToken, type Category, type CategoryId, type Exposition, type Work } from "@/lib/api";
-import { getApiToken } from "@/lib/api-token";
+import { ApiError, createExposition, createWork, unwrap, type Category, type CategoryId, type Exposition, type Work } from "@/lib/api";
+import { apiErrorText } from "@/lib/api-messages";
+import { callWithToken } from "@/lib/api-token";
 import { IconAdd, IconUpload } from "@/lib/ui/icons";
 import { CategoryLabel } from "@/lib/works/category-label";
 import { isImportableModel } from "@/features/model-import/import-model";
@@ -48,8 +49,8 @@ export function PublishForm({
   const [proofs, setProofs] = useState<File[]>([]);
   const [visibility, setVisibility] = useState<Visibility>("reviewers");
   const [expo, setExpo] = useState("");
-  // An API error keeps its own message; null means a network failure, translated on render.
-  const [state, setState] = useState<"idle" | "publishing" | Work | { error: string | null }>("idle");
+  // An API error is translated on render (api-messages.ts); null is any other failure, translated too.
+  const [state, setState] = useState<"idle" | "publishing" | Work | { error: ApiError | null }>("idle");
   const [workPreview] = usePreviews(file);
   const proofPreviews = usePreviews(proofs);
   const modelImport = useModelImport();
@@ -59,10 +60,10 @@ export function PublishForm({
     if (!file[0] || importBlocksPublishing) return;
     setState("publishing");
     try {
-      const auth = withToken(await getApiToken());
       let created: Exposition | null = null;
       if (expo === NEW_EXPOSITION) {
-        created = unwrap(await createExposition({ body: { title: String(form.get("expo_title") ?? "") }, ...auth }));
+        const title = String(form.get("expo_title") ?? "");
+        created = await callWithToken((auth) => createExposition({ body: { title }, ...auth }).then(unwrap));
       }
       const expositionId = created?.id ?? (expo || undefined);
       const fields = {
@@ -76,11 +77,12 @@ export function PublishForm({
       };
       const imported = modelImport.state.status === "ready" ? modelImport.state.model : null;
       const body = publishBody(fields, file[0], imported);
-      const work = unwrap(await createWork({ body, ...auth }));
+      // A call of its own: replaying it after a refused token must not create the exposition a second time.
+      const work = await callWithToken((auth) => createWork({ body, ...auth }).then(unwrap));
       setState(work);
       onPublished(work, created);
     } catch (e) {
-      setState({ error: e instanceof ApiError ? e.message : null });
+      setState({ error: e instanceof ApiError ? e : null });
     }
   }
 
@@ -224,7 +226,7 @@ export function PublishForm({
             {state === "publishing" ? t("publish.publishing") : t("publish.submit")}
           </button>
           {typeof state === "object" && "error" in state && (
-            <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">{state.error ?? t("publish.failed")}</p>
+            <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">{state.error ? apiErrorText(state.error, t) : t("publish.failed")}</p>
           )}
           {typeof state === "object" && "id" in state && (
             <p role="status" className="pop rounded-md bg-surface p-4 font-semibold">
