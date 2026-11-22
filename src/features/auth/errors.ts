@@ -6,6 +6,7 @@ const CODES = new Map<string, Key>([
   ["INVALID_EMAIL_OR_PASSWORD", "auth.failed"],
   ["EMAIL_NOT_VERIFIED", "auth.notVerified"],
   ["PASSWORD_COMPROMISED", "auth.compromised"],
+  ["PASSWORD_CHECK_UNAVAILABLE", "auth.checkUnavailable"],
   ["PASSWORD_TOO_SHORT", "auth.tooShort"],
   ["USER_ALREADY_EXISTS", "auth.exists"],
   ["USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL", "auth.exists"],

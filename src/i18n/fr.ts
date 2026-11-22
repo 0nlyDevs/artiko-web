@@ -384,6 +384,7 @@ export const fr: Dictionary = {
   "auth.newLink": "Demander un nouveau lien",
   "auth.notVerified": "Confirmez d’abord votre adresse e-mail.",
   "auth.compromised": "Ce mot de passe figure dans une fuite de données connue. Choisissez-en un autre.",
+  "auth.checkUnavailable": "La vérification du mot de passe est momentanément indisponible. Réessayez dans quelques minutes.",
   "auth.tooShort": "Ce mot de passe est trop court.",
   "auth.exists": "Un compte utilise déjà cet e-mail. Connectez-vous, ou réinitialisez son mot de passe.",
   "auth.linkInvalid": "Ce lien ne fonctionne plus : il a expiré ou a déjà servi.",

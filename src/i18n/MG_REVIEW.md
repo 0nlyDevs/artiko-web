@@ -43,3 +43,4 @@ All of `mg.ts` was written by a non-native speaker. These entries are the least 
 | publish.intro | sketches... timelapse, stems | rakikira, sary isaky ny dingana, timelapse, feo tsirairay | "Stems" (audio stems) translated loosely |
 | error.title | This page could not load its works | Tsy mety mampiseho ny asa ity pejy ity | Check |
 | auth.verified | Address confirmed, sign in. | Voamafy ny adiresy, midira. | "Voamafy" (confirmed) assumed from "hamafiso" |
+| auth.checkUnavailable | The password check is unavailable for now. Try again in a few minutes. | Tsy azo atao vetivety ny fanamarinana ny tenimiafina. Andramo indray afaka minitra vitsy. | "vetivety" (for now) and "afaka minitra vitsy" (in a few minutes), check |

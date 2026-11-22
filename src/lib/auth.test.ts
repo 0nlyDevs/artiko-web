@@ -50,4 +50,10 @@ describe("account security", () => {
   it("opens no session from a verification link", async () => {
     expect((await auth()).options.emailVerification?.autoSignInAfterVerification).toBe(false);
   });
+
+  it("reports a breach check outage from the plugin placed right after Have I Been Pwned", async () => {
+    const ids = (await auth()).options.plugins.map((plugin) => plugin.id);
+    expect(ids).toContain("have-i-been-pwned");
+    expect(ids.indexOf("password-check-outage")).toBe(ids.indexOf("have-i-been-pwned") + 1);
+  });
 });

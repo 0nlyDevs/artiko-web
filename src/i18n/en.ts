@@ -398,6 +398,7 @@ export const en = {
   "auth.newLink": "Ask for a new link",
   "auth.notVerified": "Confirm your email address first.",
   "auth.compromised": "This password appears in a known data breach. Choose another one.",
+  "auth.checkUnavailable": "The password check is unavailable for now. Try again in a few minutes.",
   "auth.tooShort": "This password is too short.",
   "auth.exists": "An account already uses this email. Sign in, or reset its password.",
   "auth.linkInvalid": "This link no longer works: it expired or was already used.",

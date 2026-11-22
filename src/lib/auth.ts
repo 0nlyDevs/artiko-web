@@ -4,10 +4,10 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { bearer } from "better-auth/plugins/bearer";
-import { haveIBeenPwned } from "better-auth/plugins/haveibeenpwned";
 import { jwt } from "better-auth/plugins/jwt";
 import { after } from "next/server";
 import { Pool } from "pg";
+import { breachedPasswordCheck } from "./breached-passwords";
 import { accountEmail, emailLocale, sendEmail, type AccountEmail } from "./email";
 import { MIN_PASSWORD_LENGTH } from "./password";
 
@@ -104,8 +104,7 @@ function createAuth() {
       jwt({ jwt: { issuer: baseURL, audience: baseURL } }),
       // Lets the Android app exchange its session token for an API JWT.
       bearer(),
-      // Refuses passwords found in known breaches (k-anonymity: only a hash prefix leaves the server).
-      haveIBeenPwned(),
+      ...breachedPasswordCheck(),
       nextCookies(),
     ],
   });
