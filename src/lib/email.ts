@@ -1,5 +1,5 @@
 // Account emails (address verification, password reset) sent through Resend's HTTP API. Without a
-// key outside production, the email is printed to the server log so sign-up works on a laptop.
+// key in development only, the email is printed to the server log so sign-up works on a laptop.
 import { dictionaries, matchLocale, type Locale } from "@/i18n/locales";
 
 export type Email = { to: string; subject: string; text: string; html: string };
@@ -9,7 +9,8 @@ type Env = Partial<Record<"RESEND_API_KEY" | "EMAIL_FROM" | "NODE_ENV", string>>
 export async function sendEmail(email: Email, env: Env = process.env): Promise<void> {
   const key = env.RESEND_API_KEY?.trim();
   if (!key) {
-    if (env.NODE_ENV === "production") throw new Error("RESEND_API_KEY is not set");
+    // The log would hold a working verification or reset link: anywhere but a laptop, fail instead.
+    if (env.NODE_ENV !== "development") throw new Error("RESEND_API_KEY is not set");
     console.info(`[email] to ${email.to}: ${email.subject}\n${email.text}`);
     return;
   }
@@ -18,7 +19,12 @@ export async function sendEmail(email: Email, env: Env = process.env): Promise<v
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: env.EMAIL_FROM, to: [email.to], subject: email.subject, text: email.text, html: email.html }),
   });
-  if (!response.ok) throw new Error(`Resend answered ${response.status}: ${await response.text()}`);
+  if (!response.ok) {
+    // The status only: Resend's answer can quote the recipient's address, and the error ends up in the log.
+    // The unread body is cancelled so its connection is released.
+    await response.body?.cancel();
+    throw new Error(`Resend answered ${response.status}`);
+  }
 }
 
 /** The reader's language from the request that triggered the email (`Accept-Language`), English otherwise. */

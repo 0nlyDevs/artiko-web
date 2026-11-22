@@ -19,19 +19,24 @@ describe("sendEmail", () => {
     expect(JSON.parse(init.body)).toEqual({ from: "Artiko <hi@artiko.test>", to: ["a@example.test"], subject: "Hi", text: "Body", html: "<p>Body</p>" });
   });
 
-  it("fails when Resend refuses, so the caller can log it", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad sender", { status: 403 })));
-    await expect(sendEmail(email, { RESEND_API_KEY: "re_test" })).rejects.toThrow("Resend answered 403: bad sender");
+  it("fails with the status only when Resend refuses, so the log never holds what it quoted", async () => {
+    const body = JSON.stringify({ name: "validation_error", message: "Invalid `to` field: victim@example.test" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { status: 422 })));
+    const error = await sendEmail(email, { RESEND_API_KEY: "re_test" }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe("Resend answered 422");
   });
 
   it("prints the email in development when no key is set", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
-    await sendEmail(email, { NODE_ENV: "development" });
+    await expect(sendEmail(email, { NODE_ENV: "development" })).resolves.toBeUndefined();
     expect(log.mock.calls[0][0]).toContain("Body");
   });
 
-  it("never stays silent in production without a key", async () => {
-    await expect(sendEmail(email, { NODE_ENV: "production" })).rejects.toThrow("RESEND_API_KEY");
+  it.each(["production", "test", "staging", undefined])("fails without a key when NODE_ENV is %j, and prints no link", async (NODE_ENV) => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    await expect(sendEmail(email, { NODE_ENV })).rejects.toThrow("RESEND_API_KEY is not set");
+    expect(log).not.toHaveBeenCalled();
   });
 });
 
