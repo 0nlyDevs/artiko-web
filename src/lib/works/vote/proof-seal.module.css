@@ -1,0 +1,18 @@
+/* The seal keeps to its text: in a column it does not stretch to the width of its parent. */
+.seal {
+  align-self: flex-start;
+}
+
+.lines {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The first characters of the SHA-256, in figures that line up. */
+.hash {
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
