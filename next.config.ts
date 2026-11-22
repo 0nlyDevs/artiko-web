@@ -36,6 +36,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "*.css": {
+        // CSS Modules (the KANTO frontend under src/kanto) keep Next's built-in handling:
+        // retyping them as plain CSS through the Tailwind loader would drop their scoped classes.
+        condition: { not: { path: /\.module\.css$/ } },
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
