@@ -493,7 +493,7 @@
   }
 
   .lineTitle {
-    max-width: 28ch;
+    min-width: 0;
   }
 
   .lineMeta {
@@ -510,7 +510,8 @@
   }
 }
 
-@media (min-width: 1024px) {
+/* Two columns only where the rows of « Mes œuvres » keep their titles readable (measured: from 1280 px). */
+@media (min-width: 1280px) {
   .page,
   .skeleton {
     grid-template-columns: minmax(0, 5fr) minmax(0, 9fr);

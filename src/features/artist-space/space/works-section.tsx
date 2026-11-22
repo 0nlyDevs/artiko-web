@@ -110,11 +110,10 @@ export function WorksSection({
           {complete && ` · ${works.length}`}
           {complete && works.length > 0 && ` · ${plural("received", works.reduce((n, w) => n + w.votes, 0))}`}
         </h2>
-        {works.length > 0 && (
-          <Link href={`/artists/${artistId}`} className={styles.headLink}>
-            {t("space.seeAll")}
-          </Link>
-        )}
+        {/* The public page of the artist stays one click away, even before a first work. */}
+        <Link href={`/artists/${artistId}`} className={styles.headLink}>
+          {t("space.seeAll")}
+        </Link>
       </div>
       {works.length ? (
         <WorkRows labelledBy="space-works-title">

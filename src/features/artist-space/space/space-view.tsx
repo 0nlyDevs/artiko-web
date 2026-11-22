@@ -10,6 +10,7 @@ import { Button, ButtonLink, StatusBanner } from "@/lib/ui/kanto";
 import type { Space } from "@/features/artist-space/load-space";
 import { ProfileForm } from "@/features/artist-space/profile-form";
 import { VerificationNotice } from "@/features/auth/verification-notice";
+import { signInHref, withReturn } from "@/features/auth/return-to";
 import { ExpositionsSection } from "./expositions-section";
 import { SECTION_ID, type SpaceTab } from "./space-logic";
 import { VotesSection } from "./votes-section";
@@ -36,7 +37,7 @@ function Welcome({ name }: { name: string | null }) {
 }
 
 /** Someone who is not signed in: what the space is for, and the two doors of the account. */
-export function SignedOut({ notice }: { notice: Key | null }) {
+export function SignedOut({ notice, back = "/me" }: { notice: Key | null; back?: string }) {
   const { t } = useT();
   return (
     <div className={`rise ${styles.narrow}`}>
@@ -44,8 +45,8 @@ export function SignedOut({ notice }: { notice: Key | null }) {
       {notice && <VerificationNotice notice={notice} />}
       <p className={styles.formIntro}>{t("space.intro")}</p>
       <div className={styles.actions}>
-        <ButtonLink href="/sign-in">{t("space.signIn")}</ButtonLink>
-        <ButtonLink href="/sign-up" variant="secondary">
+        <ButtonLink href={signInHref(back)}>{t("space.signIn")}</ButtonLink>
+        <ButtonLink href={withReturn("/sign-up", back)} variant="secondary">
           {t("space.signUp")}
         </ButtonLink>
       </div>

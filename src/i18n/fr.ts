@@ -552,7 +552,7 @@ export const fr: Dictionary = {
   "space.proofs.failed": "Les preuves n’ont pas pu être chargées. Réessayez.",
   "space.expositions": "Mes expositions",
   "space.expo.new": "Nouvelle exposition",
-  "space.expo.description": "Description (facultatif)",
+  "space.expo.description": "Description (facultative)",
   "space.expo.hint": "Une œuvre rejoint une exposition au moment de sa publication.",
   "space.expo.titleError": "Donnez à l’exposition un titre de 1 à 200 caractères.",
   "space.expo.descriptionError": "La description ne peut pas dépasser 2 000 caractères.",

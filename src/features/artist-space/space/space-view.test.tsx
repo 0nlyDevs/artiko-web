@@ -71,7 +71,7 @@ describe("my space before it loads", () => {
     const markup = html(<SignedOut notice={null} />);
     expect(markup).toContain("<h1");
     expect(markup).toContain("My space");
-    expect(links(markup)).toEqual(["/sign-in", "/sign-up"]);
+    expect(links(markup)).toEqual(["/sign-in?next=%2Fme", "/sign-up?next=%2Fme"]);
   });
 
   it("tells a signed-out visitor what the verification link did", () => {
@@ -289,5 +289,13 @@ describe("the proofs of a work", () => {
     expect(proofs([])).toContain("No proof can be opened for this work.");
     expect(proofs({ error: null })).toMatch(/role="alert"[^>]*>The proofs could not be loaded/);
     expect(proofs({ error: new ApiError(404, "work_not_found", "No work with this id") })).toContain("This work was not found.");
+  });
+});
+
+describe("signing in from my space", () => {
+  it("brings the visitor back to the section they asked for", () => {
+    const markup = html(<SignedOut notice={null} back="/me?tab=publish" />);
+    expect(markup).toContain('href="/sign-in?next=%2Fme%3Ftab%3Dpublish"');
+    expect(markup).toContain('href="/sign-up?next=%2Fme%3Ftab%3Dpublish"');
   });
 });

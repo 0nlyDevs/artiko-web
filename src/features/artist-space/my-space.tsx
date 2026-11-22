@@ -54,7 +54,9 @@ export function MySpace() {
   }
 
   if (isPending || (session && !space && !failed)) return <SpaceSkeleton />;
-  if (!session) return <SignedOut notice={notice} />;
+  // Signing in brings the visitor back to the section they asked for (`?tab=publish` from « Publier »).
+  const asked = params.get("tab");
+  if (!session) return <SignedOut notice={notice} back={asked ? `/me?tab=${encodeURIComponent(asked)}` : "/me"} />;
   if (failed || !space)
     return (
       <SpaceFailure
