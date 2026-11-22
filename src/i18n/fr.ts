@@ -569,6 +569,8 @@ export const fr: Dictionary = {
   "space.unvoted.other": "{n} autres formes d’art sans vote ce mois-ci",
   "space.votes.none": "Pas encore de vote ce mois-ci. Explorez une forme d’art :",
   // kanto:publication
+  "publish.more": "Plus d’options : preuves, visibilité, exposition (facultatif)",
+  "publish.more.story": "Ajouter l’histoire de l’œuvre (facultatif)",
   "publish.eyebrow": "Publier une œuvre · {n} sur 2",
   "publish.work.headline": "Confiez votre œuvre <accent>au musée.</accent>",
   "publish.work.lede": "Un fichier, un titre, une forme d’art : c’est tout pour commencer. L’écran suivant recueille vos preuves et publie.",

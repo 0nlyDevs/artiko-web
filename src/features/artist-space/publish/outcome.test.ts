@@ -35,7 +35,7 @@ describe("where a publication leads", () => {
     [400, "invalid_exposition", "Choose one of your own expositions."],
     [400, "too_many_proofs", "A work takes 5 proof files at most."],
     [400, "unsupported_file", "This type of file is not accepted."],
-    [401, "invalid_token", "Your session has expired. Sign in again."],
+    [401, "invalid_token", "We could not confirm your sign-in. Try again in a few minutes, or sign in again."],
     [500, "internal_error", "Something went wrong on our side. Try again in a moment."],
     [0, "unreachable", "The service did not answer. Check your connection, then try again."],
   ])("%i %s stays on the form, with its sentence under the button", (status, code, sentence) => {

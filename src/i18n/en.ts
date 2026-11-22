@@ -583,6 +583,8 @@ export const en = {
   "space.unvoted.other": "{n} other art forms without a vote this month",
   "space.votes.none": "No vote yet this month. Explore an art form:",
   // kanto:publication
+  "publish.more": "More options: proofs, who sees them, exposition (optional)",
+  "publish.more.story": "Add the story of the work (optional)",
   "publish.eyebrow": "Publish a work · {n} of 2",
   "publish.work.headline": "Entrust your work <accent>to the museum.</accent>",
   "publish.work.lede": "A file, a title, an art form: that is all it takes to start. The next screen collects your proofs and publishes.",

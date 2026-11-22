@@ -141,6 +141,8 @@ export function WorkStep({
         </fieldset>
       </section>
 
+      <details className={styles.more} open={draft.story !== "" || undefined}>
+        <summary className={styles.moreSummary}>{t("publish.more.story")}</summary>
       <section className={styles.section} aria-labelledby="publish-story">
         <SectionLabel n={3} id="publish-story">
           {t("publish.section.story")}
@@ -158,6 +160,7 @@ export function WorkStep({
           rows={2}
         />
       </section>
+      </details>
 
       <div className={styles.actions}>
         {confirmingCancel ? (

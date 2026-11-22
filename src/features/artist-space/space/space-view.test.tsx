@@ -105,7 +105,7 @@ describe("my space when it did not load", () => {
   it("tells a refused token from an API that did not answer", () => {
     const refused = failure(new ApiError(401, "invalid_token", "Invalid token"));
     const silent = failure(new ApiError(0, "unreachable", "unreachable"));
-    expect(refused).toContain("Your session has expired. Sign in again.");
+    expect(refused).toContain("We could not confirm your sign-in.");
     expect(silent).toContain("Your space could not load");
     expect(refused).not.toContain("Your space could not load");
   });

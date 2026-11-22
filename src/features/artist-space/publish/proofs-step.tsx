@@ -125,6 +125,8 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
       : (exposition?.title ?? t("publish.exposition.none"));
   // A missing title must be seen: its panel opens whatever was open.
   const expositionOpen = opened === "exposition" || missingExpositionTitle;
+  const [more, setMore] = useState(proofs.length > 0);
+  const moreOpen = more || missingExpositionTitle || overflow > 0;
 
   const browse = (replace: number | null) => {
     setReplacing(replace);
@@ -142,8 +144,18 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
         onPublish();
       }}
     >
+      <section className={styles.section} aria-labelledby="publish-ai">
+        <SectionLabel n={1} id="publish-ai">
+          {t("publish.section.ai")}
+        </SectionLabel>
+        <Switch name="ai_declared" value="true" checked={draft.aiDeclared} onChange={(event) => onDraft({ aiDeclared: event.target.checked })} disabled={sending} label={t("publish.ai.label")} hint={t("publish.ai.hint")} />
+      </section>
+
+      {/* Kept short: only the AI declaration is in sight; proofs, visibility and exposition are optional. */}
+      <details className={styles.more} open={moreOpen} onToggle={(event) => setMore(event.currentTarget.open)}>
+        <summary className={styles.moreSummary}>{t("publish.more")}</summary>
       <section className={styles.section} aria-labelledby="publish-proofs">
-        <SectionLabel n={1} id="publish-proofs">
+        <SectionLabel n={2} id="publish-proofs">
           {t("publish.section.proofs", { n: valid })}
         </SectionLabel>
         <ul className={styles.proofs}>
@@ -189,13 +201,6 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
             <p className={styles.gaugeHint}>{t(forecast === "ai" ? "publish.gauge.aiHint" : forecast === "expected" ? "publish.gauge.expectedHint" : "publish.gauge.shortHint")}</p>
           </div>
         </div>
-      </section>
-
-      <section className={styles.section} aria-labelledby="publish-ai">
-        <SectionLabel n={2} id="publish-ai">
-          {t("publish.section.ai")}
-        </SectionLabel>
-        <Switch name="ai_declared" value="true" checked={draft.aiDeclared} onChange={(event) => onDraft({ aiDeclared: event.target.checked })} disabled={sending} label={t("publish.ai.label")} hint={t("publish.ai.hint")} />
       </section>
 
       <section className={styles.section} aria-labelledby="publish-settings">
@@ -267,6 +272,8 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
           </Setting>
         </div>
       </section>
+
+      </details>
 
       <div className={styles.actions}>
         <p className={cx(styles.note, styles.warning)}>
