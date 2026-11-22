@@ -37,6 +37,14 @@ describe("submitWork", () => {
     expect(JSON.parse(String(form.get("proof_claims")))).toEqual([{ source: "imported" }, { source: "imported" }]);
   });
 
+  it("never declares a work AI-assisted, so the API checks every work", async () => {
+    const { api, bodies } = fakeApi();
+
+    await submitWork(api, { draft: { ...draft, aiDeclared: true }, file, imported: null, proofs }, () => {});
+
+    expect(formDataBodySerializer.bodySerializer(bodies[0]).get("ai_declared")).toBe("false");
+  });
+
   it("joins an exposition the artist already has without creating one", async () => {
     const { api, bodies } = fakeApi();
 

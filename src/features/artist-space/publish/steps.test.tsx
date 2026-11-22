@@ -178,12 +178,12 @@ describe("step 2, proofs and publication (frame R2)", () => {
     expect(html).toContain("without the badge the work cannot receive votes");
   });
 
-  it("says there is no badge and no vote once AI is declared", () => {
+  it("offers no AI declaration: every work is checked and an AI-generated one is refused", () => {
     const html = proofsStep({ draft: { ...draft, aiDeclared: true } });
 
-    expect(html).toContain('data-forecast="ai"');
-    expect(html).toContain("No badge: no votes");
-    expect(checked(html, "ai_declared")).toEqual(["true"]);
+    expect(html).not.toContain('name="ai_declared"');
+    expect(html).not.toContain('data-forecast="ai"');
+    expect(html).toContain("Only works made by humans enter KANTO.");
   });
 
   it("shows a refused file with its reason, without counting it among the five", () => {

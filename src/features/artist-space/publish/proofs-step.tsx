@@ -5,7 +5,7 @@ import { useId, useRef, useState, type ReactNode } from "react";
 import { useT } from "@/i18n/locale";
 import type { ApiError, Exposition } from "@/lib/api";
 import { IconBack } from "@/lib/ui/icons";
-import { Button, StatusBanner, Switch, UnderlinedField } from "@/lib/ui/kanto";
+import { Button, StatusBanner, UnderlinedField } from "@/lib/ui/kanto";
 import { cx } from "@/lib/ui/kanto/cx";
 import type { ProofVisibility } from "@/features/artist-space/publish-body";
 import { badgeForecast } from "./badge-forecast";
@@ -115,7 +115,7 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
 
   const valid = validProofs(proofs).length;
   const left = proofsLeft(proofs);
-  const forecast = badgeForecast({ proofs: valid, aiDeclared: draft.aiDeclared });
+  const forecast = badgeForecast({ proofs: valid, aiDeclared: false });
   const exposition = expositions.find((e) => e.id === draft.exposition);
   const expositionValue =
     draft.exposition === NEW_EXPOSITION
@@ -144,14 +144,9 @@ export function ProofsStep({ draft, onDraft, proofs, overflow, onAddProofs, onRe
         onPublish();
       }}
     >
-      <section className={styles.section} aria-labelledby="publish-ai">
-        <SectionLabel n={1} id="publish-ai">
-          {t("publish.section.ai")}
-        </SectionLabel>
-        <Switch name="ai_declared" value="true" checked={draft.aiDeclared} onChange={(event) => onDraft({ aiDeclared: event.target.checked })} disabled={sending} label={t("publish.ai.label")} hint={t("publish.ai.hint")} />
-      </section>
+      {/* KANTO accepts no AI-generated work: there is no declaration to make, the API checks the file itself. */}
+      <p className={styles.quiet}>{t("publish.noAi")}</p>
 
-      {/* Kept short: only the AI declaration is in sight; proofs, visibility and exposition are optional. */}
       <details className={styles.more} open={moreOpen} onToggle={(event) => setMore(event.currentTarget.open)}>
         <summary className={styles.moreSummary}>{t("publish.more")}</summary>
       <section className={styles.section} aria-labelledby="publish-proofs">

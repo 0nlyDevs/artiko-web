@@ -29,13 +29,16 @@ export function toPublishedWorks(
     media_hd_url?: string | null;
     poster_url?: string | null;
     story?: string | null;
+    ai_declared?: boolean;
   }[],
 ): PublishedWork[] {
   return works
     .filter(
       (work) =>
         (work.media_kind === 'image' || work.media_kind === 'model') &&
-        work.media_url !== '',
+        work.media_url !== '' &&
+        // No AI-generated work in the museum, even one published before the rule.
+        work.ai_declared !== true,
     )
     .map((work) => ({
       id: work.id,

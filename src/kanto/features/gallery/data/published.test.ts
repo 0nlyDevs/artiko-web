@@ -46,3 +46,13 @@ describe('toPublishedWorks', () => {
     expect(toPublishedWorks(answer).map((entry) => entry.id)).toEqual(['1']);
   });
 });
+
+describe('toPublishedWorks and AI', () => {
+  it('never hangs a work declared AI-assisted', () => {
+    const answer = [
+      { id: '1', title: 'A', artist_name: 'R', category: 'painting', media_kind: 'image', media_url: 'u1', ai_declared: true },
+      { id: '2', title: 'B', artist_name: 'R', category: 'painting', media_kind: 'image', media_url: 'u2', ai_declared: false },
+    ];
+    expect(toPublishedWorks(answer).map((entry) => entry.id)).toEqual(['2']);
+  });
+});

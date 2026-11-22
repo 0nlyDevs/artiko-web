@@ -35,7 +35,8 @@ export async function submitWork(api: PublishApi, { draft, file, imported, proof
     // The first step does not let an empty art form through.
     category: draft.category as PublishInput["category"],
     story: draft.story,
-    aiDeclared: draft.aiDeclared,
+    // Never declared: an AI-generated work is not accepted, and the API checks every work that is not declared.
+    aiDeclared: false,
     proofs,
     visibility: draft.visibility,
     expositionId,
