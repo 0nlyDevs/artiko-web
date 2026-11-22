@@ -19,5 +19,6 @@ function loadAsBitmap(url: string, onLoad?: (image: ImageBitmap) => void, _onPro
   fetch(url)
     .then((response) => response.blob())
     .then((blob) => createImageBitmap(blob))
-    .then((bitmap) => onLoad?.(bitmap), (error: unknown) => onError?.(error));
+    .then((bitmap) => onLoad?.(bitmap))
+    .catch((error: unknown) => onError?.(error));
 }
