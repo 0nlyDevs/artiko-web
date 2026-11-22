@@ -6,22 +6,8 @@ tasks:
   check:versions:
     desc: Fail when the active Node or pnpm differs from mise.toml, or pnpm from package.json
     run: once
-    silent: true
-    vars:
-      PINNED_NODE:
-        sh: sed -n 's/^node = "\(.*\)"$/\1/p' mise.toml
-      PINNED_PNPM:
-        sh: sed -n 's/^pnpm = "\(.*\)"$/\1/p' mise.toml
-      PACKAGE_MANAGER_PNPM:
-        sh: >-
-          sed -n 's/^  "packageManager": "pnpm@\(.*\)"$/\1/p' package.json
-    preconditions:
-      - sh: test -n "{{.PINNED_PNPM}}" && test "{{.PINNED_PNPM}}" = "{{.PACKAGE_MANAGER_PNPM}}"
-        msg: 'pnpm "{{.PINNED_PNPM}}" in mise.toml differs from packageManager "pnpm@{{.PACKAGE_MANAGER_PNPM}}" in package.json'
-      - sh: test -n "{{.PINNED_NODE}}" && test "$(node -v 2>/dev/null)" = "v{{.PINNED_NODE}}"
-        msg: 'Node {{.PINNED_NODE}} expected by mise.toml: run `mise install` and run Task from the mise environment'
-      - sh: test "$(pnpm -v 2>/dev/null)" = "{{.PINNED_PNPM}}"
-        msg: 'pnpm {{.PINNED_PNPM}} expected by mise.toml: run `mise install` and run Task from the mise environment'
+    cmds:
+      - ./scripts/check-tool-versions.sh
 
   install:
     desc: Install dependencies from the lockfile (skipped while the lockfile is unchanged)
@@ -91,16 +77,18 @@ tasks:
 
   hooks:install:
     desc: Point git at the versioned .githooks directory (gitleaks pre-commit)
-    vars:
-      CURRENT_HOOKS_PATH:
-        sh: git config --get core.hooksPath || true
-      LEGACY_PRE_COMMIT:
-        sh: echo "$(git rev-parse --git-common-dir)/hooks/pre-commit"
-    preconditions:
-      - sh: test -z "{{.CURRENT_HOOKS_PATH}}" || test "{{.CURRENT_HOOKS_PATH}}" = .githooks
-        msg: 'core.hooksPath is already "{{.CURRENT_HOOKS_PATH}}": refusing to replace it'
-      - sh: test ! -e "{{.LEGACY_PRE_COMMIT}}"
-        msg: '{{.LEGACY_PRE_COMMIT}} exists and core.hooksPath would silently bypass it: move it into .githooks/ or remove it first'
+    silent: true
     cmds:
-      - git config core.hooksPath .githooks
-      - echo "pre-commit hook installed (core.hooksPath=.githooks)"
+      - |
+        current_hooks_path="$(git config --get core.hooksPath || true)"
+        if [ -n "$current_hooks_path" ] && [ "$current_hooks_path" != .githooks ]; then
+          echo "hooks:install: core.hooksPath is already '$current_hooks_path': refusing to replace it" >&2
+          exit 1
+        fi
+        legacy_pre_commit="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+        if [ -e "$legacy_pre_commit" ]; then
+          echo "hooks:install: $legacy_pre_commit exists and core.hooksPath would silently bypass it: move it into .githooks/ or remove it first" >&2
+          exit 1
+        fi
+        git config core.hooksPath .githooks
+        echo "pre-commit hook installed (core.hooksPath=.githooks)"
