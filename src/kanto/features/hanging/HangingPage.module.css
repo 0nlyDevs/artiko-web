@@ -747,36 +747,36 @@
 }
 
 /* Hall buttons on the dark wall: paper fill for the main one, paper outline for the other. */
-.actions a.primary,
-.actions a.secondary {
+.actions :is(a, button).primary,
+.actions :is(a, button).secondary {
   height: max(46px, calc(52 * var(--u)));
   padding: 0 max(18px, calc(24 * var(--u)));
   font-size: max(12px, calc(14 * var(--u)));
 }
 
-.actions a.primary {
+.actions :is(a, button).primary {
   color: var(--color-ink);
   background: var(--color-paper);
   border-color: var(--color-paper);
 }
 
-.actions a.primary:hover {
+.actions :is(a, button).primary:hover {
   background: var(--color-gold);
   border-color: var(--color-gold);
 }
 
 /* The arrow of the button is drawn in paper: ink on this fill. */
-.actions a.primary img {
+.actions :is(a, button).primary img {
   filter: invert(1);
 }
 
-.actions a.secondary {
+.actions :is(a, button).secondary {
   color: var(--color-paper);
   background: rgb(0 0 0 / 0.2);
   border-color: var(--color-paper-40);
 }
 
-.actions a.secondary:hover {
+.actions :is(a, button).secondary:hover {
   background: var(--color-paper-16);
   border-color: var(--color-paper);
 }
@@ -788,14 +788,24 @@
   line-height: 1.4;
 }
 
-.more a {
+.more :is(a, button) {
   color: var(--color-paper-70);
   text-underline-offset: 4px;
   border-radius: var(--radius-button);
   transition: color var(--duration-base) var(--ease-out);
 }
 
-.more a:hover {
+/* A way out that stays on the page is a button, drawn like the link beside it. */
+.more button {
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.more :is(a, button):hover {
   color: var(--color-paper);
 }
 
@@ -977,8 +987,8 @@
     width: 100%;
   }
 
-  .actions a.primary,
-  .actions a.secondary {
+  .actions :is(a, button).primary,
+  .actions :is(a, button).secondary {
     width: 100%;
     height: max(44px, calc(48 * var(--u)));
     font-size: 13px;
@@ -1022,8 +1032,8 @@
     gap: var(--space-8);
   }
 
-  .actions a.primary,
-  .actions a.secondary {
+  .actions :is(a, button).primary,
+  .actions :is(a, button).secondary {
     height: 38px;
     padding: 0 var(--space-14);
     font-size: 11px;

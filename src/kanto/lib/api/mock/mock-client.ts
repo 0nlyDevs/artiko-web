@@ -9,6 +9,7 @@ import type {
   ItemMedia,
   ItemVerification,
   MediaKind,
+  Medium,
   Model3dDisplay,
   ProvenanceRecord,
   PublicationStatus,
@@ -23,6 +24,9 @@ import { seedMockState } from './fixtures';
 import { storeImage } from './images';
 import type { MockAccount, MockState } from './storage';
 import { clearMockState, loadMockState, saveMockState } from './storage';
+
+/** The art forms a submission may name. */
+const MEDIUMS: readonly Medium[] = ['painting', 'sculpture', 'craft', 'music'];
 
 /*
  * In-browser implementation of the API for the hackathon demo. State lives in
@@ -883,7 +887,9 @@ export function createMockClient(
       async submit(id) {
         await delay();
         sync();
-        const { item } = requireOwnItem(id);
+        const { item, account } = requireOwnItem(id);
+        // The short form asks only the title, the art form, one photograph or
+        // a ready 3D model, and the one consent. The rest has defaults.
         const details: { field: string; reason: string }[] = [];
         if (item.title.trim() === '') {
           details.push({
@@ -891,10 +897,10 @@ export function createMockClient(
             reason: 'Donnez un titre à votre œuvre, même provisoire.',
           });
         }
-        if (item.author.trim() === '') {
+        if (!MEDIUMS.includes(item.medium)) {
           details.push({
-            field: 'author',
-            reason: 'Indiquez l’artiste ou l’atelier.',
+            field: 'medium',
+            reason: 'Choisissez une forme d’art.',
           });
         }
         // A scanned 3D model shows the work by itself: no photograph is needed then.
@@ -909,20 +915,23 @@ export function createMockClient(
             reason: 'Ajoutez une photographie ou un modèle 3D.',
           });
         }
-        if (item.rights.relationship === null) {
-          details.push({
-            field: 'relationship',
-            reason: 'Précisez votre lien avec l’œuvre.',
-          });
-        }
         if (!item.rights.consentShare || !item.rights.consentDisplay) {
           details.push({
             field: 'consent',
-            reason: 'Les deux consentements sont nécessaires.',
+            reason: 'Cochez la case pour envoyer votre œuvre.',
           });
         }
         if (details.length > 0) {
           fail(400, 'VALIDATION_FAILED', 'La fiche est incomplète.', details);
+        }
+        if (item.author.trim() === '') {
+          item.author = account.displayName;
+        }
+        if (item.rights.relationship === null) {
+          item.rights = { ...item.rights, relationship: 'author' };
+        }
+        if (item.rights.holder.trim() === '') {
+          item.rights = { ...item.rights, holder: item.author };
         }
         item.review = {
           ...item.review,

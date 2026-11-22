@@ -1,0 +1,294 @@
+/*
+ * The account pages in the KANTO direction (Figma frame R9, 182:1105): the wordmark, an eyebrow and a
+ * display headline on the left, the form on the right under two text tabs, its actions at the foot.
+ * The team's structure stays: no app navigation, a way back, the three languages, a clip of hands
+ * making art (hung here in the dark wood frame of the museum), two columns from 1024 px.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+  background: var(--color-wall-ivory);
+}
+
+.bar {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  min-height: var(--app-bar-height, 56px);
+  padding: 0 var(--app-gutter, 16px);
+}
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.back {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.back:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Phones: the arrow alone, its text kept for screen readers. */
+.backText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-areas:
+    'intro'
+    'form'
+    'picture';
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space-32);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-24) var(--app-gutter, 16px) var(--space-40);
+}
+
+/* Left column: eyebrow, headline, lede. */
+.intro {
+  grid-area: intro;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-24);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 12vw, 64px);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  white-space: pre-line;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+/* The lede and the three promises are for wider screens, as before. */
+.lede,
+.points {
+  display: none;
+}
+
+.lede {
+  max-width: 46ch;
+  margin: var(--space-24) 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-60);
+}
+
+.points {
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 46ch;
+  padding: 0;
+  margin: var(--space-20) 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink);
+  list-style: none;
+}
+
+.points li {
+  display: flex;
+  gap: var(--space-10);
+  align-items: baseline;
+}
+
+.points li::before {
+  flex: none;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+  content: '✓';
+}
+
+/* Right column: the tabs, then the form of the page. */
+.form {
+  display: flex;
+  flex-direction: column;
+  grid-area: form;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.doors {
+  display: flex;
+  gap: var(--space-24);
+  align-items: flex-end;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.door {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  margin-bottom: -1px;
+  font-size: 15px;
+  color: var(--color-ink-60);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.door:hover {
+  color: var(--color-ink);
+}
+
+/* The open door is written in the italic serif of the frame, on an ink line. */
+.door[aria-current='page'] {
+  font-family: var(--font-serif-italic);
+  font-size: 22px;
+  font-style: italic;
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink);
+}
+
+/* The clip, hung as a work of the museum, with its credit as a cartel line. */
+.picture {
+  display: flex;
+  flex-direction: column;
+  grid-area: picture;
+  gap: var(--space-10);
+  margin: 0;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.clip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--color-media-missing);
+}
+
+.credits {
+  align-self: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+  text-decoration: none;
+}
+
+.credits:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.foot {
+  padding: 0 var(--app-gutter, 16px) var(--space-24);
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+@media (min-width: 640px) {
+  .backText {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .headline {
+    font-size: clamp(56px, 9vw, 76px);
+  }
+
+  .lede {
+    display: block;
+  }
+
+  .points {
+    display: flex;
+  }
+
+  .picture {
+    max-width: 480px;
+  }
+}
+
+/* Two columns, as the frame: the form fills the height and keeps its actions at the foot. */
+@media (min-width: 1024px) {
+  .bar {
+    gap: var(--space-32);
+  }
+
+  .body {
+    grid-template-areas:
+      'intro form'
+      'picture form';
+    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    row-gap: var(--space-40);
+    column-gap: clamp(var(--space-32), 5vw, 80px);
+    padding-top: var(--space-56);
+    padding-bottom: var(--space-40);
+  }
+
+  .headline {
+    font-size: clamp(60px, 5.6vw, 84px);
+    line-height: 0.9;
+  }
+
+  .picture {
+    align-self: end;
+    max-width: 340px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .door {
+    transition: none;
+  }
+}

@@ -8,6 +8,8 @@ import {
   markAppLoaded,
   useOpeningPhase,
 } from './features/opening/opening-store';
+import { MuseumPlanFeed } from './lib/museum-data/MuseumPlanFeed';
+import type { MuseumPlan } from './lib/museum-data/plan';
 
 /*
  * The KANTO app renders in the browser only: its router reads
@@ -30,7 +32,15 @@ if (typeof window !== 'undefined') {
   beginOpening(window.location.pathname);
 }
 
-export function KantoShell() {
+export interface KantoShellProps {
+  /**
+   * The museum plan read by the server from the real API, still on its way:
+   * the shell renders at once and the plan fills in when the answer arrives.
+   */
+  museumPlan?: Promise<MuseumPlan> | undefined;
+}
+
+export function KantoShell({ museumPlan }: KantoShellProps) {
   const appRef = useRef<HTMLDivElement>(null);
   const phase = useOpeningPhase();
   // Under the ivory cover the app is not reachable, by keyboard or otherwise.
@@ -40,6 +50,7 @@ export function KantoShell() {
     <>
       {/* Outside the dynamic boundary: the opening is in the server HTML and stays mounted when the App chunk arrives. */}
       <Opening appRef={appRef} />
+      {museumPlan !== undefined && <MuseumPlanFeed plan={museumPlan} />}
       <div id="root" ref={appRef} inert={covered}>
         <App />
       </div>

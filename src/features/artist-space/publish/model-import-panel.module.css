@@ -1,0 +1,117 @@
+/*
+ * The 3D import inside the publication (frame R1 draws an image only): its steps as the tracker of the kit,
+ * its refusals as an error band, then the preview with the weight of the three files it prepared.
+ */
+.progress,
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+/* The viewer is as tall as it is wide: kept to the width it had in the form, not the whole column. */
+.preview {
+  max-width: 440px;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-line-soft);
+}
+
+.steps li {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  min-height: 40px;
+  padding: var(--space-8) 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--color-ink-40);
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+/* The dot of each step: hollow while it waits, brass while it runs, ink once done. */
+.steps li::before {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  content: '';
+  border: 1.5px solid var(--color-line);
+  border-radius: 50%;
+}
+
+.steps li[data-progress='done'] {
+  color: var(--color-ink);
+}
+
+.steps li[data-progress='done']::before {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.steps li[data-progress='current'] {
+  font-family: var(--font-serif-italic);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+.steps li[data-progress='current']::before {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.error {
+  padding: var(--space-10) var(--space-16);
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-error);
+  background: var(--color-error-tint);
+  border-left: 2px solid var(--color-error);
+}
+
+.sizes {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-24);
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.sizeRow {
+  display: contents;
+}
+
+.sizes dt,
+.sizes dd {
+  padding: var(--space-8) 0;
+  margin: 0;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.sizes dt {
+  color: var(--color-ink-60);
+}
+
+.sizes dd {
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

@@ -1,198 +1,177 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/locale";
+import { ScanAnswer } from "@/features/scan/scan-answer";
+import { canRetry, refuseFile, retryWait, SCAN_ACCEPT, scanErrorKey, type FileRefusal } from "@/features/scan/scan-logic";
+import { useCountdown } from "@/features/scan/use-countdown";
+import { useTouchScreen } from "@/features/scan/use-touch-screen";
 import { ApiError, scanImage, unwrap, type ScanResult } from "@/lib/api";
-import { apiErrorText } from "@/lib/api-messages";
-import { IconCamera, IconSeal, IconUpload } from "@/lib/ui/icons";
+import { IconCamera } from "@/lib/ui/icons";
+import { Button, DropZone, StatusBanner } from "@/lib/ui/kanto";
+import styles from "./scan.module.css";
 
-const BADGE: Record<ScanResult["status"], string> = {
-  human_proven: "bg-ink text-white",
-  artiko_work: "bg-surface text-ink",
-  known_work: "bg-surface text-ink",
-  ai_made: "bg-[#FBE9E3] text-[#8E3524]",
-  unknown: "bg-surface text-ink",
-};
+// A failed check keeps the API's error, translated on render; any other failure is stored as null and translated too.
+type State = { step: "idle" } | { step: "checking" } | { step: "answer"; result: ScanResult } | { step: "failed"; error: ApiError | null };
 
 export function ScanForm() {
   const { t } = useT();
-  const input = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  // A failed check keeps the API's error, translated on render (api-messages.ts); any other failure is stored as null and translated too.
-  const [state, setState] = useState<"idle" | "checking" | ScanResult | { error: ApiError | null }>("idle");
+  const chooser = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const sending = useRef(false);
+  const [photo, setPhoto] = useState<{ file: File; url: string } | null>(null);
+  const [refusal, setRefusal] = useState<FileRefusal | null>(null);
+  const [state, setState] = useState<State>({ step: "idle" });
+  const { left, start } = useCountdown();
+  // On a touch screen the zone opens the photo library and a second button the camera; elsewhere a photo is dropped or chosen.
+  const touch = useTouchScreen();
+  const checking = state.step === "checking";
+  // Nothing is sent during a check or while the API asks to wait: one call at a time.
+  const locked = checking || left > 0;
 
   // The previous preview's object URL is released when a new photo replaces it.
-  useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
+  const url = photo?.url;
+  useEffect(() => () => void (url && URL.revokeObjectURL(url)), [url]);
 
-  async function check(file: File) {
-    setPreview(URL.createObjectURL(file));
-    setState("checking");
+  async function send(file: File) {
+    if (sending.current) return;
+    sending.current = true;
+    setState({ step: "checking" });
     try {
-      setState(unwrap(await scanImage({ body: { file } })));
+      setState({ step: "answer", result: unwrap(await scanImage({ body: { file } })) });
     } catch (e) {
-      setState({ error: e instanceof ApiError ? e : null });
+      const error = e instanceof ApiError ? e : null;
+      const wait = retryWait(error);
+      if (wait !== null) start(wait);
+      setState({ step: "failed", error });
+    } finally {
+      sending.current = false;
     }
   }
 
+  /** A chosen, dropped or shot file: checked here first (type, 5 MB), then sent. */
+  function take(file: File | undefined) {
+    if (!file || locked) return;
+    const refused = refuseFile(file);
+    setRefusal(refused);
+    if (refused) return;
+    setPhoto({ file, url: URL.createObjectURL(file) });
+    void send(file);
+  }
+
+  const refusalText = refusal ? t(scanErrorKey(refusal) ?? "scan.failed") : undefined;
+  const failure = state.step === "failed" ? state : null;
+  const limited = failure !== null && retryWait(failure.error) !== null;
+
   return (
-    <div className="flex flex-col gap-8 md:flex-row md:items-start">
-      <div className="flex flex-col gap-3 md:max-w-[460px] md:flex-1">
-        <label htmlFor="photo" className="font-semibold">
+    <div className={styles.bench}>
+      <section className={styles.step} role="group" aria-labelledby="scan-photo" aria-describedby="scan-photo-help">
+        <h2 id="scan-photo" className={styles.sectionLabel}>
+          <span aria-hidden="true">01 — </span>
           {t("scan.photo")}
-        </label>
-        <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-surface">
-          {preview ? (
-            // A local object URL: next/image cannot optimise it.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt={t("scan.previewAlt")} className="size-full object-cover" />
-          ) : (
-            <button
-              type="button"
-              onClick={() => input.current?.click()}
-              className="flex size-full flex-col items-center justify-center gap-3 p-6 text-center transition-colors hover:bg-[var(--surface-hover)]"
-            >
-              <IconUpload size={32} strokeWidth={1.6} />
-              <span className="font-semibold">{t("scan.choose")}</span>
-            </button>
-          )}
-          {state === "checking" && (
-            <span aria-hidden="true" className="absolute inset-0 overflow-hidden bg-ink/30">
-              <span className="scan-sweep" />
-              <span className="absolute top-4 left-4 size-7 rounded-tl-md border-t-[3px] border-l-[3px] border-white" />
-              <span className="absolute top-4 right-4 size-7 rounded-tr-md border-t-[3px] border-r-[3px] border-white" />
-              <span className="absolute bottom-4 left-4 size-7 rounded-bl-md border-b-[3px] border-l-[3px] border-white" />
-              <span className="absolute right-4 bottom-4 size-7 rounded-br-md border-r-[3px] border-b-[3px] border-white" />
-            </span>
-          )}
-          {preview && state !== "checking" && (
-            <button
-              type="button"
-              onClick={() => input.current?.click()}
-              className="absolute right-3 bottom-3 inline-flex h-10 items-center gap-2 rounded-full bg-white/95 px-4 text-sm font-semibold"
-            >
-              <IconCamera size={18} strokeWidth={2} />
-              {t("scan.change")}
-            </button>
-          )}
-        </div>
-        <input
-          ref={input}
-          id="photo"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          capture="environment"
-          aria-describedby="photo-help"
-          onChange={(e) => e.target.files?.[0] && check(e.target.files[0])}
-          className="sr-only"
-        />
-        <p id="photo-help" className="text-sm text-muted">
-          {t("scan.photoHelp")}
-        </p>
-      </div>
+        </h2>
 
-      <div aria-live="polite" className="min-w-0 md:flex-1">
-        {state === "idle" && <p className="rounded-md bg-surface p-6 text-muted">{t("scan.waiting")}</p>}
-        {state === "checking" && (
-          <div aria-busy="true" className="flex flex-col gap-3.5">
-            <span className="sr-only">{t("scan.checking")}</span>
-            <div className="skel h-9 w-56 rounded-full" />
-            <div className="flex items-center gap-4">
-              <div className="skel h-[140px] w-28" />
-              <div className="flex flex-1 flex-col gap-2.5">
-                <div className="skel h-6 w-3/4" />
-                <div className="skel h-3.5 w-1/2" />
-                <div className="skel h-3.5 w-3/5" />
-              </div>
-            </div>
-          </div>
-        )}
-        {typeof state === "object" && "error" in state && (
-          <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
-            {state.error ? apiErrorText(state.error, t) : t("scan.failed")}
-          </p>
-        )}
-        {typeof state === "object" && "status" in state && <Answer result={state} />}
-      </div>
-    </div>
-  );
-}
-
-function Answer({ result }: { result: ScanResult }) {
-  const { t } = useT();
-  return (
-    <div className="rise flex flex-col gap-5">
-      <p className={`inline-flex min-h-9 items-center gap-2 self-start rounded-full px-3.5 py-1.5 font-bold ${BADGE[result.status]}`}>
-        <IconSeal size={18} strokeWidth={2.2} />
-        {t(`scan.${result.status}`)}
-      </p>
-
-      {result.work && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            {result.work.media_kind === "image" && (
-              <span className="relative block h-[140px] w-28 shrink-0 overflow-hidden rounded-md bg-surface">
-                <Image src={result.work.media_url} alt={t("work.alt", { title: result.work.title, artist: result.work.artist_name })} fill sizes="112px" className="object-cover" />
+        {photo ? (
+          <figure className={styles.photo}>
+            <Image src={photo.url} alt={t("scan.previewAlt")} fill unoptimized className={styles.photoImage} />
+            {checking && (
+              <span aria-hidden="true" className={styles.sweep}>
+                <span className="scan-sweep" />
+                <span className={`${styles.corner} ${styles.topLeft}`} />
+                <span className={`${styles.corner} ${styles.topRight}`} />
+                <span className={`${styles.corner} ${styles.bottomLeft}`} />
+                <span className={`${styles.corner} ${styles.bottomRight}`} />
               </span>
             )}
-            <div className="flex min-w-0 flex-col gap-1">
-              <Link href={`/works/${result.work.id}`} className="text-[28px] leading-[1.05] font-extrabold tracking-[-0.04em] hover:underline">
-                {result.work.title}
-              </Link>
-              <p>{t("scan.by", { artist: result.work.artist_name })}</p>
-              <p className="text-sm text-muted">{t("scan.confidence", { percent: Math.round(result.confidence * 100) })}</p>
-            </div>
+          </figure>
+        ) : (
+          <DropZone title={t(touch ? "scan.choose" : "scan.drop")} accept={SCAN_ACCEPT} disabled={locked} error={refusalText} onFiles={(files) => take(files[0])} />
+        )}
+        {photo && refusalText && <StatusBanner tone="error">{refusalText}</StatusBanner>}
+
+        <p id="scan-photo-help" className={styles.help}>
+          {t("scan.photoHelp")}
+        </p>
+
+        {(photo || touch) && (
+          <div className={styles.actions}>
+            {photo && (
+              <Button variant="secondary" size="small" disabled={locked} onClick={() => chooser.current?.click()}>
+                {t("scan.change")}
+              </Button>
+            )}
+            {touch && (
+              <Button variant="secondary" size="small" disabled={locked} className={styles.shoot} onClick={() => camera.current?.click()}>
+                <IconCamera size={16} />
+                {t("scan.take")}
+              </Button>
+            )}
           </div>
-          <Link href={`/artists/${result.work.artist_id}`} className="btn btn-soft self-start">
-            {t("scan.visit", { artist: result.work.artist_name })}
-          </Link>
-        </div>
-      )}
+        )}
 
-      {result.known && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <span className="relative block h-[140px] w-28 shrink-0 overflow-hidden rounded-md bg-surface">
-              <Image src={result.known.image_url} alt={result.known.title} fill sizes="112px" className="object-contain" />
-            </span>
-            <div className="flex min-w-0 flex-col gap-1">
-              <p className="text-[28px] leading-[1.05] font-extrabold tracking-[-0.04em]">{result.known.title}</p>
-              <p>
-                {result.known.artist_name}, {result.known.date}. {result.known.museum}.
-              </p>
-              <p className="text-sm text-muted">{t("scan.confidence", { percent: Math.round(result.confidence * 100) })}</p>
+        {/* Emptied after each choice, so choosing the same file again checks it again. */}
+        <input
+          ref={chooser}
+          type="file"
+          accept={SCAN_ACCEPT}
+          hidden
+          onChange={(e) => {
+            take(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        <input
+          ref={camera}
+          type="file"
+          accept={SCAN_ACCEPT}
+          capture="environment"
+          hidden
+          onChange={(e) => {
+            take(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      </section>
+
+      <section className={styles.step} aria-labelledby="scan-answer">
+        <h2 id="scan-answer" className={styles.sectionLabel}>
+          <span aria-hidden="true">02 — </span>
+          {t("scan.answer")}
+        </h2>
+        <div aria-live="polite" className={styles.answer}>
+          {state.step === "idle" && <p className={styles.waiting}>{t("scan.waiting")}</p>}
+          {checking && (
+            <div aria-busy="true" className={styles.skeleton}>
+              <span className="visually-hidden">{t("scan.checking")}</span>
+              <div className={`skel ${styles.skelLabel}`} />
+              <div className={styles.skelFound}>
+                <div className={`skel ${styles.skelThumb}`} />
+                <div className={styles.skelLines}>
+                  <div className={`skel ${styles.skelTitle}`} />
+                  <div className={`skel ${styles.skelLine}`} />
+                  <div className={`skel ${styles.skelLine}`} />
+                </div>
+              </div>
             </div>
-          </div>
-          <p className="rounded-md bg-surface px-4 py-3.5">{t("scan.knownNote")}</p>
+          )}
+          {failure && (
+            <>
+              <StatusBanner tone="error">
+                {limited ? t("scan.rateLimited") : failure.error ? t(scanErrorKey(failure.error.code) ?? "scan.failed") : t("scan.failed")}
+                {/* The seconds tick without being read out one by one; the end of the wait is announced. */}
+                {limited && (left > 0 ? <span role="timer" className={styles.timer}>{t("scan.retryIn", { seconds: left })}</span> : <span className={styles.timer}>{t("scan.retryNow")}</span>)}
+              </StatusBanner>
+              {photo && canRetry(failure.error) && (
+                <Button size="small" disabled={locked} className={styles.retry} onClick={() => void send(photo.file)}>
+                  {t("error.retry")}
+                </Button>
+              )}
+            </>
+          )}
+          {state.step === "answer" && <ScanAnswer result={state.result} />}
         </div>
-      )}
-
-      {result.status === "ai_made" && <p className="max-w-[52ch] leading-relaxed">{t("scan.aiNote")}</p>}
-
-      {result.status === "unknown" && (
-        <>
-          <p className="max-w-[52ch] leading-relaxed">{t("scan.noMatch")}</p>
-          <Link href="/me?tab=publish" className="btn btn-ink self-start">
-            {t("explore.publish")}
-          </Link>
-        </>
-      )}
-
-      {result.sources.length > 0 && (
-        <div className="border-t border-line pt-4">
-          <h3 className="mb-2 text-[13px] font-bold text-muted">{t("scan.sources")}</h3>
-          <ul className="flex flex-col gap-1.5">
-            {result.sources.map((s) => (
-              <li key={s.url + s.label}>
-                <a href={s.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      </section>
     </div>
   );
 }

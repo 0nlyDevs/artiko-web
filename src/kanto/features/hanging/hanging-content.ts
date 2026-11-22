@@ -63,7 +63,10 @@ export interface HangingSources {
 }
 
 export interface HangingCartel {
+  /** The deposit number of a museum item, shown as « N° … ». */
   number: string;
+  /** Replaces the deposit number line, for a work that has none: its fingerprint, for example. */
+  reference?: string | undefined;
   title: string;
   author: string;
   medium: string;

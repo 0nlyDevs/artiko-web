@@ -9,7 +9,7 @@ import { ButtonLink, Cartel, PantheonFrame } from "@/lib/ui/kanto";
 import { categoryLabel } from "@/lib/works/category-label";
 import styles from "./hall-of-fame.module.css";
 import { MyVoteNote } from "./my-vote";
-import { FRAMES, hang, worksHref } from "./room";
+import { FRAMES, hang, worksLink, type WorksLink } from "./room";
 
 const KIND = { audio: "work.kind.audio", video: "work.kind.video", model: "work.kind.model" } as const;
 
@@ -20,11 +20,11 @@ const SIZES = {
 };
 
 /** What shows through the opening of a gilded frame: the picture, the still of a 3D work, or the kind of the work in words. */
-function FramedWork({ work, sizes, priority }: { work: Work; sizes: string; priority?: boolean }) {
+function FramedWork({ work, sizes, preload }: { work: Work; sizes: string; preload?: boolean }) {
   const { t } = useT();
   const alt = t("work.alt", { title: work.title, artist: work.artist_name });
-  if (work.media_kind === "image") return <Image src={work.media_url} alt={alt} fill sizes={sizes} priority={priority} />;
-  if (work.media_kind === "model" && work.poster_url) return <Image src={work.poster_url} alt={alt} fill sizes={sizes} priority={priority} />;
+  if (work.media_kind === "image") return <Image src={work.media_url} alt={alt} fill sizes={sizes} preload={preload} />;
+  if (work.media_kind === "model" && work.poster_url) return <Image src={work.poster_url} alt={alt} fill sizes={sizes} preload={preload} />;
   return <span className={styles.kind}>{t(KIND[work.media_kind])}</span>;
 }
 
@@ -60,7 +60,7 @@ export function HonourWall({ entries, category, month, current }: { entries: Hal
             <Link href={`/works/${work.id}`} className={styles.entry}>
               <div className={styles.hang}>
                 <PantheonFrame sizes={size.frame}>
-                  <FramedWork work={work} sizes={size.work} priority={rank === 1} />
+                  <FramedWork work={work} sizes={size.work} preload={rank === 1} />
                 </PantheonFrame>
               </div>
               {rank === 1 ? (
@@ -95,10 +95,10 @@ export function HonourWall({ entries, category, month, current }: { entries: Hal
   );
 }
 
-/** No entry at all: the lights are off, the frames wait, and a link opens the works of the month. */
-export function DarkRoom({ month, current, works }: { month: string; current: boolean; works: string | null }) {
+/** No entry at all: the lights are off, the frames wait, and a button opens the works that can still be voted for or seen. */
+export function DarkRoom({ month, works }: { month: string; works: WorksLink }) {
   const { t, locale } = useT();
-  const shownMonth = monthLabel(month, locale);
+  const current = works.scope === "current";
   return (
     <div className={styles.dark} data-dark="true">
       <div className={styles.wall} aria-hidden="true">
@@ -111,46 +111,46 @@ export function DarkRoom({ month, current, works }: { month: string; current: bo
         ))}
       </div>
       <div className={styles.darkNote}>
-        <p className={styles.darkTitle}>{current ? t("hall.dark.title") : t("hall.dark.past", { month: shownMonth })}</p>
+        <p className={styles.darkTitle}>{current ? t("hall.dark.title") : t("hall.dark.past", { month: monthLabel(month, locale) })}</p>
         {current && <p className={styles.darkHint}>{t("hall.dark.hint")}</p>}
-        {works && <WorksLink href={works} current={current} month={shownMonth} />}
+        <WorksButton works={works} month={month} />
       </div>
     </div>
   );
 }
 
-function WorksLink({ href, current, month }: { href: string; current: boolean; month: string }) {
-  const { t } = useT();
+/**
+ * The button to Explore. A room of the last twelve months opens the works of its month; an older room opens
+ * every work of its art form, under the words of the team's page (« Explorer et voter »).
+ */
+function WorksButton({ works, month }: { works: WorksLink; month: string }) {
+  const { t, locale } = useT();
+  const label = { current: t("hall.worksThisMonth"), month: t("hall.worksOfMonth", { month: monthLabel(month, locale) }), all: t("menu.explore") }[works.scope];
   return (
-    <ButtonLink href={href} withArrow className={styles.worksLink}>
-      {current ? t("hall.worksThisMonth") : t("hall.worksOfMonth", { month })}
+    <ButtonLink href={works.href} withArrow className={styles.worksLink}>
+      {label}
     </ButtonLink>
   );
 }
 
-/**
- * What a ranking puts in the room: the wall and the right of the bottom bar, or the dark room when the
- * API sent no entry. `now` is the current contest month, read on the server at request time.
- */
-export function RoomWall({ entries, category, month, now }: { entries: HallOfFameEntry[]; category: { id: string; label?: string }; month: string; now: string }) {
-  const current = month === now;
-  const works = worksHref(category.id, month, now);
-  if (entries.length === 0) return <DarkRoom month={month} current={current} works={works} />;
-  return (
-    <>
-      <HonourWall entries={entries} category={category} month={month} current={current} />
-      <RoomAside entries={entries} category={category.id} month={month} current={current} works={works} />
-    </>
-  );
+type RoomProps = { entries: HallOfFameEntry[]; category: { id: string; label?: string }; month: string; now: string };
+
+/** What a ranking hangs in the room: the wall, or the dark room when the API sent no entry. `now` is the current contest month, read on the server at request time. */
+export function RoomWall({ entries, category, month, now }: RoomProps) {
+  if (entries.length === 0) return <DarkRoom month={month} works={worksLink(category.id, month, now)} />;
+  return <HonourWall entries={entries} category={category} month={month} current={month === now} />;
 }
 
-/** The right of the bottom bar: the visitor's own vote in this room, and the way to the works of the month. */
-function RoomAside({ entries, category, month, current, works }: { entries: HallOfFameEntry[]; category: string; month: string; current: boolean; works: string | null }) {
-  const { locale } = useT();
+/**
+ * The right of the bottom bar, after the art forms: the visitor's own vote in this room, then the button to Explore.
+ * The dark room has its button under its sentence, so nothing is drawn here.
+ */
+export function RoomAside({ entries, category, month, now }: RoomProps) {
+  if (entries.length === 0) return null;
   return (
     <div className={styles.aside}>
-      <MyVoteNote category={category} month={month} entries={entries} />
-      {works && <WorksLink href={works} current={current} month={monthLabel(month, locale)} />}
+      <MyVoteNote category={category.id} month={month} entries={entries} />
+      <WorksButton works={worksLink(category.id, month, now)} month={month} />
     </div>
   );
 }

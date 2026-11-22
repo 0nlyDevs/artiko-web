@@ -1,26 +1,38 @@
-/* Figma A3 (138:800): the museum plan over the darkened room. */
+/* Figma R8 (182:1008): the museum plan over the darkened room. */
 .plan {
+  /* The hairlines of the frame, between the two paper tints of the tokens. */
+  --plan-line: color-mix(in srgb, var(--color-paper) 28%, transparent);
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-32);
   width: 100%;
-  max-width: 1120px;
   height: 100%;
-  margin: 0 auto;
-  padding: calc(30 * var(--u)) clamp(var(--space-20), 5vw, 56px) var(--space-40);
+  padding: calc(30 * var(--u)) max(var(--space-20), calc(40 * var(--u)))
+    var(--space-40);
   overflow: auto;
   color: var(--color-paper);
 }
 
+.column {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* The close button sits in the corner of the screen, where the room keeps its own controls. */
 .bar {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: flex-end;
   min-height: 44px;
 }
 
 .title {
-  margin: 0;
+  margin: clamp(var(--space-24), 8dvh, 74px) 0 36px;
   font-family: var(--font-condensed);
   font-size: clamp(40px, 5vw, 64px);
   font-weight: 400;
@@ -29,74 +41,118 @@
   text-transform: uppercase;
 }
 
+/* Two rows of four; the cards of a row share their side borders. */
 .rooms {
   display: grid;
+  flex: none;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 12px;
   margin: 0;
-  padding: 0;
+  padding: 0 1px 0 0;
   list-style: none;
-  border: 1px solid var(--color-paper-16);
 }
 
 .room {
-  min-height: 300px;
-  border-right: 1px solid var(--color-paper-16);
-}
-
-.room:last-child {
-  border-right: 0;
+  display: flex;
+  margin-right: -1px;
 }
 
 .card {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--space-6);
-  height: 100%;
-  padding: var(--space-24);
+  min-width: 0;
+  min-height: 150px;
+  padding: 22px var(--space-24) 18px;
   color: inherit;
   text-decoration: none;
-  border-top: 3px solid var(--room-tone);
+  border: 1px solid var(--plan-line);
+  border-top: 5px solid var(--room-tone, var(--color-paper-40));
   transition: background-color var(--duration-base) var(--ease-out);
 }
 
-.card:hover,
-.card:focus-visible {
+/* The rule of each art form, read on the frame. A category the contract adds later keeps the neutral rule. */
+.card[data-room='painting'] {
+  --room-tone: #6e1c17;
+}
+
+.card[data-room='sculpture'] {
+  --room-tone: #1a3d63;
+}
+
+.card[data-room='photography'] {
+  --room-tone: var(--color-gold);
+}
+
+.card[data-room='music'] {
+  --room-tone: #1d3a2c;
+}
+
+.card[data-room='dance'] {
+  --room-tone: #9c4331;
+}
+
+.card[data-room='oral_arts'] {
+  --room-tone: #5b3f8c;
+}
+
+.card[data-room='crafts'] {
+  --room-tone: #6e3b1e;
+}
+
+.card[data-room='digital'] {
+  --room-tone: #78848e;
+}
+
+a.card:hover,
+a.card:focus-visible {
+  z-index: 1;
   background: var(--color-paper-16);
 }
 
 .card[aria-current='page'] {
-  background: rgb(0 0 0 / 0.35);
-  outline: 1px solid var(--color-paper-40);
-  outline-offset: -1px;
+  z-index: 1;
+  background: rgb(240 236 228 / 0.08);
+  border-right-color: var(--color-paper-95);
+  border-bottom-color: var(--color-paper-95);
+  border-left-color: var(--color-paper-95);
 }
 
 .number {
   font-family: var(--font-text);
   font-size: 10px;
   font-weight: var(--font-weight-bold);
+  line-height: 1.2;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-paper-70);
 }
 
 .name {
+  margin-top: var(--space-2);
   font-family: var(--font-serif-italic);
-  font-size: 32px;
+  font-size: 30px;
   font-style: italic;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
-.count {
+.text {
   font-family: var(--font-text);
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.3;
   color: var(--color-paper-70);
 }
 
-.enter {
+.status {
   margin-top: auto;
+  padding-top: var(--space-10);
   font-family: var(--font-text);
   font-size: 11px;
   font-weight: var(--font-weight-bold);
+  line-height: 1.3;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -106,24 +162,114 @@
 }
 
 .here::before {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
   margin-right: var(--space-8);
-  content: '●';
+  content: '';
+  background: currentcolor;
+  border-radius: 50%;
 }
 
-.entrance {
+.hanging {
+  color: var(--color-paper-40);
+}
+
+/* A margin, not a space: the pills are flex boxes and would drop it. */
+.arrow {
+  margin-left: 0.45em;
+}
+
+.entrance,
+.eyebrow {
   margin: 0;
   font-family: var(--font-text);
   font-size: 10px;
   font-weight: var(--font-weight-bold);
+  line-height: 1.3;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-paper-70);
 }
 
-.actions {
+.entrance {
+  margin-top: 28px;
+}
+
+.notice {
+  max-width: 62ch;
+  margin: var(--space-14) 0 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-gold);
+}
+
+.artistsBlock {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.artists {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-paper);
+  text-decoration: none;
+  white-space: nowrap;
+  background: var(--color-glass-wine);
+  border: 1px solid var(--plan-line);
+  border-radius: var(--radius-pill);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.chip {
+  height: 38px;
+  padding: 0 var(--space-16);
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+
+.chipAll {
+  font-weight: var(--font-weight-bold);
+}
+
+.pill {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+  border-color: var(--color-paper-16);
+}
+
+.chip:hover,
+.pill:hover {
+  border-color: var(--color-paper-95);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
   gap: var(--space-14);
+  margin-top: 28px;
 }
 
 .paperPill {
@@ -136,28 +282,113 @@
   background: var(--color-paper-95);
 }
 
+/* Not on the frame: the ways to the rest of the application, kept quiet under the plan. */
+.elsewhere {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: var(--space-10) var(--space-24);
+  align-items: center;
+  margin-top: var(--space-32);
+  padding-top: var(--space-20);
+  border-top: 1px solid var(--color-paper-16);
+}
+
+.quiet,
+.language {
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-paper-70);
+  text-decoration: none;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+/* 24px of height for the pointer, without moving the line. */
+.quiet {
+  padding: var(--space-6) 0;
+}
+
+.quiet:hover,
+.language:hover {
+  color: var(--color-paper);
+}
+
+.languages {
+  display: flex;
+  gap: var(--space-4);
+  margin-left: auto;
+}
+
+.language {
+  min-width: 36px;
+  padding: var(--space-6) var(--space-8);
+  cursor: pointer;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+}
+
+.language[aria-pressed='true'] {
+  color: var(--color-paper);
+  border-color: var(--color-paper-40);
+}
+
 @media (max-width: 900px) {
   .rooms {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .room {
-    min-height: 200px;
-    border-bottom: 1px solid var(--color-paper-16);
-  }
-
-  .room:nth-child(2n) {
-    border-right: 0;
+/* The phone stage of the rooms: the unit grows there, the margins must not. */
+@media (max-width: 767px), (max-aspect-ratio: 3/4) {
+  .plan {
+    padding-right: var(--space-20);
+    padding-left: var(--space-20);
   }
 }
 
 @media (max-width: 560px) {
-  .rooms {
-    grid-template-columns: 1fr;
+  .title {
+    margin-bottom: var(--space-24);
   }
 
-  .room {
+  .rooms {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-10);
+  }
+
+  /* One room per line: the number and the state share the first row, so eight rooms stay a short list. */
+  .card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-4) var(--space-14);
+    align-items: baseline;
     min-height: 0;
-    border-right: 0;
+    padding: var(--space-14) var(--space-20) var(--space-16);
+  }
+
+  .status {
+    grid-row: 1;
+    grid-column: 2;
+    margin-top: 0;
+    padding-top: 0;
+    text-align: right;
+  }
+
+  .name,
+  .text {
+    grid-column: 1 / -1;
+  }
+
+  .name {
+    font-size: 26px;
+  }
+
+  .languages {
+    margin-left: 0;
   }
 }

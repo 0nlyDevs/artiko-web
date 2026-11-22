@@ -14,7 +14,6 @@ import { loadMyVote, type MyVote } from "./load-my-vote";
  * Nothing is drawn for a visitor, for a person who has not voted here, or when the answer does not come.
  */
 export function MyVoteNote({ category, month, entries }: { category: string; month: string; entries: HallOfFameEntry[] }) {
-  const { t } = useT();
   const signedIn = Boolean(authClient.useSession().data);
   const [vote, setVote] = useState<MyVote | null>(null);
 
@@ -34,10 +33,16 @@ export function MyVoteNote({ category, month, entries }: { category: string; mon
     };
   }, [signedIn, category, month, entries]);
 
-  if (!signedIn || !vote) return null;
+  return signedIn && vote ? <MyVoteView vote={vote} /> : null;
+}
+
+/** The note itself. The title is cut with an ellipsis when the bar is short of room: the link carries it whole. */
+export function MyVoteView({ vote }: { vote: MyVote }) {
+  const { t } = useT();
+  const text = vote.title === null ? t("hall.myVoteUntitled") : t("hall.myVote", { title: vote.title });
   return (
-    <Link href={`/works/${vote.workId}`} className={styles.myVote}>
-      <span>{vote.title === null ? t("hall.myVoteUntitled") : t("hall.myVote", { title: vote.title })}</span>
+    <Link href={`/works/${vote.workId}`} className={styles.myVote} title={text}>
+      <span className={styles.myVoteText}>{text}</span>
       <IconCheck size={16} strokeWidth={2} />
     </Link>
   );

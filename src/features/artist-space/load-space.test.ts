@@ -71,6 +71,26 @@ describe("loadSpace", () => {
     ]);
   });
 
+  it("counts the works only when the last page read was short", async () => {
+    serve(space(3));
+    expect((await loadSpace()).worksComplete).toBe(true);
+
+    calls = [];
+    serve(space(1000));
+    const capped = await loadSpace();
+    expect(capped.works).toHaveLength(1000);
+    expect(capped.worksComplete).toBe(false);
+  });
+
+  it("asks for the votes of the current contest month and says which", async () => {
+    serve(space(1));
+
+    const loaded = await loadSpace();
+
+    expect(loaded.month).toMatch(/^\d{4}-\d{2}$/);
+    expect(to("/votes/mine").map((call) => call.query)).toEqual([{ month: loaded.month }]);
+  });
+
   it("reads each voted work with the token", async () => {
     serve(space(1));
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Category, HallOfFameEntry, Vote } from "@/lib/api";
-import { FRAMES, hallHref, hang, monthName, resolveCategory, resolveMonth, voteIn, worksHref } from "./room";
+import { FRAMES, hallHref, hang, monthName, readRoom, resolveCategory, resolveMonth, voteIn, worksLink } from "./room";
 
 const entry = (rank: number): HallOfFameEntry => ({ rank, votes: 10 - rank, work: { id: `w${rank}`, title: `Work ${rank}` } }) as HallOfFameEntry;
 const CATEGORIES = [{ id: "painting", label: "Painting" }, { id: "music", label: "Music" }] as Category[];
@@ -52,9 +52,32 @@ describe("the links of the room", () => {
   });
 
   it("opens the works of the art form and the month in Explore, for the twelve months Explore lists", () => {
-    expect(worksHref("music", "2026-11", "2026-11")).toBe("/explore?category=music&month=2026-11");
-    expect(worksHref("music", "2025-12", "2026-11")).toBe("/explore?category=music&month=2025-12");
-    expect(worksHref("music", "2025-11", "2026-11")).toBeNull();
+    expect(worksLink("music", "2026-11", "2026-11")).toEqual({ href: "/explore?category=music&month=2026-11", scope: "current" });
+    expect(worksLink("music", "2026-10", "2026-11")).toEqual({ href: "/explore?category=music&month=2026-10", scope: "month" });
+    expect(worksLink("music", "2025-12", "2026-11")).toEqual({ href: "/explore?category=music&month=2025-12", scope: "month" });
+  });
+
+  it("opens every work of the art form for an older month, which Explore would read as « all months » anyway", () => {
+    expect(worksLink("music", "2025-11", "2026-11")).toEqual({ href: "/explore?category=music", scope: "all" });
+    expect(worksLink("crafts", "2019-01", "2026-11")).toEqual({ href: "/explore?category=crafts", scope: "all" });
+  });
+});
+
+describe("the room of an address", () => {
+  it("offers the month after only when the month shown is a past one", () => {
+    expect(readRoom(CATEGORIES, { category: "music", month: "2026-10" }, "2026-11")).toEqual({ category: CATEGORIES[1], month: "2026-10", canGoNext: true });
+    expect(readRoom(CATEGORIES, { category: "music", month: "2026-11" }, "2026-11").canGoNext).toBe(false);
+    // A month to come is read as the current month: there is nothing after it either.
+    expect(readRoom(CATEGORIES, { month: "2027-03" }, "2026-11")).toEqual({ category: CATEGORIES[0], month: "2026-11", canGoNext: false });
+  });
+
+  it("opens painting for an address without a known art form, with the label of the API", () => {
+    expect(readRoom(CATEGORIES, {}, "2026-11").category).toEqual({ id: "painting", label: "Painting" });
+    expect(readRoom(CATEGORIES, { category: "pottery" }, "2026-11").category).toEqual({ id: "painting", label: "Painting" });
+  });
+
+  it("still names the room when the API lists no art form: the id stands in for the label", () => {
+    expect(readRoom([], { category: "music" }, "2026-11")).toEqual({ category: { id: "painting", label: "painting" }, month: "2026-11", canGoNext: false });
   });
 });
 

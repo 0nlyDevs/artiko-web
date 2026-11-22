@@ -92,29 +92,30 @@ export const RELATIONSHIP_LABEL: Record<Relationship, string> = {
 export const WIZARD_STEPS = [
   { label: 'L’œuvre' },
   { label: 'Médias' },
-  { label: 'Provenance & droits' },
-  { label: 'Relecture & envoi' },
+  { label: 'Envoi' },
 ] as const;
 
 export const STEP_HEADLINES: Record<WizardStep, readonly string[]> = {
   1: ['Confiez', 'votre œuvre', 'au musée.'],
   2: ['Montrez-la', 'telle qu’elle', 'est.'],
-  3: ['Racontez', 'd’où elle', 'vient.'],
-  4: ['Votre œuvre,', 'accrochée', 'comme ici.'],
+  3: ['Votre œuvre,', 'accrochée', 'comme ici.'],
 };
 
 export const STEP_LEDES: Record<WizardStep, string> = {
-  1: 'Artistes, artisans, détenteurs de savoir-faire : déposez votre œuvre et racontez son histoire. Chaque contribution est relue par l’équipe de KANTO avant d’être exposée.',
-  2: 'Une bonne photo vaut une visite. Photographiez l’œuvre de face, à la lumière du jour, sans flash ni filtre : c’est elle que verront les visiteurs.',
-  3: 'La provenance est ce qui distingue un musée d’une galerie d’images. Ces informations apparaîtront sur la notice de l’œuvre.',
-  4: 'Voici comment elle apparaîtra dans la salle. Relisez, modifiez si besoin, puis envoyez-la à l’équipe de KANTO.',
+  1: 'Une forme d’art et un titre suffisent pour commencer. L’équipe de KANTO relit chaque œuvre avant de l’exposer.',
+  2: 'Une photo de face, à la lumière du jour, ou un modèle 3D : c’est ce que verront les visiteurs.',
+  3: 'Voici comment elle apparaîtra dans la salle. Cochez la case, puis envoyez-la à l’équipe de KANTO.',
 };
 
-export const STEP_NEXT_LABEL: Record<1 | 2 | 3, string> = {
+export const STEP_NEXT_LABEL: Record<1 | 2, string> = {
   1: 'Continuer · Médias',
-  2: 'Continuer · Provenance',
-  3: 'Continuer · Relecture',
+  2: 'Continuer · Envoi',
 };
+
+/** The one consent of the send step: it stands for sharing and display. */
+export const CONSENT_LABEL =
+  'Je certifie avoir le droit de partager cette œuvre et j’accepte que KANTO la présente avec mon nom.';
+export const CONSENT_ERROR = 'Cochez la case pour envoyer votre œuvre.';
 
 export const SUMMARY_MAX = 280;
 export const MAX_IMAGE_BYTES = 40 * 1024 * 1024;
@@ -252,9 +253,7 @@ export function stepForField(field: string): WizardStep {
   switch (field) {
     case 'media':
       return 2;
-    case 'relationship':
     case 'consent':
-    case 'holder':
       return 3;
     default:
       return 1;

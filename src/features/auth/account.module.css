@@ -1,0 +1,330 @@
+/*
+ * The forms of the account pages, in the KANTO direction of the Figma frame R9: a numbered section
+ * label, underlined fields two by two, and at the foot a quiet note on the left, the actions on the right.
+ */
+.panel,
+.fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+/* The page title, in the italic serif of the open tab. Hidden when that tab already names the page. */
+.title {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: 28px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: var(--color-ink);
+  text-transform: none;
+  outline: none;
+}
+
+.lead {
+  max-width: 54ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-60);
+}
+
+.lead strong {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+/* « Étape 1 sur 2 » and its two segments. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.stepsLabel,
+.sectionLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+}
+
+.stepsBar {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.segment {
+  flex: 1;
+  height: 2px;
+  overflow: hidden;
+  background: var(--color-line-soft);
+}
+
+.segmentFill {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}
+
+/* « 01 — VOTRE COMPTE » */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* The eye of a password field. */
+.eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-ink-60);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-button);
+  transition: color var(--duration-fast) linear;
+}
+
+.eye:hover,
+.eye[aria-pressed='true'] {
+  color: var(--color-ink);
+}
+
+/* Strength of a new password: a hairline that fills, and a word. */
+.meter {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  min-height: 17px;
+}
+
+.meterTrack {
+  flex: 1;
+  height: 2px;
+  overflow: hidden;
+  background: var(--color-line-soft);
+}
+
+.meterFill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--color-line);
+  transition:
+    width 300ms var(--ease-out),
+    background-color 300ms var(--ease-out);
+}
+
+.meterFill[data-level='1'] {
+  width: 34%;
+  background: var(--color-accent);
+}
+
+.meterFill[data-level='2'] {
+  width: 67%;
+  background: var(--color-warning);
+}
+
+.meterFill[data-level='3'] {
+  width: 100%;
+  background: var(--color-success);
+}
+
+.meterLabel {
+  min-width: 64px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+  text-align: right;
+}
+
+/* The account being created, on the password step. */
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-14);
+  align-items: baseline;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.whoName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A quiet text action: « Modifier », « Mot de passe oublié ? », « Retour à la connexion ». */
+.quiet {
+  display: inline-flex;
+  gap: var(--space-6);
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  background: none;
+  border: 0;
+}
+
+.quiet:hover {
+  color: var(--color-ink);
+}
+
+/* A sentence that is neither a rule nor a field: « Vos œuvres ne servent jamais à entraîner une IA. » */
+.pledge {
+  display: flex;
+  gap: var(--space-10);
+  align-items: baseline;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+.pledge::before {
+  flex: none;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+  content: '✓';
+}
+
+/* A notice with something to do under its sentence. */
+.noticeAction {
+  display: inline;
+  padding: 0;
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+}
+
+.noticeLine {
+  display: block;
+  margin-top: var(--space-4);
+}
+
+/* Foot of the form: the note on the left, « Annuler » and the main action on the right. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-20);
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: var(--space-8);
+  margin-top: auto;
+}
+
+.note {
+  margin-right: auto;
+}
+
+/* « Annuler » as a link: the ghost button of the kit. */
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-8) var(--space-4);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  color: var(--color-ink-60);
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.ghost:hover {
+  color: var(--color-ink);
+}
+
+/* The sign of a letter on its way, on the « check your inbox » state. */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-14);
+  align-items: center;
+}
+
+/* Phones: the main action takes the width, under the quiet ones (the reading order stays the tab order); a long label may wrap. */
+@media (max-width: 639px) {
+  .actions > button[type='submit'],
+  .actions > a:not(.ghost),
+  .buttons > * {
+    flex: 1 1 100%;
+  }
+
+  .actions > button,
+  .buttons > button {
+    height: auto;
+    min-height: 52px;
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
+    white-space: normal;
+  }
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meterFill,
+  .eye,
+  .ghost {
+    transition: none;
+  }
+}

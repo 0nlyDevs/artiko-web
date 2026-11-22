@@ -570,6 +570,8 @@ export const mg: Dictionary = {
   "space.unvoted.other": "Karazana {n} hafa mbola tsy nomena vato amin'ity volana ity",
   "space.votes.none": "Mbola tsy nifidy ianao tamin'ity volana ity. Tsidiho ny karazana iray:",
   // kanto:publication
+  "publish.more": "Safidy fanampiny: porofo, iza no mahita azy, fampirantiana (tsy voatery)",
+  "publish.more.story": "Hanampy ny tantaran'ny asa (tsy voatery)",
   "publish.eyebrow": "Hamoaka asa · {n} amin'ny 2",
   "publish.work.headline": "Atolory ny asanao <accent>ho an'ny tranombakoka.</accent>",
   "publish.work.lede": "Rakitra iray, lohateny iray, karazana zava-kanto iray: izay ihany no ilaina hanombohana. Ny pejy manaraka no manangona ny porofonao sy mamoaka.",
@@ -726,7 +728,7 @@ export const mg: Dictionary = {
   "hall.undecided": "Mbola tsy tapaka",
   "hall.dark.title": "Mbola tsy misy vato amin'ity volana ity",
   "hall.dark.past": "Tsy nisy vato tamin'ny {month}",
-  "hall.dark.hint": "Sokafy ny asa iray navoaka tamin'ity volana ity dia omeo ny vatonao.",
+  "hall.dark.hint": "Ny asa navoaka tamin'ity volana ity ka misy porofon'ny fanaovana no afaka mahazo ny vatonao.",
   "hall.worksThisMonth": "Asa amin'ity volana ity",
   "hall.worksOfMonth": "Asa navoaka tamin'ny {month}",
   "hall.myVote": "Ny vatonao: « {title} »",

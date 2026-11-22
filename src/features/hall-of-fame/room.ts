@@ -4,7 +4,7 @@ import { lastMonths } from "@/lib/months";
 
 /** The room of honour hangs five frames, the size of the API's ranking. */
 export const FRAMES = 5;
-/** Explore lists the last twelve contest months: an older month has no page of works to open. */
+/** Explore lists the last twelve contest months: an older month cannot be asked of it. */
 const EXPLORE_MONTHS = 12;
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -22,9 +22,28 @@ export function resolveCategory(categories: Category[], param: Param): CategoryI
 
 export const hallHref = (category: string, month: string) => `/hall-of-fame?category=${category}&month=${month}`;
 
-/** The works of an art form published in `month`, in Explore; null when Explore no longer lists that month. */
-export function worksHref(category: string, month: string, now: string): string | null {
-  return lastMonths(EXPLORE_MONTHS, now).includes(month) ? `/explore?category=${category}&month=${month}` : null;
+/** What the address asks for: the art form, the month, and whether a later month exists to go to. */
+export type RoomAddress = { category: Category; month: string; canGoNext: boolean };
+
+/**
+ * The room an address opens. An art form the API does not list is painting, under its own id when the API
+ * lists none; `now` is the current contest month, and a month to come is never offered.
+ */
+export function readRoom(categories: Category[], params: { category?: Param; month?: Param }, now: string): RoomAddress {
+  const id = resolveCategory(categories, params.category);
+  const month = resolveMonth(params.month, now);
+  return { category: categories.find((c) => c.id === id) ?? { id, label: id }, month, canGoNext: month < now };
+}
+
+/**
+ * The way from a room to its works in Explore. `current`: the works of the month still open; `month`: those of a
+ * closed month; `all`: every work of the art form, because Explore no longer lists a month that old.
+ */
+export type WorksLink = { href: string; scope: "current" | "month" | "all" };
+
+export function worksLink(category: string, month: string, now: string): WorksLink {
+  if (!lastMonths(EXPLORE_MONTHS, now).includes(month)) return { href: `/explore?category=${category}`, scope: "all" };
+  return { href: `/explore?category=${category}&month=${month}`, scope: month === now ? "current" : "month" };
 }
 
 export type Frame = { rank: number; entry: HallOfFameEntry | null };

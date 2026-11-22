@@ -1,242 +1,327 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { useT } from "@/i18n/locale";
-import { ApiError, createExposition, createWork, unwrap, type Category, type CategoryId, type Exposition, type Work } from "@/lib/api";
-import { apiErrorText } from "@/lib/api-messages";
+import { createExposition, createWork, unwrap, type ApiError, type Artist, type Category, type Exposition, type Work } from "@/lib/api";
 import { callWithToken } from "@/lib/api-token";
-import { IconAdd, IconUpload } from "@/lib/ui/icons";
-import { CategoryLabel } from "@/lib/works/category-label";
+import { authClient } from "@/lib/auth-client";
+import { categoryLabel } from "@/lib/works/category-label";
 import { isImportableModel } from "@/features/model-import/import-model";
 import { canPublish } from "@/features/model-import/import-state";
-import { ModelImportPanel } from "@/features/model-import/model-import-panel";
 import { useModelImport } from "@/features/model-import/use-model-import";
-import { publishBody } from "@/features/artist-space/publish-body";
+import {
+  clearDraft,
+  draftStorage,
+  EMPTY_DRAFT,
+  forgetFiles,
+  isEmptyDraft,
+  NEW_EXPOSITION,
+  readDraft,
+  rememberedFiles,
+  rememberFiles,
+  withCreatedExposition,
+  withKnownExposition,
+  writeDraft,
+  type Draft,
+} from "@/features/artist-space/publish/draft";
+import { addProofs, checkWorkFile, mediaKind, validProofs, type FileProblem, type ProofItem } from "@/features/artist-space/publish/file-checks";
+import { extensionOf, kindKey, sizeLabel } from "@/features/artist-space/publish/file-labels";
+import { FileThumb } from "@/features/artist-space/publish/file-thumb";
+import { MiniProfile } from "@/features/artist-space/publish/mini-profile";
+import { failedOutcome } from "@/features/artist-space/publish/outcome";
+import { ProofsStep } from "@/features/artist-space/publish/proofs-step";
+import { PublishCeremony } from "@/features/artist-space/publish/publish-ceremony";
+import { PublishDone, roomHref, useDoneCopy } from "@/features/artist-space/publish/publish-done";
+import { PublishFrame } from "@/features/artist-space/publish/publish-frame";
+import { PublishRefused } from "@/features/artist-space/publish/publish-refused";
+import styles from "@/features/artist-space/publish/publish.module.css";
+import { submitWork, type PublishApi } from "@/features/artist-space/publish/submit-work";
+import { useImageSize, useObjectUrl } from "@/features/artist-space/publish/use-file-facts";
+import { WorkStep } from "@/features/artist-space/publish/work-step";
 
-const ACCEPT_WORK = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm,.glb,.usdz";
-const ACCEPT_PROOF = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm";
-const MAX_PROOFS = 5;
-const NEW_EXPOSITION = "__new";
+// The two writes of a publication, as the signed-in artist. Each is a call of its own: replaying `POST /works`
+// after a refused token must not create the exposition a second time.
+const api: PublishApi = {
+  createExposition: (body) => callWithToken((auth) => createExposition({ body, ...auth }).then(unwrap)),
+  createWork: (body) => callWithToken((auth) => createWork({ body, ...auth }).then(unwrap)),
+};
 
-type Visibility = "public" | "reviewers";
+/** The states of `/me?tab=publish`: the two steps (frames R1 and R2), the refusal (R6) and the confirmation (R5). */
+type View =
+  | { name: "work" }
+  | { name: "proofs" }
+  | { name: "refused"; caseId: string | null; at: Date }
+  | { name: "done"; work: Work; proofsSent: number; ceremony: boolean };
 
-/** Object URLs for the chosen image files, released when the selection changes. */
-function usePreviews(files: File[]) {
-  const [urls, setUrls] = useState<(string | null)[]>([]);
-  useEffect(() => {
-    const next = files.map((f) => (f.type.startsWith("image/") ? URL.createObjectURL(f) : null));
-    const frame = requestAnimationFrame(() => setUrls(next));
-    return () => {
-      cancelAnimationFrame(frame);
-      next.forEach((u) => u && URL.revokeObjectURL(u));
-    };
-  }, [files]);
-  return urls;
+/** A work file refused before anything was sent: the file already chosen, if any, stays. */
+type RefusedFile = { name: string; size: number; problem: FileProblem };
+
+/** The confirmation with, over it, the hanging ceremony until the artist leaves the stage. */
+function Published({ view, headingRef, onAnother, onCloseCeremony }: { view: Extract<View, { name: "done" }>; headingRef: Ref<HTMLHeadingElement>; onAnother: () => void; onCloseCeremony: () => void }) {
+  const copy = useDoneCopy(view.work);
+  return (
+    <>
+      <PublishDone work={view.work} proofsSent={view.proofsSent} headingRef={headingRef} onAnother={onAnother} />
+      {view.ceremony && <PublishCeremony work={view.work} copy={copy} roomHref={roomHref(view.work)} onAnother={onAnother} onClose={onCloseCeremony} />}
+    </>
+  );
 }
 
 export function PublishForm({
   categories,
   expositions,
+  artist = null,
   onPublished,
 }: {
   categories: Category[];
   expositions: Exposition[];
+  /** The artist who signs the work, for « Signée … » and for the profile asked by a 403 `not_an_artist`. */
+  artist?: Artist | null;
   onPublished: (work: Work, exposition: Exposition | null) => void;
 }) {
-  const { t, rich } = useT();
-  const [file, setFile] = useState<File[]>([]);
-  const [proofs, setProofs] = useState<File[]>([]);
-  const [visibility, setVisibility] = useState<Visibility>("reviewers");
-  const [expo, setExpo] = useState("");
-  // An API error is translated on render (api-messages.ts); null is any other failure, translated too.
-  const [state, setState] = useState<"idle" | "publishing" | Work | { error: ApiError | null }>("idle");
-  const [workPreview] = usePreviews(file);
-  const proofPreviews = usePreviews(proofs);
+  const { t, locale } = useT();
+  const router = useRouter();
+  // The draft belongs to the signed-in account: another account on this browser never reads it.
+  const owner = authClient.useSession().data?.user.id ?? "";
+  const restore = () => ({
+    draft: withKnownExposition(readDraft(draftStorage(), owner), expositions.map((e) => e.id)),
+    files: rememberedFiles(owner),
+  });
+  const [restored] = useState(restore);
+  const [draft, setDraft] = useState<Draft>(restored.draft);
+  const [file, setFile] = useState<File | null>(restored.files.work);
+  const [proofs, setProofs] = useState<ProofItem[]>(restored.files.proofs);
+  // The session can be read after the form is drawn, or change under it: the form then takes what belongs to
+  // that account, and nothing typed for another one is saved under its name.
+  const [restoredFor, setRestoredFor] = useState(owner);
+  if (restoredFor !== owner) {
+    const next = restore();
+    setRestoredFor(owner);
+    setDraft(next.draft);
+    setFile(next.files.work);
+    setProofs(next.files.proofs);
+  }
+  const [view, setView] = useState<View>({ name: "work" });
+  const [refusedFile, setRefusedFile] = useState<RefusedFile | null>(null);
+  // Which step was sent at least once: its empty required fields are then pointed out.
+  const [tried, setTried] = useState({ work: false, proofs: false });
+  const [overflow, setOverflow] = useState(0);
+  const [sending, setSending] = useState(false);
+  // The last refusal, shown under the button. `error` is null when no answer came, absent once dealt with.
+  const [failure, setFailure] = useState<{ error?: ApiError | null; profile: boolean } | null>(null);
+  // Expositions created by a try of this publication: the page learns of them once the work is published.
+  const [created, setCreated] = useState<Exposition[]>([]);
+  const [profile, setProfile] = useState<Artist | null>(artist);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const modelImport = useModelImport();
-  const importBlocksPublishing = modelImport.state.status !== "idle" && !canPublish(modelImport.state);
+  const heading = useRef<HTMLHeadingElement>(null);
 
-  async function publish(form: FormData) {
-    if (!file[0] || importBlocksPublishing) return;
-    setState("publishing");
+  // Who signs: the profile when the page hands it over, else the name the API puts on the artist's expositions.
+  const signatory = profile?.display_name ?? expositions[0]?.artist_name ?? null;
+  const kind = file ? mediaKind(file) : null;
+  const isModel = kind === "model";
+  // A scan is published as the files the import prepares: until they are ready, nothing can be sent.
+  const importBlocks = isModel && !canPublish(modelImport.state);
+  const imported = isModel && modelImport.state.status === "ready" ? modelImport.state.model : null;
+  const imageUrl = useObjectUrl(kind === "image" ? file : null);
+  const previewUrl = isModel && modelImport.state.status === "ready" ? modelImport.state.preview.poster : imageUrl;
+  const pixels = useImageSize(kind === "image" ? file : null);
+
+  // The text of the draft stays in this browser, the files in memory, until the work is published.
+  useEffect(() => writeDraft(draftStorage(), owner, draft), [owner, draft]);
+  useEffect(() => rememberFiles(owner, { work: file, proofs }), [owner, file, proofs]);
+
+  // A scan kept from an earlier visit of this form is prepared again: its variants were not kept.
+  const { start: startImport } = modelImport;
+  const importIdle = modelImport.state.status === "idle";
+  useEffect(() => {
+    if (file && isImportableModel(file) && importIdle) void startImport(file);
+  }, [file, importIdle, startImport]);
+
+  // A new screen is read from its top: the headline takes the focus. The ceremony covers the confirmation first.
+  const screen = view.name === "done" && view.ceremony ? "ceremony" : view.name;
+  const shown = useRef(screen);
+  useEffect(() => {
+    if (shown.current === screen) return;
+    shown.current = screen;
+    window.scrollTo({ top: 0 });
+    heading.current?.focus({ preventScroll: true });
+  }, [screen]);
+
+  const patch = (change: Partial<Draft>) => setDraft((current) => ({ ...current, ...change }));
+
+  function chooseFile(chosen: File) {
+    const problem = checkWorkFile(chosen);
+    if (problem) {
+      setRefusedFile({ name: chosen.name, size: chosen.size, problem });
+      return;
+    }
+    setRefusedFile(null);
+    setFailure(null);
+    setFile(chosen);
+    if (isImportableModel(chosen)) void modelImport.start(chosen);
+    else modelImport.reset();
+  }
+
+  function removeFile() {
+    setRefusedFile(null);
+    setFile(null);
+    modelImport.reset();
+  }
+
+  function emptyForm() {
+    clearDraft(draftStorage());
+    forgetFiles();
+    setDraft(EMPTY_DRAFT);
+    setFile(null);
+    setProofs([]);
+    setRefusedFile(null);
+    setTried({ work: false, proofs: false });
+    setOverflow(0);
+    setFailure(null);
+    setCreated([]);
+    setConfirmingCancel(false);
+    modelImport.reset();
+  }
+
+  function continueToProofs() {
+    setTried((current) => ({ ...current, work: true }));
+    if (!draft.title.trim()) document.getElementById("title")?.focus();
+    if (!file || !draft.title.trim() || !draft.category || importBlocks) return;
+    setRefusedFile(null);
+    setView({ name: "proofs" });
+  }
+
+  async function publish() {
+    setTried((current) => ({ ...current, proofs: true }));
+    if (!file || sending || importBlocks) return;
+    if (draft.exposition === NEW_EXPOSITION && !draft.expositionTitle.trim()) return;
+    setSending(true);
+    setFailure(null);
+    const sent = validProofs(proofs);
+    const made: Exposition[] = [];
     try {
-      let created: Exposition | null = null;
-      if (expo === NEW_EXPOSITION) {
-        const title = String(form.get("expo_title") ?? "");
-        created = await callWithToken((auth) => createExposition({ body: { title }, ...auth }).then(unwrap));
-      }
-      const expositionId = created?.id ?? (expo || undefined);
-      const fields = {
-        title: String(form.get("title") ?? ""),
-        category: String(form.get("category") ?? "") as CategoryId,
-        story: String(form.get("story") ?? ""),
-        ai_declared: form.get("ai_declared") === "true",
-        proof: proofs,
-        proof_visibility: visibility,
-        ...(expositionId && { exposition_id: expositionId }),
-      };
-      const imported = modelImport.state.status === "ready" ? modelImport.state.model : null;
-      const body = publishBody(fields, file[0], imported);
-      // A call of its own: replaying it after a refused token must not create the exposition a second time.
-      const work = await callWithToken((auth) => createWork({ body, ...auth }).then(unwrap));
-      setState(work);
-      onPublished(work, created);
-    } catch (e) {
-      setState({ error: e instanceof ApiError ? e : null });
+      const work = await submitWork(api, { draft, file, imported, proofs: sent }, (exposition) => {
+        // Remembered at once: if the work is refused, the next try joins this exposition instead of creating another.
+        made.push(exposition);
+        setCreated((current) => [exposition, ...current]);
+        setDraft((current) => withCreatedExposition(current, exposition.id));
+      });
+      const joined = [...made, ...created].find((exposition) => exposition.id === work.exposition_id) ?? null;
+      emptyForm();
+      setView({ name: "done", work, proofsSent: sent.length, ceremony: true });
+      onPublished(work, joined);
+    } catch (error) {
+      const outcome = failedOutcome(error);
+      if (outcome.view === "refused") setView({ name: "refused", caseId: outcome.caseId, at: new Date() });
+      else if (outcome.view === "form") setFailure({ error: outcome.error, profile: outcome.profile });
+    } finally {
+      setSending(false);
     }
   }
 
+  function backToWork() {
+    setFailure(null);
+    setView({ name: "work" });
+  }
+
+  function cancel(erase: boolean) {
+    setConfirmingCancel(false);
+    if (!erase) return;
+    emptyForm();
+    router.push("/me");
+  }
+
+  if (view.name === "done") {
+    return <Published view={view} headingRef={heading} onAnother={() => setView({ name: "work" })} onCloseCeremony={() => setView({ ...view, ceremony: false })} />;
+  }
+
+  if (view.name === "refused") {
+    return <PublishRefused caseId={view.caseId} title={draft.title} category={draft.category} at={view.at} headingRef={heading} onChooseAnother={backToWork} />;
+  }
+
+  if (view.name === "work") {
+    const fileError = refusedFile
+      ? `${refusedFile.name} — ${t(`publish.file.error.${refusedFile.problem}`, { size: sizeLabel(refusedFile.size, locale) })}`
+      : tried.work && !file
+        ? t("publish.file.error.missing")
+        : null;
+    return (
+      <PublishFrame step={1} headingRef={heading}>
+        <WorkStep
+          categories={categories}
+          draft={draft}
+          onDraft={patch}
+          file={file}
+          kind={kind}
+          previewUrl={previewUrl}
+          pixels={pixels}
+          fileError={fileError}
+          missing={{ title: tried.work && !draft.title.trim(), category: tried.work && !draft.category }}
+          importState={modelImport.state}
+          importBlocks={importBlocks}
+          artistName={signatory}
+          confirmingCancel={confirmingCancel}
+          onAskCancel={() => (file || proofs.length > 0 || !isEmptyDraft(draft) ? setConfirmingCancel(true) : cancel(true))}
+          onCancel={cancel}
+          onChoose={chooseFile}
+          onRemove={removeFile}
+          onContinue={continueToProofs}
+        />
+      </PublishFrame>
+    );
+  }
+
+  const known = [...created.filter((exposition) => !expositions.some((e) => e.id === exposition.id)), ...expositions];
+  const fileLine = file ? [kind ? `${t(kindKey(kind))} ${extensionOf(file.name)}`.trim() : extensionOf(file.name), sizeLabel(file.size, locale)].filter(Boolean).join(", ") : "";
   return (
-    <form
-      onSubmit={(event) => {
-        // Not `action={...}`: React resets the fields after an action even when it fails, wiping what was typed.
-        event.preventDefault();
-        void publish(new FormData(event.currentTarget));
-      }}
-      className="flex flex-col gap-8"
+    <PublishFrame
+      step={2}
+      headingRef={heading}
+      onEdit={sending ? undefined : backToWork}
+      recap={
+        <div className={styles.recap}>
+          <FileThumb url={previewUrl} kind={kind} sizes="56px" />
+          <div>
+            <p className={styles.recapTitle}>{draft.title.trim() || t("publish.untitled")}</p>
+            <p className={styles.recapLine}>{[draft.category && categoryLabel({ id: draft.category }, locale), fileLine].filter(Boolean).join(" · ")}</p>
+            {signatory && <p className={styles.recapLine}>{[t("publish.signed", { name: signatory }), profile?.region].filter(Boolean).join(" · ")}</p>}
+          </div>
+        </div>
+      }
     >
-      <p className="max-w-[70ch] leading-relaxed">{t("publish.intro")}</p>
-      <div className="flex flex-col gap-8 md:flex-row">
-        <div className="flex flex-col gap-6 md:flex-1">
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">{t("publish.file")}</span>
-            <label className="relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md bg-surface p-6 text-center transition-colors hover:bg-[var(--surface-hover)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink">
-              {workPreview ? (
-                // A local object URL: next/image cannot optimise it.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={workPreview} alt="" className="absolute inset-0 size-full object-cover" />
-              ) : (
-                <>
-                  <IconUpload size={32} strokeWidth={1.6} />
-                  <span className="font-semibold">{file[0]?.name ?? t("publish.drop")}</span>
-                </>
-              )}
-              <input
-                id="file"
-                name="file"
-                type="file"
-                required
-                accept={ACCEPT_WORK}
-                aria-describedby="file-help"
-                onChange={(e) => {
-                  const chosen = e.target.files?.[0];
-                  setFile(chosen ? [chosen] : []);
-                  if (chosen && isImportableModel(chosen)) void modelImport.start(chosen);
-                  else modelImport.reset();
-                }}
-                className="sr-only"
-              />
-            </label>
-            <p id="file-help" className="text-[13px] text-muted">{t("publish.fileHelp")}</p>
-            <ModelImportPanel state={modelImport.state} alt={t("import.previewAlt")} />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">{t("publish.proof")}</span>
-            <div className="grid grid-cols-5 gap-2">
-              {proofs.map((p, i) => (
-                <button
-                  key={`${p.name}-${i}`}
-                  type="button"
-                  onClick={() => setProofs(proofs.filter((_, j) => j !== i))}
-                  aria-label={t("publish.removeProof", { name: p.name })}
-                  className="pop relative flex aspect-square items-center justify-center overflow-hidden rounded-md bg-surface p-1 text-[11px] break-all"
-                >
-                  {proofPreviews[i] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={proofPreviews[i] as string} alt="" className="absolute inset-0 size-full object-cover" />
-                  ) : (
-                    p.name
-                  )}
-                </button>
-              ))}
-              {proofs.length < MAX_PROOFS && (
-                <label className="flex aspect-square cursor-pointer items-center justify-center rounded-md bg-surface transition-colors hover:bg-[var(--surface-hover)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink">
-                  <IconAdd size={24} />
-                  <span className="sr-only">{t("publish.addProof")}</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept={ACCEPT_PROOF}
-                    aria-describedby="proof-help"
-                    onChange={(e) => {
-                      setProofs([...proofs, ...Array.from(e.target.files ?? [])].slice(0, MAX_PROOFS));
-                      e.target.value = "";
-                    }}
-                    className="sr-only"
-                  />
-                </label>
-              )}
-            </div>
-            <p id="proof-help" className="text-[13px] text-muted">{t("publish.proofHelp")}</p>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span id="visibility" className="font-semibold">{t("publish.visibility")}</span>
-            <div role="group" aria-labelledby="visibility" className="seg seg--light">
-              <span aria-hidden="true" className="seg-pill" data-at={visibility === "reviewers" ? 1 : 0} />
-              <button type="button" aria-pressed={visibility === "public"} onClick={() => setVisibility("public")}>
-                {t("publish.public")}
-              </button>
-              <button type="button" aria-pressed={visibility === "reviewers"} onClick={() => setVisibility("reviewers")}>
-                {t("publish.reviewers")}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-5 md:flex-1">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="title" className="font-semibold">{t("publish.workTitle")}</label>
-            <input id="title" name="title" required maxLength={200} className="input" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="category" className="font-semibold">{t("publish.category")}</label>
-            <select id="category" name="category" required className="input">
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  <CategoryLabel category={c} />
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="expo" className="font-semibold">{t("publish.exposition")}</label>
-            <select id="expo" value={expo} onChange={(e) => setExpo(e.target.value)} className="input">
-              <option value="">{t("publish.noExposition")}</option>
-              {expositions.map((e) => (
-                <option key={e.id} value={e.id}>{e.title}</option>
-              ))}
-              <option value={NEW_EXPOSITION}>{t("publish.newExposition")}</option>
-            </select>
-            {expo === NEW_EXPOSITION && (
-              <input name="expo_title" required maxLength={200} aria-label={t("publish.expositionTitle")} placeholder={t("publish.expositionTitle")} className="input pop" />
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="story" className="font-semibold">{t("publish.story")}</label>
-            <textarea id="story" name="story" rows={5} maxLength={5000} className="input" />
-          </div>
-          <label className="flex cursor-pointer items-start gap-3 leading-relaxed">
-            <input type="checkbox" name="ai_declared" value="true" className="mt-1 size-5 shrink-0 accent-[var(--ink)]" />
-            {t("publish.ai")}
-          </label>
-          <button type="submit" disabled={state === "publishing" || importBlocksPublishing} className="btn btn-ink min-h-[52px]">
-            {state === "publishing" && <span className="spin" aria-hidden="true" />}
-            {state === "publishing" ? t("publish.publishing") : t("publish.submit")}
-          </button>
-          {typeof state === "object" && "error" in state && (
-            <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">{state.error ? apiErrorText(state.error, t) : t("publish.failed")}</p>
-          )}
-          {typeof state === "object" && "id" in state && (
-            <p role="status" className="pop rounded-md bg-surface p-4 font-semibold">
-              {rich(state.human_proven ? "publish.doneProven" : "publish.donePlain", {
-                link: (text) => <Link href={`/works/${state.id}`} className="underline underline-offset-4">{text}</Link>,
-              })}
-            </p>
-          )}
-        </div>
-      </div>
-    </form>
+      <ProofsStep
+        draft={draft}
+        onDraft={patch}
+        proofs={proofs}
+        overflow={overflow}
+        onAddProofs={(files, replace) => {
+          const next = addProofs(proofs, files, Math.max(0, ...proofs.map((item) => item.id)) + 1, replace);
+          setProofs(next.items);
+          setOverflow(next.overflow);
+        }}
+        onRemoveProof={(id) => {
+          setProofs(proofs.filter((item) => item.id !== id));
+          setOverflow(0);
+        }}
+        expositions={known}
+        missingExpositionTitle={tried.proofs && draft.exposition === NEW_EXPOSITION && !draft.expositionTitle.trim()}
+        sending={sending}
+        blocked={!file || importBlocks}
+        failure={failure && "error" in failure ? failure.error : undefined}
+        onBack={backToWork}
+        onPublish={() => void publish()}
+      />
+      {failure?.profile && (
+        <MiniProfile
+          artist={profile}
+          onSaved={(saved) => {
+            setProfile(saved);
+            setFailure({ profile: true });
+          }}
+        />
+      )}
+    </PublishFrame>
   );
 }

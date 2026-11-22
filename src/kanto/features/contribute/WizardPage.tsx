@@ -20,6 +20,7 @@ import {
 } from '../../lib/api';
 import type { Item } from '../../lib/api/types';
 import { navigate } from '../../lib/router/router';
+import { useSession } from '../../lib/session/session';
 import type { WizardStep } from '../../app/routes';
 import { paths } from '../../app/routes';
 import { RequireSession } from '../account/RequireSession';
@@ -39,7 +40,6 @@ import {
 } from './contribute-content';
 import { StepArtwork } from './steps/StepArtwork';
 import { StepMedia } from './steps/StepMedia';
-import { StepProvenance } from './steps/StepProvenance';
 import { StepReview } from './steps/StepReview';
 import styles from './WizardPage.module.css';
 
@@ -51,16 +51,8 @@ export interface WizardPageProps {
 
 const AUTOSAVE_MS = 700;
 
-function nextLabel(step: WizardStep): string {
-  switch (step) {
-    case 1:
-    case 2:
-    case 3:
-      return STEP_NEXT_LABEL[step];
-    default:
-      return 'Envoyer en relecture';
-  }
-}
+/** The last step: the recap, the consent and the send. */
+const LAST_STEP: WizardStep = WIZARD_STEPS.length as WizardStep;
 
 function readMode3d(): boolean {
   return new URLSearchParams(window.location.search).get('mode') === '3d';
@@ -79,7 +71,7 @@ function WizardFrame({ step, children, onEdit }: WizardFrameProps) {
       <HallSplit
         aside={
           <HallIntro
-            eyebrow={`Déposer une œuvre · Étape ${String(step)} sur 4`}
+            eyebrow={`Déposer une œuvre · Étape ${String(step)} sur ${String(LAST_STEP)}`}
             lines={STEP_HEADLINES[step]}
             lede={STEP_LEDES[step]}
           >
@@ -105,9 +97,12 @@ function WizardFrame({ step, children, onEdit }: WizardFrameProps) {
 
 /** `/contribuer/nouvelle`: step 1 on a local draft, created on the first "Continuer". */
 function NewDraftWizard({ mode3d }: { mode3d: boolean }) {
-  const [form, setForm] = useState<DraftForm>(() =>
-    emptyForm(mode3d ? 'sculpture' : null),
-  );
+  const { account } = useSession();
+  // The artist is optional: it starts from the name of the account.
+  const [form, setForm] = useState<DraftForm>(() => ({
+    ...emptyForm(mode3d ? 'sculpture' : null),
+    author: account?.displayName ?? '',
+  }));
   const [errors, setErrors] = useState<Step1Errors>({});
   const [creating, setCreating] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
@@ -182,7 +177,7 @@ function NewDraftWizard({ mode3d }: { mode3d: boolean }) {
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
-/** `/contribuer/:id/etape/:n`: the four steps on a stored draft with autosave. */
+/** `/contribuer/:id/etape/:n`: the three steps on a stored draft with autosave. */
 function ItemWizard({
   itemId,
   step,
@@ -203,6 +198,7 @@ function ItemWizard({
     { field: string; reason: string }[]
   >([]);
   const [submitFailure, setSubmitFailure] = useState<unknown>(null);
+  const [consentMissing, setConsentMissing] = useState(false);
   // Id of the work just sent, while the screen fades to the gallery.
   const [sentId, setSentId] = useState<string | null>(null);
   const dirty = useRef(false);
@@ -242,6 +238,7 @@ function ItemWizard({
     );
     setErrors({});
     setSubmitErrors([]);
+    setConsentMissing(false);
   };
 
   const flush = async (): Promise<Item | null> => {
@@ -276,12 +273,19 @@ function ItemWizard({
       setSaveError(error);
       return;
     }
-    if (step < 4) {
+    if (step < LAST_STEP) {
       goTo((step + 1) as WizardStep);
     }
   };
 
   const submit = async (): Promise<void> => {
+    if (form === null) {
+      return;
+    }
+    if (!form.consentShare || !form.consentDisplay) {
+      setConsentMissing(true);
+      return;
+    }
     setSubmitting(true);
     setSubmitFailure(null);
     setSubmitErrors([]);
@@ -366,7 +370,6 @@ function ItemWizard({
       : save === 'error'
         ? 'Brouillon non enregistré'
         : 'Brouillon enregistré automatiquement';
-  const flagged = new Set(submitErrors.map((error) => error.field));
 
   return (
     <WizardFrame step={step} onEdit={goTo}>
@@ -411,14 +414,16 @@ function ItemWizard({
       )}
       {step === 2 && <StepMedia item={item} onItem={setData} mode3d={mode3d} />}
       {step === 3 && (
-        <StepProvenance form={form} onChange={update} flagged={flagged} />
-      )}
-      {step === 4 && (
         <StepReview
           item={item}
           form={form}
           errors={submitErrors}
           onEdit={goTo}
+          consentMissing={consentMissing}
+          onConsent={(consent) => {
+            // One box stands for both consents of the API.
+            update({ consentShare: consent, consentDisplay: consent });
+          }}
         />
       )}
       <HallActions note={note}>
@@ -441,14 +446,14 @@ function ItemWizard({
             ← Retour
           </Button>
         )}
-        {step < 4 ? (
+        {step === 1 || step === 2 ? (
           <Button
             withArrow
             onClick={() => {
               void next();
             }}
           >
-            {nextLabel(step)}
+            {STEP_NEXT_LABEL[step]}
           </Button>
         ) : (
           <Button
@@ -474,7 +479,7 @@ function ItemWizard({
   );
 }
 
-/** The contribution wizard, Figma 129:62 and B1–B4. */
+/** The contribution wizard, Figma 129:62 and B1, B2, B4: the work, its media, the send. */
 export function WizardPage({ itemId, step }: WizardPageProps) {
   const mode3d = readMode3d();
   return (

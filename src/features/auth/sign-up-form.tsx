@@ -5,35 +5,38 @@ import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import { authClient } from "@/lib/auth-client";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, passwordProblems, passwordStrength } from "@/lib/password";
-import { IconBack, IconCheck, IconMail } from "@/lib/ui/icons";
+import { IconBack, IconMail } from "@/lib/ui/icons";
+import { Button, Switch } from "@/lib/ui/kanto";
 import { useAuthScene } from "@/features/auth/auth-doors";
 import { authErrorKey } from "@/features/auth/errors";
-import { Field, Notice, PasswordField, useToggle } from "@/features/auth/fields";
+import { Actions, CancelLink, Field, FieldRow, FormError, Met, Notice, PasswordField, Section, useToggle } from "@/features/auth/fields";
+import { forgetPublishIntent, rememberPublishIntent } from "@/features/auth/publish-intent";
+import { useRetryAfter } from "@/features/auth/retry-after";
+import { SignedInNotice } from "@/features/auth/signed-in-notice";
 import { resendVerification, VERIFIED_CALLBACK_URL } from "@/features/auth/verification";
+import styles from "./account.module.css";
 
-const METER = [
-  { width: "0%", color: "var(--line)", label: null },
-  { width: "34%", color: "var(--red)", label: "auth.weak" },
-  { width: "67%", color: "#E09A2C", label: "auth.fair" },
-  { width: "100%", color: "#2E8B57", label: "auth.strong" },
-] as const;
+const METER: readonly (Key | null)[] = [null, "auth.weak", "auth.fair", "auth.strong"];
 
 /**
- * Two steps: who you are (name, email), then a password. The account is created only at the end;
- * it stays closed until the link sent to the address is opened.
+ * Two steps: who you are (name, email, and whether you also want to publish), then a password. The
+ * account is created only at the end; it stays closed until the link sent to the address is opened.
  */
 export function SignUpForm() {
-  const { t } = useT();
+  const { t, plural } = useT();
   const setScene = useAuthScene();
   const [step, setStep] = useState<1 | 2 | "sent">(1);
   const [who, setWho] = useState({ name: "", email: "" });
+  // The switch of the frame. No session exists before the address is confirmed, so the artist profile
+  // cannot be created here: the wish is kept in the browser and opens the profile at the first sign-in.
+  const [publish, setPublish] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [terms, setTerms] = useState(false);
   const [shown, toggle] = useToggle();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Key | null>(null);
   const [resent, setResent] = useState(false);
+  const wait = useRetryAfter();
   const heading = useRef<HTMLHeadingElement>(null);
 
   // The password step has its own video; leaving the page restores the default.
@@ -44,65 +47,81 @@ export function SignUpForm() {
   useEffect(() => () => setScene(null), [setScene]);
 
   const problems = passwordProblems(password, confirm);
-  const ready = !problems.tooShort && !problems.tooLong && !problems.mismatch && terms;
-  const meter = METER[passwordStrength(password)];
+  const ready = !problems.tooShort && !problems.tooLong && !problems.mismatch;
+  const strength = passwordStrength(password);
+  const meter = METER[strength];
+  const count = plural("account.passwordCount", password.length, { min: MIN_PASSWORD_LENGTH });
 
   async function create() {
     setBusy(true);
     setError(null);
-    const { error } = await authClient.signUp.email({ ...who, password, callbackURL: VERIFIED_CALLBACK_URL });
+    try {
+      const { error } = await authClient.signUp.email({ ...who, password, fetchOptions: wait.fetchOptions, callbackURL: VERIFIED_CALLBACK_URL });
+      if (error) setError(authErrorKey(error));
+      else {
+        if (publish) rememberPublishIntent(who.email);
+        else forgetPublishIntent();
+        setStep("sent");
+      }
+    } catch {
+      // The request never reached the server: the form stays usable.
+      setError("auth.unexpected");
+    }
     setBusy(false);
-    if (error) return setError(authErrorKey(error));
-    setStep("sent");
   }
 
   async function resend() {
-    const { error } = await resendVerification(who.email);
-    if (error) setError(authErrorKey(error));
-    else setResent(true);
+    try {
+      const { error } = await resendVerification(who.email, wait.fetchOptions);
+      if (error) setError(authErrorKey(error));
+      else setResent(true);
+    } catch {
+      setError("auth.unexpected");
+    }
   }
 
   if (step === "sent")
     return (
-      <div role="status" className="flex flex-col items-start gap-5">
-        <span className="pop inline-flex size-[72px] items-center justify-center rounded-full bg-red text-white">
-          <IconMail size={34} strokeWidth={2} />
+      <div role="status" className={styles.panel}>
+        <span className={`pop ${styles.seal}`}>
+          <IconMail size={26} strokeWidth={1.6} />
         </span>
-        <h1 ref={heading} tabIndex={-1} className="rise text-[40px] leading-none font-extrabold tracking-[-0.04em] outline-none">
-          {t("auth.checkInbox")}
-        </h1>
-        <p className="rise leading-relaxed" style={{ animationDelay: "0.1s" }}>
-          {t("auth.checkInboxText", { email: who.email })}
-        </p>
-        {error && <Notice>{t(error)}</Notice>}
-        <div className="rise flex flex-wrap gap-2.5" style={{ animationDelay: "0.2s" }}>
-          <button type="button" onClick={resend} disabled={resent} className="btn btn-ink">
-            {resent ? t("auth.resent") : t("auth.resend")}
-          </button>
-          <button
-            type="button"
+        <div className={styles.head}>
+          <p className={styles.sectionLabel}>{t("account.lastStep")}</p>
+          <h1 ref={heading} tabIndex={-1} className={`rise ${styles.title}`}>
+            {t("auth.checkInbox")}
+          </h1>
+          <p className={`rise ${styles.lead}`}>{t("auth.checkInboxText", { email: who.email })}</p>
+        </div>
+        <FormError error={error} wait={wait} />
+        {resent && <Notice tone="success">{t("auth.resent")}</Notice>}
+        <div className={`rise ${styles.buttons}`}>
+          <Button onClick={resend} disabled={resent || wait.waiting}>
+            {t("auth.resend")}
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => {
               setResent(false);
               setError(null);
               setStep(1);
             }}
-            className="btn btn-soft"
           >
             {t("auth.wrongEmail")}
-          </button>
+          </Button>
         </div>
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-7">
-      <div className="flex flex-col gap-2.5">
-        <p className="text-sm font-semibold text-muted">{t("auth.step", { n: step, total: 2 })}</p>
-        <div className="flex gap-1.5" aria-hidden="true">
-          <span className="h-1 flex-1 overflow-hidden rounded-full bg-line">
-            <span className="fill-in block h-full bg-red" />
+    <div className={styles.panel}>
+      <div className={styles.steps}>
+        <p className={styles.stepsLabel}>{t("auth.step", { n: step, total: 2 })}</p>
+        <div className={styles.stepsBar} aria-hidden="true">
+          <span className={styles.segment}>
+            <span className={`fill-in ${styles.segmentFill}`} />
           </span>
-          <span className="h-1 flex-1 overflow-hidden rounded-full bg-line">{step === 2 && <span className="fill-in block h-full bg-red" />}</span>
+          <span className={styles.segment}>{step === 2 && <span className={`fill-in ${styles.segmentFill}`} />}</span>
         </div>
       </div>
 
@@ -115,38 +134,56 @@ export function SignUpForm() {
             setWho({ name: String(form.get("name")).trim(), email: String(form.get("email")).trim() });
             setStep(2);
           }}
-          className="rise flex flex-col gap-5"
+          className={`rise ${styles.fields}`}
         >
-          <div>
-            <h1 ref={heading} tabIndex={-1} className="text-[40px] leading-none font-extrabold tracking-[-0.04em] outline-none">
+          <div className={styles.head}>
+            {/* The open tab already writes « Créer un compte » above. */}
+            <h1 ref={heading} tabIndex={-1} className="visually-hidden">
               {t("auth.signUpTitle")}
             </h1>
-            <p className="mt-3 leading-relaxed text-muted">{t("auth.signUpIntro")}</p>
+            <p className={styles.lead}>{t("auth.signUpIntro")}</p>
           </div>
-          <Field id="name" label={t("auth.name")} required maxLength={100} autoComplete="name" defaultValue={who.name} />
-          <Field id="email" label={t("auth.email")} type="email" required autoComplete="email" inputMode="email" defaultValue={who.email} hint={t("auth.emailHint")} />
-          <button type="submit" className="btn btn-ink mt-1 min-h-[52px] font-bold">
-            {t("auth.continue")}
-          </button>
+          <SignedInNotice />
+          <Section number="01" title={t("account.sectionAccount")}>
+            <FieldRow>
+              <Field id="name" label={t("auth.name")} required maxLength={100} autoComplete="name" defaultValue={who.name} />
+              <Field id="email" label={t("auth.email")} type="email" required autoComplete="email" inputMode="email" defaultValue={who.email} hint={t("auth.emailHint")} />
+            </FieldRow>
+          </Section>
+          <Section number="02" title={t("account.sectionArtist")}>
+            <Switch
+              name="publish"
+              checked={publish}
+              onChange={(event) => setPublish(event.target.checked)}
+              label={t("account.publishSwitch")}
+              hint={publish ? t("account.publishHintOn") : t("account.publishHintOff")}
+            />
+          </Section>
+          <Actions>
+            <CancelLink />
+            <Button type="submit" withArrow>
+              {t("auth.continue")}
+            </Button>
+          </Actions>
         </form>
       ) : (
         <form
           key="password"
           onSubmit={(event) => {
             event.preventDefault();
-            if (ready) void create();
+            if (ready && !wait.waiting) void create();
           }}
-          className="rise flex flex-col gap-5"
+          className={`rise ${styles.fields}`}
         >
-          <div>
-            <h1 ref={heading} tabIndex={-1} className="text-[40px] leading-none font-extrabold tracking-[-0.04em] outline-none">
+          <div className={styles.head}>
+            <h1 ref={heading} tabIndex={-1} className={styles.title}>
               {t("auth.choosePassword")}
             </h1>
-            <p className="mt-3.5 flex flex-wrap items-center gap-2">
-              <span className="inline-flex min-h-8 items-center rounded-full bg-surface px-3.5 text-[15px]">
+            <p className={styles.who}>
+              <span className={styles.whoName}>
                 {who.name} · {who.email}
               </span>
-              <button type="button" onClick={() => setStep(1)} className="inline-flex items-center gap-1 text-sm text-muted underline underline-offset-4 hover:text-ink">
+              <button type="button" onClick={() => setStep(1)} className={styles.quiet}>
                 <IconBack size={14} strokeWidth={2} />
                 {t("auth.edit")}
               </button>
@@ -154,66 +191,53 @@ export function SignUpForm() {
           </div>
           {/* Lets password managers save the pair under the right account. */}
           <input type="email" name="username" autoComplete="username" value={who.email} readOnly hidden />
-          <div className="flex flex-col gap-2.5">
+          <FieldRow>
+            <div className={styles.cell}>
+              <PasswordField
+                id="password"
+                label={t("auth.password")}
+                shown={shown}
+                onToggle={toggle}
+                required
+                minLength={MIN_PASSWORD_LENGTH}
+                maxLength={MAX_PASSWORD_LENGTH}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={problems.tooLong ? t("auth.tooLong") : undefined}
+                hintTone={problems.tooShort ? "neutral" : "success"}
+                hint={!password ? t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH }) : problems.tooShort ? count : <Met>{count}</Met>}
+              />
+              <div className={styles.meter} aria-hidden={!meter}>
+                <span className={styles.meterTrack}>
+                  <span className={styles.meterFill} data-level={strength} />
+                </span>
+                <span className={styles.meterLabel}>{meter && t(meter)}</span>
+              </div>
+            </div>
             <PasswordField
-              id="password"
-              label={t("auth.password")}
+              id="confirm"
+              label={t("auth.confirmPassword")}
               shown={shown}
               onToggle={toggle}
               required
-              minLength={MIN_PASSWORD_LENGTH}
               maxLength={MAX_PASSWORD_LENGTH}
               autoComplete="new-password"
-              aria-describedby="password-rules"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              hintTone={problems.mismatch ? "neutral" : "success"}
+              hint={!problems.mismatch ? <Met>{t("auth.passwordsMatch")}</Met> : confirm ? t("auth.passwordsDiffer") : t("auth.passwordsMatch")}
             />
-            <div className="flex items-center gap-3" aria-hidden={!meter.label}>
-              <span className="h-1 flex-1 overflow-hidden rounded-full bg-line">
-                <span className="block h-full transition-all duration-300" style={{ width: meter.width, background: meter.color }} />
-              </span>
-              <span className="w-16 text-[13px] font-semibold text-muted">{meter.label && t(meter.label)}</span>
-            </div>
-          </div>
-          <PasswordField
-            id="confirm"
-            label={t("auth.confirmPassword")}
-            shown={shown}
-            onToggle={toggle}
-            required
-            maxLength={MAX_PASSWORD_LENGTH}
-            autoComplete="new-password"
-            aria-describedby="password-rules"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-          />
-          <ul id="password-rules" className="flex flex-col gap-1.5 text-sm">
-            <Rule ok={!problems.tooShort} text={t("auth.passwordHelp", { min: MIN_PASSWORD_LENGTH })} />
-            {problems.tooLong && <Rule ok={false} text={t("auth.tooLong")} />}
-            <Rule ok={!problems.mismatch} text={t("auth.passwordsMatch")} />
-          </ul>
-          <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
-            <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} required className="mt-0.5 size-5 shrink-0 accent-[var(--ink)]" />
-            {t("auth.terms")}
-          </label>
-          {error && <Notice>{t(error)}</Notice>}
-          <button type="submit" disabled={!ready || busy} className="btn btn-ink mt-1 min-h-[52px] font-bold">
-            {busy && <span className="spin" aria-hidden="true" />}
-            {busy ? t("auth.creating") : t("auth.signUpSubmit")}
-          </button>
+          </FieldRow>
+          <p className={styles.pledge}>{t("account.pledge")}</p>
+          <FormError error={error} wait={wait} />
+          <Actions>
+            <Button type="submit" withArrow loading={busy} disabled={!ready || wait.waiting}>
+              {busy ? t("auth.creating") : t("auth.signUpSubmit")}
+            </Button>
+          </Actions>
         </form>
       )}
     </div>
-  );
-}
-
-function Rule({ ok, text }: { ok: boolean; text: string }) {
-  return (
-    <li className={`flex items-center gap-2 transition-colors ${ok ? "text-[#1F6B40]" : "text-muted"}`}>
-      <span key={String(ok)} className={`inline-flex size-[18px] items-center justify-center rounded-full ${ok ? "pop bg-[#E6F2EA]" : "bg-surface"}`}>
-        {ok ? <IconCheck size={13} strokeWidth={3} /> : <span className="size-1 rounded-full bg-current" />}
-      </span>
-      {text}
-    </li>
   );
 }

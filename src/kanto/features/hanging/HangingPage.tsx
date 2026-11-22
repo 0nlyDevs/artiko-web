@@ -1,16 +1,9 @@
-import type { CSSProperties, PointerEvent } from 'react';
-import { useEffect, useId, useReducer, useRef, useState } from 'react';
-import sceneRedRoom1280Asset from '../../assets/gallery/scene-red-room-1280.webp';
-import sceneRedRoom1920Asset from '../../assets/gallery/scene-red-room-1920.webp';
-import sceneRedRoom2880Asset from '../../assets/gallery/scene-red-room-2880.webp';
-import spotBeamAsset from '../../assets/gallery/spot-beam.svg';
-import spotCoreAsset from '../../assets/gallery/spot-core.svg';
+import { useEffect } from 'react';
 import { ButtonLink } from '../../components/button-link/ButtonLink';
 import { DemoBadge } from '../../components/demo-badge/DemoBadge';
 import { Logo } from '../../components/logo/Logo';
 import { api, useAsync } from '../../lib/api';
 import type { Item } from '../../lib/api/types';
-import { useReducedMotion } from '../../lib/motion/reduced-motion';
 import { Link } from '../../lib/router/Link';
 import { navigate } from '../../lib/router/router';
 import { useSession } from '../../lib/session/session';
@@ -18,7 +11,7 @@ import { paths } from '../../app/routes';
 import { RequireSession } from '../account/RequireSession';
 import { isWebGLAvailable } from '../artwork-viewer/webgl';
 import { GalleryBlack } from './GalleryFade';
-import type { HangingCopy, HangingStand } from './hanging-content';
+import type { HangingCopy } from './hanging-content';
 import {
   hangingAlt,
   hangingCartel,
@@ -27,21 +20,9 @@ import {
   hangingSources,
   hangingStand,
 } from './hanging-content';
-import styles from './HangingPage.module.css';
-import { CartelLines, HangingWork } from './HangingWork';
-import { useSetPlacement } from './set-placement';
-import { nearness } from './spot-level';
+import type { HangingStageSlots } from './HangingStage';
+import { HangingStage } from './HangingStage';
 import type { ExitTone } from './useHangingCeremony';
-import { useHangingCeremony } from './useHangingCeremony';
-import type { WorkAction, WorkState } from './work-state';
-import { initialWork, nextWork } from './work-state';
-
-// Next imports an image as { src, width, height }: the markup needs its URL.
-const sceneRedRoom1280 = sceneRedRoom1280Asset.src;
-const sceneRedRoom1920 = sceneRedRoom1920Asset.src;
-const sceneRedRoom2880 = sceneRedRoom2880Asset.src;
-const spotBeam = spotBeamAsset.src;
-const spotCore = spotCoreAsset.src;
 
 export interface HangingPageProps {
   itemId: string;
@@ -50,44 +31,9 @@ export interface HangingPageProps {
   loadModelViewer?: (() => Promise<void>) | undefined;
 }
 
-/** Reach of the lamp around the work, as a share of the diagonal of the work. */
-const LAMP_REACH = 0.62;
-
 /** The museum is dark, the hall pages are ivory: the screen fades to where it goes. */
 function exitTone(to: string): ExitTone {
   return to.startsWith('/musee') ? 'museum' : 'hall';
-}
-
-/** What waits in the light before the work arrives. */
-function Stand({ stand }: { stand: HangingStand }) {
-  if (stand === 'plinth') {
-    return (
-      <>
-        <div className={styles.plinthShadow} />
-        <div className={styles.plinth}>
-          <div className={styles.plinthTop} />
-          <div className={styles.plinthFront} />
-        </div>
-      </>
-    );
-  }
-  if (stand === 'rail') {
-    return (
-      <>
-        <div className={styles.rail} />
-        <div className={styles.wire} />
-        <div className={styles.hook} />
-        <div className={styles.template} data-h="template" />
-      </>
-    );
-  }
-  return (
-    <>
-      <div className={styles.template} data-h="template" />
-      <div className={styles.pin} />
-      <div className={styles.pin} />
-    </>
-  );
 }
 
 interface CeremonyProps {
@@ -97,289 +43,76 @@ interface CeremonyProps {
   loadModelViewer?: (() => Promise<void>) | undefined;
 }
 
+/** The ceremony of a museum item: its room, its cartel and the routes of the museum around the stage. */
 function Ceremony({ item, copy, detectWebGL, loadModelViewer }: CeremonyProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const setRef = useRef<HTMLDivElement>(null);
-  const probeRef = useRef<HTMLElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  // True while the keyboard is on one of the actions.
-  const onActionRef = useRef(false);
-  const titleId = useId();
-  const reducedMotion = useReducedMotion();
-
   const room = hangingRoom(item);
-  const stand = hangingStand(item);
-  const sources = hangingSources(item);
-  const cartel = hangingCartel(item, copy.status);
-  const stills = sources.images.length;
-
-  const [webgl] = useState(detectWebGL);
-  const [work, dispatch] = useReducer(
-    (state: WorkState, action: WorkAction) => nextWork(state, action, stills),
-    undefined,
-    () => initialWork(stand, sources, webgl),
-  );
-  const [landed, setLanded] = useState(false);
-  const [done, setDone] = useState(false);
-  // Width of a scanned object, so its contact shadow has its size.
-  const [span, setSpan] = useState<number | null>(null);
-
-  const ceremony = useHangingCeremony(rootRef, {
-    reducedMotion,
-    onLanded: () => {
-      setLanded(true);
-    },
-    onDone: () => {
-      setDone(true);
-    },
-  });
-  useSetPlacement(setRef, probeRef);
-
-  // The work drops once it is loaded and drawn.
-  useEffect(() => {
-    if (work.ready) {
-      ceremony.release();
-    }
-  }, [work.ready, ceremony]);
-
-  // The headline takes the focus at the end, unless the visitor already reached an action.
-  useEffect(() => {
-    if (done && !onActionRef.current) {
-      headlineRef.current?.focus({ preventScroll: true });
-    }
-  }, [done]);
-
-  // Escape skips the sequence, like the control of the top bar.
-  useEffect(() => {
-    if (done) {
-      return;
-    }
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        ceremony.skip();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [done, ceremony]);
-
-  useEffect(() => {
-    const previous = document.title;
-    document.title = `KANTO — ${copy.eyebrow}`;
-    return () => {
-      document.title = previous;
-    };
-  }, [copy.eyebrow]);
-
-  const leaveTo = (to: string) => (): Promise<void> =>
-    ceremony.leave(exitTone(to));
-
-  // The lamp follows the mouse: brighter as it comes close to the work,
-  // back to rest as it moves away, like the spots of the rooms.
-  const followPointer = (event: PointerEvent<HTMLDivElement>): void => {
-    if (!done || event.pointerType !== 'mouse') {
-      return;
-    }
-    const placed = event.currentTarget.querySelector('[data-h="work"]');
-    if (placed === null) {
-      return;
-    }
-    const box = placed.getBoundingClientRect();
-    const distance = Math.hypot(
-      event.clientX - (box.left + box.width / 2),
-      event.clientY - (box.top + box.height / 2),
-    );
-    ceremony.approach(
-      nearness(distance, Math.hypot(box.width, box.height) * LAMP_REACH),
-    );
-  };
-
-  const spanStyle: (CSSProperties & Record<'--work-span', string>) | undefined =
-    span === null ? undefined : { '--work-span': String(span) };
+  const leaveTo =
+    (slots: HangingStageSlots, to: string) => (): Promise<void> =>
+      slots.leave(exitTone(to));
 
   return (
-    <div
-      ref={rootRef}
-      className={styles.page}
-      style={spanStyle}
-      data-motion="pending"
-      data-status={copy.status}
-      data-stand={stand}
-      data-kind={work.kind}
-      data-wall={room.wallTone}
-      data-scene={room.usesRedRoomScene ? 'photo' : 'tone'}
-      onPointerMove={followPointer}
-      onPointerLeave={() => {
-        ceremony.approach(0);
-      }}
-    >
-      <div ref={setRef} className={styles.set} aria-hidden="true">
-        <div className={styles.scene} data-h="scene">
-          {room.usesRedRoomScene ? (
-            <img
-              className={styles.photo}
-              src={sceneRedRoom1920}
-              srcSet={`${sceneRedRoom1280} 1280w, ${sceneRedRoom1920} 1920w, ${sceneRedRoom2880} 2880w`}
-              sizes="130vw"
-              width={2880}
-              height={1591}
-              alt=""
-              fetchPriority="high"
-              decoding="async"
-            />
-          ) : (
-            <>
-              <div className={styles.wall} />
-              <div className={styles.baseboard} />
-              <div className={styles.floor} />
-            </>
-          )}
-          <div className={styles.floorFade} />
-        </div>
-        <div className={styles.spot} data-h="spot">
-          <img
-            className={styles.spotBeam}
-            src={spotBeam}
-            width={492}
-            height={817}
-            alt=""
-          />
-          <img
-            className={styles.spotCore}
-            src={spotCore}
-            width={420}
-            height={591}
-            alt=""
-          />
-        </div>
-        <div className={styles.flare} data-h="flare" />
-        <div className={styles.stand} data-h="stand">
-          <Stand stand={stand} />
-        </div>
-        <div className={styles.shadow} data-h="shadow" />
-        {stand === 'plinth' && work.kind !== 'label' && (
-          <div className={styles.overhang} data-h="shadow" />
-        )}
-        <div className={styles.topScrim} />
-        <div className={styles.copyScrim} />
-        <i ref={probeRef} className={styles.probe} data-h="probe" />
-      </div>
-
-      <header className={styles.bar}>
+    <HangingStage
+      status={copy.status}
+      stand={hangingStand(item)}
+      sources={hangingSources(item)}
+      cartel={hangingCartel(item, copy.status)}
+      alt={hangingAlt(item)}
+      wall={{ tone: room.wallTone, photo: room.usesRedRoomScene }}
+      copy={copy}
+      labels={{ skip: 'Passer', skipAria: 'Passer l’animation' }}
+      documentTitle={`KANTO — ${copy.eyebrow}`}
+      detectWebGL={detectWebGL}
+      loadModelViewer={loadModelViewer}
+      brand={(slots) => (
         <Link
           to={paths.home}
-          className={styles.logo}
+          className={slots.classes.logo}
           aria-label="KANTO, retour à l’accueil"
-          beforeNavigate={leaveTo(paths.home)}
+          beforeNavigate={leaveTo(slots, paths.home)}
         >
           <Logo />
         </Link>
-        <div className={styles.barRight}>
-          <DemoBadge theme="dark" className={styles.badgeWide} />
+      )}
+      badges={(slots) => (
+        <>
+          <DemoBadge theme="dark" className={slots.classes.badgeWide} />
           <DemoBadge
             theme="dark"
             label="Démonstration"
-            className={styles.badgeNarrow}
+            className={slots.classes.badgeNarrow}
           />
-          {!done && !reducedMotion && (
-            <button
-              type="button"
-              className={styles.skip}
-              aria-label="Passer l’animation"
-              onClick={ceremony.skip}
-            >
-              Passer
-            </button>
-          )}
-        </div>
-      </header>
-
-      <main>
-        <section className={styles.copy} aria-labelledby={titleId}>
-          <p className={styles.eyebrow} data-h="eyebrow">
-            {copy.eyebrow}
-          </p>
-          <h1
-            ref={headlineRef}
-            id={titleId}
-            className={styles.headline}
-            data-h="headline"
-            tabIndex={-1}
+        </>
+      )}
+      actions={(slots) => (
+        <>
+          <ButtonLink
+            to={copy.primary.to}
+            variant="primary"
+            withArrow
+            className={slots.classes.primary}
+            beforeNavigate={leaveTo(slots, copy.primary.to)}
           >
-            {/* The spaces keep the lines apart in the accessible name. */}
-            <span lang="mg">{copy.thanks}</span> <br />
-            {copy.lines[0]} <br />
-            {copy.lines[1]}
-          </h1>
-          <p className={styles.paragraph} data-h="paragraph">
-            {copy.paragraph}
-          </p>
-          {/* Reaching an action with the keyboard ends the sequence: no control is ever focused unseen. */}
-          <div
-            className={styles.actions}
-            data-h="actions"
-            onFocus={() => {
-              onActionRef.current = true;
-              ceremony.skip();
-            }}
-            onBlur={() => {
-              onActionRef.current = false;
-            }}
+            {copy.primary.label}
+          </ButtonLink>
+          <ButtonLink
+            to={copy.secondary.to}
+            variant="secondary"
+            className={slots.classes.secondary}
+            beforeNavigate={leaveTo(slots, copy.secondary.to)}
           >
-            <ButtonLink
-              to={copy.primary.to}
-              variant="primary"
-              withArrow
-              className={styles.primary}
-              beforeNavigate={leaveTo(copy.primary.to)}
+            {copy.secondary.label}
+          </ButtonLink>
+          <p className={slots.classes.more}>
+            <Link
+              to={copy.tertiary.to}
+              beforeNavigate={leaveTo(slots, copy.tertiary.to)}
             >
-              {copy.primary.label}
-            </ButtonLink>
-            <ButtonLink
-              to={copy.secondary.to}
-              variant="secondary"
-              className={styles.secondary}
-              beforeNavigate={leaveTo(copy.secondary.to)}
-            >
-              {copy.secondary.label}
-            </ButtonLink>
-            <p className={styles.more}>
-              <Link
-                to={copy.tertiary.to}
-                beforeNavigate={leaveTo(copy.tertiary.to)}
-              >
-                {copy.tertiary.label}
-              </Link>
-            </p>
-          </div>
-        </section>
-
-        <figure className={styles.exhibit}>
-          <HangingWork
-            work={work}
-            dispatch={dispatch}
-            sources={sources}
-            alt={hangingAlt(item)}
-            cartel={cartel}
-            landed={landed}
-            onNear={(near) => {
-              ceremony.approach(near ? 1 : 0);
-            }}
-            onSpan={setSpan}
-            loadModelViewer={loadModelViewer}
-          />
-          {work.kind !== 'label' && (
-            <figcaption className={styles.cartel} data-h="cartel">
-              <CartelLines cartel={cartel} />
-            </figcaption>
-          )}
-        </figure>
-      </main>
-
-      <div className={styles.veil} data-h="veil" aria-hidden="true" />
-    </div>
+              {copy.tertiary.label}
+            </Link>
+          </p>
+        </>
+      )}
+    />
   );
 }
 

@@ -2,11 +2,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { Category, HallOfFameEntry, Work } from "@/lib/api";
 
-// The server has no session: « Votre vote » is read in the browser (load-my-vote.test.ts).
+// The server has no session: « Votre vote » is read in the browser (load-my-vote.test.ts, my-vote.test.tsx, room-aside.test.tsx).
 vi.mock("@/lib/auth-client", () => ({ authClient: { useSession: () => ({ data: null }) } }));
 
 const { CategoryBar, MonthNav, RoomEyebrow } = await import("./hall-nav");
-const { RoomWall, WallSkeleton } = await import("./honour-wall");
+const { HallRoom } = await import("./hall-room");
+const { RoomAside, RoomWall, WallSkeleton } = await import("./honour-wall");
 
 // The server renders in English, the reference dictionary.
 const html = renderToStaticMarkup;
@@ -19,6 +20,7 @@ const work = (id: string, overrides: Partial<Work> = {}): Work =>
 const entry = (rank: number, votes: number, overrides: Partial<Work> = {}): HallOfFameEntry => ({ rank, votes, work: work(`w${rank}`, overrides) });
 const entries = (count: number) => Array.from({ length: count }, (_, i) => entry(i + 1, 20 - i));
 const wall = (list: HallOfFameEntry[], month = "2026-11") => html(<RoomWall entries={list} category={PAINTING} month={month} now="2026-11" />);
+const aside = (list: HallOfFameEntry[], month = "2026-11") => html(<RoomAside entries={list} category={PAINTING} month={month} now="2026-11" />);
 
 const count = (markup: string, pattern: RegExp) => (markup.match(pattern) ?? []).length;
 const items = (markup: string) => markup.match(/<li[^>]*>.*?<\/li>/g) ?? [];
@@ -80,11 +82,26 @@ describe("the wall of the room of honour", () => {
     expect(model).toContain(">3D object<");
   });
 
+  it("keeps to the frames: the way to Explore belongs to the bottom bar", () => {
+    expect(hrefs(wall(entries(5)))).toEqual(["/works/w1", "/works/w2", "/works/w3", "/works/w4", "/works/w5"]);
+  });
+});
+
+describe("the right of the bottom bar", () => {
   it("links to the works of the art form and the month, in Explore", () => {
-    expect(hrefs(wall(entries(5)))).toContain("/explore?category=painting&month=2026-11");
-    expect(wall(entries(5))).toContain("This month&#x27;s works");
-    expect(wall(entries(5), "2026-10")).toContain("Works published in October 2026");
-    expect(hrefs(wall(entries(5), "2026-10"))).toContain("/explore?category=painting&month=2026-10");
+    expect(hrefs(aside(entries(5)))).toEqual(["/explore?category=painting&month=2026-11"]);
+    expect(aside(entries(5))).toContain("This month&#x27;s works");
+    expect(hrefs(aside(entries(5), "2026-10"))).toEqual(["/explore?category=painting&month=2026-10"]);
+    expect(aside(entries(5), "2026-10")).toContain("Works published in October 2026");
+  });
+
+  it("opens every work of the art form, under the team's words, once Explore no longer lists the month", () => {
+    expect(hrefs(aside(entries(5), "2024-03"))).toEqual(["/explore?category=painting"]);
+    expect(aside(entries(5), "2024-03")).toContain("Explore and vote");
+  });
+
+  it("draws nothing for a room without entry: the dark room has its own button", () => {
+    expect(aside([])).toBe("");
   });
 });
 
@@ -99,12 +116,48 @@ describe("the dark room", () => {
     expect(count(markup, /<figure[^>]*data-empty="true"/g)).toBe(5);
   });
 
-  it("speaks of a closed month in the past, and drops the link once Explore no longer lists the month", () => {
+  it("tells which works can be voted for: those of the month that carry a proof", () => {
+    expect(wall([])).toContain("Works published this month with proof of process can receive your vote.");
+  });
+
+  it("speaks of a closed month in the past, without the call to vote", () => {
     const lastMonth = wall([], "2026-10");
     expect(lastMonth).toContain("No votes were cast in October 2026");
     expect(lastMonth).not.toContain("No votes yet this month");
+    expect(lastMonth).not.toContain("can receive your vote");
+    expect(lastMonth).toContain("Works published in October 2026");
     expect(hrefs(lastMonth)).toEqual(["/explore?category=painting&month=2026-10"]);
-    expect(hrefs(wall([], "2024-03"))).toEqual([]);
+  });
+
+  it("keeps a button for a month Explore no longer lists: every work of the art form, as on the team's page", () => {
+    const old = wall([], "2024-03");
+    expect(old).toContain("No votes were cast in March 2024");
+    expect(hrefs(old)).toEqual(["/explore?category=painting"]);
+    expect(old).toContain("Explore and vote");
+  });
+});
+
+describe("the room before any answer", () => {
+  const markup = html(
+    <HallRoom>
+      <nav id="from-the-request" />
+    </HallRoom>,
+  );
+
+  it("reads title, rule, then what the request brings: the order the keyboard and a screen reader follow", () => {
+    const at = (text: string) => markup.indexOf(text);
+    expect(at("<h1")).toBeGreaterThan(-1);
+    expect(at("<h1")).toBeLessThan(at("Each month"));
+    expect(at("Each month")).toBeLessThan(at('id="from-the-request"'));
+    expect(markup).toMatch(/<section[^>]*aria-labelledby="hall-title"/);
+  });
+
+  it("asks the shell for its dark bars and a page without gutter", () => {
+    expect(markup).toMatch(/<section[^>]*data-shell-theme="dark"[^>]*data-shell-bleed=""/);
+  });
+
+  it("loads the photograph of the room at once: it is the largest thing above the fold", () => {
+    expect(markup).toMatch(/<img[^>]*alt=""[^>]*loading="eager"/);
   });
 });
 

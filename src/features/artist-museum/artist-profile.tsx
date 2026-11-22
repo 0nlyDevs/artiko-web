@@ -6,15 +6,16 @@ import { useState } from "react";
 import { useT } from "@/i18n/locale";
 import type { Artist, CategoryId, Exposition, Practice, Work } from "@/lib/api";
 import { Avatar } from "@/lib/ui/avatar";
-import { HeartFilled, IconMuseum, IconPin, IconSeal, IconShare } from "@/lib/ui/icons";
+import { HeartFilled, IconForward, IconSeal } from "@/lib/ui/icons";
+import { Button, ButtonLink, CategoryChip, CategoryChipGroup } from "@/lib/ui/kanto";
 import { SlidingTabs } from "@/lib/ui/sliding-tabs";
 import { categoryLabel } from "@/lib/works/category-label";
-import { WorkMedia } from "@/lib/works/work-tile";
+import { profileFigures } from "./profile-figures";
+import styles from "./artist-profile.module.css";
 
 export type HallPlace = { rank: number; work: Work; votes: number };
 
-const STATUS_DOT = { red: "bg-red", orange: "bg-[#E09A2C]", green: "bg-[#2E8B57]" } as const;
-const STATUS_TEXT = { red: "text-[#8E3524]", orange: "text-[#7A4206]", green: "text-[#1F6B40]" } as const;
+const KIND = { audio: "work.kind.audio", video: "work.kind.video", model: "work.kind.model" } as const;
 
 /**
  * An artist's page as a profile: who they are on the right, their works in the middle (by exposition
@@ -23,6 +24,7 @@ const STATUS_TEXT = { red: "text-[#8E3524]", orange: "text-[#7A4206]", green: "t
 export function ArtistProfile({
   artist,
   works,
+  worksComplete = true,
   expositions,
   places,
   others,
@@ -30,6 +32,8 @@ export function ArtistProfile({
 }: {
   artist: Artist;
   works: Work[];
+  /** False when the works shown are not all of the artist's: nothing is counted then. */
+  worksComplete?: boolean;
   expositions: Exposition[];
   places: HallPlace[];
   others: Artist[];
@@ -49,8 +53,8 @@ export function ArtistProfile({
       : current
         ? works.filter((w) => w.exposition_id === current.id)
         : works;
-  const totalVotes = works.reduce((n, w) => n + w.votes, 0);
-  const proven = works.filter((w) => w.human_proven).length;
+  // Works, votes and proofs are counted on the works read: no number when that list was cut.
+  const figures = profileFigures(works, worksComplete);
 
   const share = async () => {
     const url = window.location.href;
@@ -66,56 +70,71 @@ export function ArtistProfile({
   };
 
   return (
-    <div className="mx-auto grid max-w-[1400px] gap-10 lg:grid-cols-[220px_minmax(0,1fr)_280px] xl:grid-cols-[250px_minmax(0,1fr)_300px]">
+    <div className={styles.profile}>
       {/* The artist: first on phones, right column on wide screens. */}
-      <aside aria-label={t("artist.about")} className="rise flex flex-col gap-5 lg:sticky lg:top-8 lg:order-3 lg:self-start">
-        <div className="flex items-center gap-4 lg:flex-col lg:items-start">
+      <aside aria-label={t("artist.about")} className={`rise ${styles.artist}`}>
+        <p className={styles.eyebrow}>{[t("artist.label"), artist.region].filter(Boolean).join(" · ")}</p>
+        <div className={styles.identity}>
           <Avatar name={artist.display_name} size={88} tone="ink" />
-          <div>
-            <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.04em]">{artist.display_name}</h1>
-            <p className="mt-2 flex items-center gap-1.5 text-muted">
-              <IconPin size={16} strokeWidth={2} />
-              {[artist.region, ...categories.map((c) => categoryLabel({ id: c }, locale))].filter(Boolean).join(" · ")}
-            </p>
+          <div className={styles.names}>
+            <h1 className={styles.name}>{artist.display_name}</h1>
+            {categories.length > 0 && <p className={styles.forms}>{categories.map((c) => categoryLabel({ id: c }, locale)).join(" · ")}</p>}
           </div>
         </div>
-        <dl className="grid grid-cols-3 gap-2">
-          <Stat label={t("artist.works")} value={works.length} />
-          <Stat label={t("artist.votes")} value={totalVotes} />
+        <dl className={styles.stats}>
+          {figures && <Stat label={t("artist.works")} value={figures.works} />}
+          {figures && <Stat label={t("artist.votes")} value={figures.votes} />}
+          {/* The API gives an artist's expositions in one answer, without pages: this count is always whole. */}
           <Stat label={t("artist.expositions")} value={expositions.length} />
         </dl>
-        {artist.bio && <p className="font-serif text-[22px] leading-snug italic">{artist.bio}</p>}
-        {works.length > 0 && (
-          <p className="flex items-center gap-2 text-sm">
+        {artist.bio && <p className={styles.bio}>{artist.bio}</p>}
+        {figures && figures.works > 0 && (
+          <p className={styles.proven}>
             <IconSeal size={18} strokeWidth={2} />
-            {t("artist.proven", { proven, total: works.length })}
+            {t("artist.proven", { proven: figures.proven, total: figures.works })}
           </p>
         )}
-        <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+        {!figures && <p className={styles.partial}>{t("artist.incomplete")}</p>}
+        <div className={styles.actions}>
           {works.length > 0 && (
-            <Link href={`/artists/${artist.id}/museum`} className="btn btn-ink flex-1">
-              <IconMuseum size={20} />
+            <ButtonLink href={`/artists/${artist.id}/museum`} className={styles.action}>
               {t("museum.walk")}
-            </Link>
+            </ButtonLink>
           )}
-          <button type="button" onClick={share} className="btn btn-soft flex-1">
-            <IconShare size={20} />
+          <Button variant="secondary" onClick={share} className={styles.action}>
             {copied ? t("artist.copied") : t("artist.share")}
-          </button>
+          </Button>
         </div>
       </aside>
 
-      <section aria-label={t("artist.worksTitle")} className="min-w-0 lg:order-2">
+      <section aria-label={t("artist.worksTitle")} className={styles.works}>
         {expositions.length > 0 && (
-          <div role="group" aria-label={t("artist.expositions")} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-            <Highlight label={t("explore.all")} cover={works.find((w) => w.media_kind === "image")?.media_url ?? null} on={view === "expo" && expo === "all"} pick={() => { setView("expo"); setExpo("all"); }} />
+          <div role="group" aria-label={t("artist.expositions")} className={styles.expositions}>
+            <Highlight
+              label={t("explore.all")}
+              cover={works.find((w) => w.media_kind === "image")?.media_url ?? null}
+              on={view === "expo" && expo === "all"}
+              pick={() => {
+                setView("expo");
+                setExpo("all");
+              }}
+            />
             {expositions.map((e) => (
-              <Highlight key={e.id} label={e.title} cover={e.cover_url} on={view === "expo" && expo === e.id} pick={() => { setView("expo"); setExpo(e.id); }} />
+              <Highlight
+                key={e.id}
+                label={e.title}
+                cover={e.cover_url}
+                on={view === "expo" && expo === e.id}
+                pick={() => {
+                  setView("expo");
+                  setExpo(e.id);
+                }}
+              />
             ))}
           </div>
         )}
 
-        <div className="mt-5">
+        <div className={styles.tabs}>
           <SlidingTabs
             id="artist"
             label={t("artist.sort")}
@@ -130,61 +149,66 @@ export function ArtistProfile({
 
         <div id="artist-panel" role="tabpanel" aria-labelledby={`artist-tab-${view}`}>
           {view === "genre" && categories.length > 1 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <CategoryChipGroup className={styles.chips}>
               {categories.map((c) => (
-                <button key={c} type="button" aria-pressed={c === genre} onClick={() => setGenre(c)} className="chip bg-surface aria-pressed:bg-ink">
-                  {categoryLabel({ id: c }, locale)} · {works.filter((w) => w.category === c).length}
-                </button>
+                <CategoryChip key={c} selected={c === genre} onClick={() => setGenre(c)}>
+                  {categoryLabel({ id: c }, locale)}
+                  {figures && <> · {works.filter((w) => w.category === c).length}</>}
+                </CategoryChip>
               ))}
-            </div>
+            </CategoryChipGroup>
           )}
-          <div className="mt-6 mb-5 flex flex-col gap-1.5">
-            <h2 className="text-[26px] font-extrabold tracking-[-0.03em]">
-              {view === "genre" ? (genre ? categoryLabel({ id: genre }, locale) : t("artist.worksTitle")) : current ? current.title : t("artist.allWorks")}
-            </h2>
-            {view === "expo" && current?.description && <p className="max-w-[60ch] font-serif text-[21px] leading-snug italic">{current.description}</p>}
-            <p className="text-sm text-muted">{plural("works", shown.length)}</p>
+          <div className={styles.head}>
+            <div className={styles.headText}>
+              <h2 className={styles.heading}>
+                {view === "genre" ? (genre ? categoryLabel({ id: genre }, locale) : t("artist.worksTitle")) : current ? current.title : t("artist.allWorks")}
+              </h2>
+              {view === "expo" && current?.description && <p className={styles.description}>{current.description}</p>}
+              {figures && <p className={styles.count}>{plural("works", shown.length)}</p>}
+            </div>
+            {view === "expo" && current && (
+              <Link href={`/expositions/${current.id}`} className={styles.more}>
+                {t("artist.openExposition")}
+                <IconForward size={14} />
+              </Link>
+            )}
           </div>
           {shown.length ? (
-            <div key={`${view}-${expo}-${genre}`} className="grid grid-cols-3 gap-1">
+            <div key={`${view}-${expo}-${genre}`} className={styles.grid}>
               {shown.map((w, i) => (
-                <Link
-                  key={w.id}
-                  href={`/works/${w.id}`}
-                  className="tile rise group relative block aspect-[4/5] overflow-hidden bg-surface"
-                  style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}
-                >
-                  <span className="tile-media absolute inset-0">
-                    <WorkMedia work={w} sizes="(min-width: 1024px) 18vw, 33vw" />
+                <Link key={w.id} href={`/works/${w.id}`} className={`tile rise ${styles.tile}`} style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
+                  <span className={`tile-media ${styles.media}`}>
+                    <TileMedia work={w} />
                   </span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-1.5 bg-ink/35 font-bold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                    <HeartFilled size={20} />
-                    {w.votes}
+                  <span className={styles.votes}>
+                    <HeartFilled size={18} />
+                    <span className="visually-hidden">{plural("votes", w.votes)}</span>
+                    <span aria-hidden="true">{w.votes}</span>
                   </span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="rounded-md bg-surface px-6 py-12 text-center text-muted">{t("museum.empty")}</p>
+            <p className={styles.empty}>{t("museum.empty")}</p>
           )}
         </div>
       </section>
 
-      <aside aria-label={t("artist.related")} className="flex flex-col gap-9 lg:order-1">
+      <aside aria-label={t("artist.related")} className={styles.related}>
         {places.length > 0 && (
           <section>
-            <h2 className="mb-3 text-sm font-bold text-muted">{t("artist.inHall")}</h2>
-            <ul className="flex flex-col gap-3">
+            <h2 className={styles.label}>{t("artist.inHall")}</h2>
+            <ul className={styles.rows}>
               {places.map((p) => (
                 <li key={p.work.id}>
-                  <Link href={`/works/${p.work.id}`} className="flex items-center gap-3">
-                    <span className="relative block h-20 w-16 shrink-0 overflow-hidden rounded-md bg-surface">
-                      <WorkMedia work={p.work} sizes="64px" />
+                  <Link href={`/works/${p.work.id}`} className={styles.place}>
+                    <span className={styles.thumb}>
+                      <TileMedia work={p.work} sizes="64px" bare />
                     </span>
-                    <span className="flex flex-col gap-0.5">
-                      <span className="text-[28px] leading-none font-extrabold tracking-[-0.04em]">#{p.rank}</span>
-                      <span className="text-sm font-semibold">{categoryLabel({ id: p.work.category }, locale)}</span>
-                      <span className="text-[13px] text-muted">
+                    <span className={styles.placeText}>
+                      <span className={styles.rank}>{t("hall.rank", { n: p.rank })}</span>
+                      <span className={styles.placeForm}>{categoryLabel({ id: p.work.category }, locale)}</span>
+                      <span className={styles.quiet}>
                         {p.work.title}, {plural("votes", p.votes)}
                       </span>
                     </span>
@@ -196,15 +220,15 @@ export function ArtistProfile({
         )}
         {others.length > 0 && (
           <section>
-            <h2 className="mb-3 text-sm font-bold text-muted">{t("artist.others")}</h2>
-            <ul className="flex flex-col gap-3.5">
+            <h2 className={styles.label}>{t("artist.others")}</h2>
+            <ul className={styles.rows}>
               {others.map((a) => (
                 <li key={a.id}>
-                  <Link href={`/artists/${a.id}`} className="flex items-center gap-3">
-                    <Avatar name={a.display_name} size={44} />
-                    <span className="flex min-w-0 flex-col">
-                      <span className="truncate font-semibold">{a.display_name}</span>
-                      {a.region && <span className="truncate text-[13px] text-muted">{a.region}</span>}
+                  <Link href={`/artists/${a.id}`} className={styles.other}>
+                    <Avatar name={a.display_name} size={40} />
+                    <span className={styles.otherText}>
+                      <span className={styles.otherName}>{a.display_name}</span>
+                      {a.region && <span className={styles.quiet}>{a.region}</span>}
                     </span>
                   </Link>
                 </li>
@@ -214,14 +238,14 @@ export function ArtistProfile({
         )}
         {practices.length > 0 && (
           <section>
-            <h2 className="mb-3 text-sm font-bold text-muted">{t("artist.heritage")}</h2>
-            <ul className="flex flex-col gap-2">
+            <h2 className={styles.label}>{t("artist.heritage")}</h2>
+            <ul className={styles.rows}>
               {practices.map((p) => (
                 <li key={p.id}>
-                  <Link href="/heritage" className="flex flex-col gap-1 rounded-md bg-surface px-3.5 py-3 transition-colors hover:bg-[var(--surface-hover)]">
-                    <span className="font-semibold">{p.name}</span>
-                    <span className={`flex items-center gap-1.5 text-[13px] font-semibold ${STATUS_TEXT[p.status]}`}>
-                      <span aria-hidden="true" className={`size-2 rounded-full ${STATUS_DOT[p.status]}`} />
+                  <Link href="/heritage" className={styles.practice}>
+                    <span className={styles.practiceName}>{p.name}</span>
+                    <span className={styles.status} data-status={p.status}>
+                      <span aria-hidden="true" className={styles.dot} />
                       {t(`heritage.${p.status}`)}
                     </span>
                   </Link>
@@ -237,23 +261,45 @@ export function ArtistProfile({
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div>
-      <dt className="text-[13px] text-muted">{label}</dt>
-      <dd className="text-[22px] font-extrabold tabular-nums">{value}</dd>
+    <div className={styles.stat}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
 
-/** An exposition as a story ring: the terracotta ring marks the one shown. */
+/**
+ * A work on a tile: its picture, the poster of a 3D work when it has one, or a paper plate naming a
+ * sound, a video or a 3D object. `bare` leaves the plate without its words, for a thumbnail too small to read.
+ */
+function TileMedia({ work, sizes = "(min-width: 1024px) 18vw, 33vw", bare = false }: { work: Work; sizes?: string; bare?: boolean }) {
+  const { t } = useT();
+  const picture = work.media_kind === "image" ? work.media_url : work.media_kind === "model" ? (work.poster_url ?? null) : null;
+  const kind = work.media_kind === "image" ? null : t(KIND[work.media_kind]);
+  if (picture)
+    return (
+      <>
+        <Image src={picture} alt={t("work.alt", { title: work.title, artist: work.artist_name })} fill sizes={sizes} className={styles.picture} />
+        {kind && !bare && <span className={styles.kindTag}>{kind}</span>}
+      </>
+    );
+  if (bare) return <span className={styles.plate} role="img" aria-label={t("artist.kind", { kind: kind ?? "", title: work.title })} />;
+  return (
+    <span className={styles.plate}>
+      <span className={styles.plateKind}>{kind}</span>
+      <span className={styles.plateTitle}>{work.title}</span>
+    </span>
+  );
+}
+
+/** An exposition as a small hung picture: the ink frame marks the one shown. */
 function Highlight({ label, cover, on, pick }: { label: string; cover: string | null; on: boolean; pick: () => void }) {
   return (
-    <button type="button" aria-pressed={on} onClick={pick} className="group flex w-[88px] shrink-0 flex-col items-center gap-2 text-[13px] font-medium">
-      <span key={String(on)} className={`block size-[72px] rounded-full p-[3px] transition-transform group-hover:scale-105 ${on ? "pop bg-red" : "bg-[#E3D8CE]"}`}>
-        <span className="relative block size-full overflow-hidden rounded-full border-2 border-white bg-surface">
-          {cover && <Image src={cover} alt="" fill sizes="72px" className="object-cover" />}
-        </span>
+    <button type="button" aria-pressed={on} onClick={pick} className={styles.highlight}>
+      <span key={String(on)} className={`${styles.cover} ${on ? "pop" : ""}`}>
+        {cover && <Image src={cover} alt="" fill sizes="88px" className={styles.picture} />}
       </span>
-      <span className="line-clamp-2 text-center leading-tight">{label}</span>
+      <span className={styles.highlightLabel}>{label}</span>
     </button>
   );
 }
