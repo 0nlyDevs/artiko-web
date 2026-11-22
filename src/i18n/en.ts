@@ -429,7 +429,6 @@ export const en = {
   "received.other": "{n} votes received",
   "expositions.one": "{n} exposition",
   "expositions.other": "{n} expositions",
-  "space.linkExpired": "That confirmation link no longer works. Sign in to receive a new one.",
 
   "email.existing.subject": "You already have an Artiko account",
   "email.existing.body": "Someone tried to create an Artiko account with this address, which already has one. Sign in, or choose a new password if you forgot it.",

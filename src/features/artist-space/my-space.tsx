@@ -29,6 +29,8 @@ import { SlidingTabs } from "@/lib/ui/sliding-tabs";
 import { WorkMedia } from "@/lib/works/work-tile";
 import { ProfileForm } from "@/features/artist-space/profile-form";
 import { PublishForm } from "@/features/artist-space/publish-form";
+import { MY_SPACE_VERIFIED_CALLBACK_URL, mySpaceVerificationNotice } from "@/features/auth/verification";
+import { VerificationNotice } from "@/features/auth/verification-notice";
 
 type Tab = "works" | "publish" | "votes" | "profile";
 type Space = { me: Me; categories: Category[]; works: Work[]; expositions: Exposition[]; votes: { category: string; work: Work | null }[] };
@@ -54,6 +56,7 @@ export function MySpace() {
   const [failed, setFailed] = useState<false | "error" | "unverified">(false);
   const [picked, setPicked] = useState<Tab | null>(null);
   const [resent, setResent] = useState(false);
+  const notice = mySpaceVerificationNotice(params, Boolean(session));
 
   useEffect(() => {
     if (!session) return;
@@ -77,12 +80,7 @@ export function MySpace() {
     return (
       <div className="rise mx-auto flex max-w-2xl flex-col items-start gap-5 py-8">
         <h1 className="text-[40px] leading-none font-extrabold tracking-[-0.04em]">{t("space.title")}</h1>
-        {/* An expired or reused confirmation link lands here with ?error=. */}
-        {params.get("error") && (
-          <p role="alert" className="rounded-md bg-[#FBE9E3] p-4 text-[#8E3524]">
-            {t("space.linkExpired")}
-          </p>
-        )}
+        {notice && <VerificationNotice notice={notice} />}
         <p className="text-lg leading-relaxed">{t("space.intro")}</p>
         <div className="flex flex-wrap gap-3">
           <Link href="/sign-in" className="btn btn-ink">{t("space.signIn")}</Link>
@@ -102,7 +100,7 @@ export function MySpace() {
               type="button"
               disabled={resent}
               onClick={async () => {
-                const { error } = await authClient.sendVerificationEmail({ email: session.user.email, callbackURL: "/me" });
+                const { error } = await authClient.sendVerificationEmail({ email: session.user.email, callbackURL: MY_SPACE_VERIFIED_CALLBACK_URL });
                 if (!error) setResent(true);
               }}
               className="btn btn-ink"

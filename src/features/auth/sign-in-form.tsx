@@ -9,7 +9,8 @@ import { clearApiToken } from "@/lib/api-token";
 import { authClient } from "@/lib/auth-client";
 import { authErrorKey } from "@/features/auth/errors";
 import { Field, Notice, PasswordField, useToggle } from "@/features/auth/fields";
-import { resendVerification, verificationNotice } from "@/features/auth/verification";
+import { MY_SPACE_VERIFIED_CALLBACK_URL, resendVerification, verificationNotice } from "@/features/auth/verification";
+import { VerificationNotice } from "@/features/auth/verification-notice";
 
 export function SignInForm() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function SignInForm() {
     setUnverified(null);
     setResent(false);
     const email = String(form.get("email"));
-    const { error } = await authClient.signIn.email({ email, password: String(form.get("password")), callbackURL: "/me" });
+    const { error } = await authClient.signIn.email({ email, password: String(form.get("password")), callbackURL: MY_SPACE_VERIFIED_CALLBACK_URL });
     setBusy(false);
     if (error?.code === "EMAIL_NOT_VERIFIED") return setUnverified(email);
     if (error) return setError(authErrorKey(error));
@@ -51,7 +52,7 @@ export function SignInForm() {
       </div>
       {/* Reads the query string, so only this notice waits for the browser; the form stays prerendered. */}
       <Suspense>
-        <VerificationNotice />
+        <VerificationLanding />
       </Suspense>
       <form
         onSubmit={(event) => {
@@ -91,8 +92,7 @@ export function SignInForm() {
 }
 
 /** Where a verification link lands: `?verified=1`, with `error=` when the link no longer works. */
-function VerificationNotice() {
-  const { t } = useT();
+function VerificationLanding() {
   const notice = verificationNotice(useSearchParams());
-  return notice && <Notice tone={notice === "auth.verified" ? "info" : "error"}>{t(notice)}</Notice>;
+  return notice && <VerificationNotice notice={notice} />;
 }

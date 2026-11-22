@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { authClient } from "@/lib/auth-client";
-import { resendVerification, VERIFIED_CALLBACK_URL, verificationNotice } from "./verification";
+import {
+  MY_SPACE_VERIFIED_CALLBACK_URL,
+  mySpaceVerificationNotice,
+  resendVerification,
+  VERIFIED_CALLBACK_URL,
+  verificationNotice,
+} from "./verification";
 
 vi.mock("@/lib/auth-client", () => ({ authClient: { sendVerificationEmail: vi.fn() } }));
 
@@ -25,6 +31,39 @@ describe("verification links", () => {
       expect(form).toContain("resendVerification(");
       expect(form).not.toContain("sendVerificationEmail(");
     }
+  });
+});
+
+describe("links back to my space", () => {
+  it("land on my space, confirmed", () => {
+    expect(MY_SPACE_VERIFIED_CALLBACK_URL).toBe("/me?verified=1");
+  });
+
+  it("are what signing in and the resend button of my space pass", () => {
+    const signIn = source("./sign-in-form.tsx");
+    const mySpace = source("../artist-space/my-space.tsx");
+    expect(signIn).toMatch(/signIn\.email\(\{[^}]*callbackURL: MY_SPACE_VERIFIED_CALLBACK_URL \}\)/);
+    expect(mySpace).toMatch(/sendVerificationEmail\(\{[^}]*callbackURL: MY_SPACE_VERIFIED_CALLBACK_URL \}\)/);
+    for (const file of [signIn, mySpace]) expect(file).not.toContain('callbackURL: "/me"');
+  });
+
+  it("show my space's notice through mySpaceVerificationNotice", () => {
+    expect(source("../artist-space/my-space.tsx")).toContain("mySpaceVerificationNotice(params, Boolean(session))");
+  });
+});
+
+describe("mySpaceVerificationNotice", () => {
+  it("confirms the address to someone signed out", () => {
+    expect(mySpaceVerificationNotice(new URLSearchParams("verified=1"), false)).toBe("auth.verified");
+  });
+
+  it("says nothing to someone signed in, who sees the space itself", () => {
+    expect(mySpaceVerificationNotice(new URLSearchParams("verified=1"), true)).toBeNull();
+    expect(mySpaceVerificationNotice(new URLSearchParams("verified=1&error=TOKEN_EXPIRED"), true)).toBeNull();
+  });
+
+  it("explains a dead link as on the sign-in page", () => {
+    expect(mySpaceVerificationNotice(new URLSearchParams("verified=1&error=TOKEN_EXPIRED"), false)).toBe("auth.linkInvalid");
   });
 });
 

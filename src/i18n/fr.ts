@@ -415,7 +415,6 @@ export const fr: Dictionary = {
   "received.other": "{n} votes reçus",
   "expositions.one": "{n} exposition",
   "expositions.other": "{n} expositions",
-  "space.linkExpired": "Ce lien de confirmation ne fonctionne plus. Connectez-vous pour en recevoir un nouveau.",
 
   "email.existing.subject": "Vous avez déjà un compte Artiko",
   "email.existing.body": "Quelqu’un a essayé de créer un compte Artiko avec cette adresse, qui en a déjà un. Connectez-vous, ou choisissez un nouveau mot de passe si vous l’avez oublié.",

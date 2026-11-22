@@ -416,7 +416,6 @@ export const mg: Dictionary = {
   "received.other": "Vato {n} voaray",
   "expositions.one": "Fampirantiana {n}",
   "expositions.other": "Fampirantiana {n}",
-  "space.linkExpired": "Tsy miasa intsony io rohy fanamafisana io. Midira mba hahazoana vaovao.",
 
   "email.existing.subject": "Efa manana kaonty Artiko ianao",
   "email.existing.body": "Nisy nanandrana namorona kaonty Artiko tamin'ity adiresy ity, nefa efa manana iray izy. Midira, na misafidiana tenimiafina vaovao raha hadinonao.",
