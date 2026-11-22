@@ -68,12 +68,19 @@ jobs:
           curl --fail --silent --show-error --location --retry 3 \
             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$archive" \
             --output "$tool_dir/$archive"
-          printf '%s  %s\n' "$GITLEAKS_SHA256" "$tool_dir/$archive" | sha256sum --check --status
+          if ! printf '%s  %s\n' "$GITLEAKS_SHA256" "$tool_dir/$archive" | sha256sum --check --status; then
+            echo "::error::SHA-256 of $archive does not match GITLEAKS_SHA256; after changing GITLEAKS_VERSION, set GITLEAKS_SHA256 from the release gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+            exit 1
+          fi
           tar -xzf "$tool_dir/$archive" -C "$tool_dir" gitleaks
 
           if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
-            git cat-file -e "${PR_BASE_SHA}^{commit}"
-            git cat-file -e "${PR_HEAD_SHA}^{commit}"
+            for sha in "$PR_BASE_SHA" "$PR_HEAD_SHA"; do
+              if [[ -z "$sha" ]] || ! git cat-file -e "${sha}^{commit}" 2>/dev/null; then
+                echo "::error::Pull request commit '${sha}' is missing from the clone; refusing to scan an incomplete range"
+                exit 1
+              fi
+            done
             log_opts="${PR_BASE_SHA}..${PR_HEAD_SHA}"
           else
             log_opts=--all
