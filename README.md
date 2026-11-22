@@ -27,6 +27,17 @@ Tasks that need Node first run `task check:versions`, which fails when Node or p
 - `BETTER_AUTH_SECRET` has no fallback: the auth route fails on its first request without it, but `next build` needs none.
 - `src/lib/api.ts` is the only entry point to the API. Its client is generated from `artiko-api/openapi.yml`: run `pnpm api:generate` (set `OPENAPI_SPEC` to another path or URL) and commit the result.
 
+## KANTO museum frontend
+
+`/` and every address that no other route declares are served by the KANTO museum frontend in `src/kanto`, mounted by `src/app/(kanto)/[[...slug]]/page.tsx` with its own root layout. It is a client-side app with its own router (`src/kanto/app/routes.ts`): the home, the museum rooms under `/musee/…` (WebGL, with a photographic fallback), the works, the contribution wizard, the hanging ceremony shown once a work is sent, and the end of the visit.
+
+- It runs on an API simulated in the browser (`src/kanto/lib/api/mock`, demo accounts in `docs/kanto/MVP-DEMO.md`). Its screens are labelled as demonstration data. Wiring them to artiko-api is planned screen by screen in `docs/parite-fonctionnelle.md`.
+- The contribution wizard prepares a LiDAR scan (`.usdz`) or a `.glb` with the engine of `src/features/model-import`, in the browser.
+- Its styles are CSS Modules: the Turbopack rule in `next.config.ts` keeps `*.module.css` out of the Tailwind loader.
+- Its tests are the `kanto` Vitest project (jsdom); the rest of the app stays in the `app` project (node).
+- The former home page (the 3D gallery walk of `src/components/gallery`) is no longer routed: KANTO owns `/`. Its components and assets are still in the repository.
+- The licensed display fonts are not in the repository (`public/fonts/licensed/` is ignored); the OFL fonts in `public/fonts/ofl/` are used instead. Media sources and licences: `docs/kanto/media-sources.md`.
+
 ## Layout
 
 - `src/app/`: routing only. `(app)` is the root layout; inside it `(pages)` wraps the app pages in the navigation (`features/site/app-shell.tsx`) and `(auth)` puts sign-in, sign-up and password reset beside a video (`public/auth/`, credits in `CREDITS.md`).
