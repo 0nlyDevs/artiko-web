@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   images: {
+    // Next 16 refuses to optimize images from a private address (SSRF guard). A local API
+    // (http://localhost:8000) is one, so allow it only when the API itself is local.
+    dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "[::1]"].includes(api.hostname),
     remotePatterns: [
       // Works and proof files served by the API, and known works from Wikimedia Commons and the Met.
       { protocol: api.protocol === "https:" ? "https" : "http", hostname: api.hostname, port: api.port, pathname: "/media/**" },
