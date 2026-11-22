@@ -171,7 +171,7 @@ describe('HangingPage', () => {
     ).toHaveAttribute('href', `/contribuer/${PENDING}`);
     expect(
       screen.getByRole('link', { name: 'Déposer une autre œuvre' }),
-    ).toHaveAttribute('href', '/contribuer/nouvelle');
+    ).toHaveAttribute('href', '/me?tab=publish');
     expect(
       screen.getByRole('link', { name: 'Continuer la visite' }),
     ).toHaveAttribute('href', '/musee/peinture/01');
@@ -192,10 +192,10 @@ describe('HangingPage', () => {
     ).toHaveAttribute('href', '/musee/peinture/02');
     expect(
       screen.getByRole('link', { name: 'Déposer une autre œuvre' }),
-    ).toHaveAttribute('href', '/contribuer/nouvelle');
+    ).toHaveAttribute('href', '/me?tab=publish');
     expect(
       screen.getByRole('link', { name: 'Retour à mon espace' }),
-    ).toHaveAttribute('href', '/mon-espace');
+    ).toHaveAttribute('href', '/me');
   });
 
   it('marks the Malagasy thanks, keeps the demo mark and labels the work', async () => {

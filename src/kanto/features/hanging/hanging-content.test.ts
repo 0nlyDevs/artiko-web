@@ -52,8 +52,8 @@ describe('hangingCopy', () => {
       lines: ['Votre œuvre est', 'accrochée.'],
       paragraph: 'Elle est visible dès maintenant dans la salle Peinture.',
       primary: { label: 'Voir dans la salle', to: '/musee/peinture/02' },
-      secondary: { label: 'Déposer une autre œuvre', to: '/contribuer/nouvelle' },
-      tertiary: { label: 'Retour à mon espace', to: '/mon-espace' },
+      secondary: { label: 'Déposer une autre œuvre', to: '/me?tab=publish' },
+      tertiary: { label: 'Retour à mon espace', to: '/me' },
     });
   });
 
@@ -66,7 +66,7 @@ describe('hangingCopy', () => {
       paragraph:
         'Elle sera accrochée dans la salle Peinture dès qu’un relecteur l’aura validée. Suivez son parcours depuis votre espace.',
       primary: { label: 'Suivre mon dépôt', to: '/contribuer/sub-hautes-terres' },
-      secondary: { label: 'Déposer une autre œuvre', to: '/contribuer/nouvelle' },
+      secondary: { label: 'Déposer une autre œuvre', to: '/me?tab=publish' },
       tertiary: { label: 'Continuer la visite', to: '/musee/peinture/01' },
     });
   });

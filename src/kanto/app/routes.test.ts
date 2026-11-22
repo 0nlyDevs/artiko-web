@@ -57,96 +57,26 @@ describe('matchRoute', () => {
 });
 
 describe('matchRoute for the hall pages', () => {
-  it('maps account, contribution and space paths', () => {
-    expect(matchRoute('/connexion')).toEqual({ kind: 'login' });
-    expect(matchRoute('/inscription')).toEqual({ kind: 'register' });
-    expect(matchRoute('/contribuer')).toEqual({ kind: 'contribute' });
-    expect(matchRoute('/contribuer/nouvelle')).toEqual({
-      kind: 'wizard',
-      itemId: null,
-      step: 1,
-    });
-    expect(matchRoute('/contribuer/abc/etape/3')).toEqual({
-      kind: 'wizard',
-      itemId: 'abc',
-      step: 3,
-    });
-    expect(matchRoute('/contribuer/abc/etape/9')).toEqual({
-      kind: 'redirect',
-      to: '/contribuer/abc/etape/1',
-    });
-    expect(matchRoute('/contribuer/abc')).toEqual({
-      kind: 'submission',
-      itemId: 'abc',
-    });
-    expect(matchRoute('/mon-espace')).toEqual({ kind: 'space' });
-    expect(matchRoute('/mon-espace/profil')).toEqual({ kind: 'profile' });
+  it('sends the old account, deposit and space addresses to the real pages', () => {
+    expect(matchRoute('/connexion')).toEqual({ kind: 'redirect', to: '/sign-in' });
+    expect(matchRoute('/inscription')).toEqual({ kind: 'redirect', to: '/sign-up' });
+    expect(matchRoute('/mon-espace')).toEqual({ kind: 'redirect', to: '/me' });
+    expect(matchRoute('/mon-espace/profil')).toEqual({ kind: 'redirect', to: '/me?tab=profile' });
+    expect(matchRoute('/contribuer')).toEqual({ kind: 'redirect', to: '/me?tab=publish' });
+    expect(matchRoute('/contribuer/nouvelle')).toEqual({ kind: 'redirect', to: '/me?tab=publish' });
+    expect(paths.login('/musee')).toBe('/sign-in?next=%2Fmusee');
   });
 
-  it('maps items, verification, scan, admin and the end of the visit', () => {
-    expect(matchRoute('/oeuvres')).toEqual({ kind: 'items' });
-    expect(matchRoute('/oeuvre/peinture-01')).toEqual({
-      kind: 'item',
-      itemId: 'peinture-01',
-    });
-    expect(matchRoute('/verification/x')).toEqual({
-      kind: 'verification',
-      itemId: 'x',
-    });
-    expect(matchRoute('/numerisation')).toEqual({ kind: 'scan-new' });
-    expect(matchRoute('/numerisation/s1')).toEqual({ kind: 'scan', sessionId: 's1' });
-    expect(matchRoute('/numerisation/s1/telephone')).toEqual({
-      kind: 'scan-phone',
-      sessionId: 's1',
-    });
-    expect(matchRoute('/admin')).toEqual({ kind: 'admin' });
-    expect(matchRoute('/admin/x')).toEqual({ kind: 'admin-item', itemId: 'x' });
+
+  it('sends the simulated pages to their real counterparts and keeps the end of the visit', () => {
+    expect(matchRoute('/oeuvres')).toEqual({ kind: 'redirect', to: '/explore' });
+    expect(matchRoute('/oeuvre/abc')).toEqual({ kind: 'redirect', to: '/explore' });
+    expect(matchRoute('/verification/abc')).toEqual({ kind: 'redirect', to: '/me' });
+    expect(matchRoute('/numerisation')).toEqual({ kind: 'redirect', to: '/me?tab=publish' });
+    expect(matchRoute('/admin')).toEqual({ kind: 'redirect', to: '/' });
     expect(matchRoute('/fin-de-visite')).toEqual({ kind: 'end' });
-    expect(matchRoute('/oeuvre')).toEqual({ kind: 'not-found' });
-    expect(matchRoute('/numerisation/s1/autre')).toEqual({ kind: 'not-found' });
   });
+
 });
 
-describe('the hanging ceremony route', () => {
-  it('maps /contribuer/:id/accrochage to the ceremony of that item', () => {
-    expect(matchRoute('/contribuer/abc/accrochage')).toEqual({
-      kind: 'hanging',
-      itemId: 'abc',
-    });
-    expect(matchRoute('/contribuer/abc/accrochage/')).toEqual({
-      kind: 'hanging',
-      itemId: 'abc',
-    });
-  });
 
-  it('builds the path and reads it back, encoded ids included', () => {
-    expect(paths.hanging('abc')).toBe('/contribuer/abc/accrochage');
-    expect(paths.hanging('a b/c')).toBe('/contribuer/a%20b%2Fc/accrochage');
-    expect(matchRoute(paths.hanging('a b/c'))).toEqual({
-      kind: 'hanging',
-      itemId: 'a b/c',
-    });
-  });
-
-  it('keeps the neighbouring contribution routes', () => {
-    expect(matchRoute('/contribuer/abc')).toEqual({
-      kind: 'submission',
-      itemId: 'abc',
-    });
-    // The send is the third step now: an address of the former fourth step leads there.
-    expect(matchRoute('/contribuer/abc/etape/4')).toEqual({
-      kind: 'redirect',
-      to: '/contribuer/abc/etape/3',
-    });
-  });
-
-  it('rejects extra segments and the draft that has no id yet', () => {
-    expect(matchRoute('/contribuer/abc/accrochage/encore')).toEqual({
-      kind: 'not-found',
-    });
-    expect(matchRoute('/contribuer/nouvelle/accrochage')).toEqual({
-      kind: 'not-found',
-    });
-    expect(matchRoute('/contribuer/abc/autre')).toEqual({ kind: 'not-found' });
-  });
-});

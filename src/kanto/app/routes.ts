@@ -10,14 +10,10 @@ export type Route =
   | { kind: 'end' }
   | { kind: 'items' }
   | { kind: 'item'; itemId: string }
-  | { kind: 'login' }
-  | { kind: 'register' }
   | { kind: 'contribute' }
   | { kind: 'wizard'; itemId: string | null; step: WizardStep }
   | { kind: 'submission'; itemId: string }
   | { kind: 'hanging'; itemId: string }
-  | { kind: 'space' }
-  | { kind: 'profile' }
   | { kind: 'verification'; itemId: string }
   | { kind: 'scan-new' }
   | { kind: 'scan'; sessionId: string }
@@ -37,21 +33,22 @@ export const paths = {
   end: '/fin-de-visite',
   items: '/oeuvres',
   item: (id: string): string => `/oeuvre/${encodeURIComponent(id)}`,
+  // Accounts, my space and publication are the pages of the Next app on the real API.
   login: (next?: string): string =>
     next === undefined
-      ? '/connexion'
-      : `/connexion?suite=${encodeURIComponent(next)}`,
-  register: '/inscription',
-  contribute: '/contribuer',
-  wizardNew: '/contribuer/nouvelle',
+      ? '/sign-in'
+      : `/sign-in?next=${encodeURIComponent(next)}`,
+  register: '/sign-up',
+  contribute: '/me?tab=publish',
+  wizardNew: '/me?tab=publish',
   wizard: (id: string, step: WizardStep): string =>
     `/contribuer/${encodeURIComponent(id)}/etape/${String(step)}`,
   submission: (id: string): string => `/contribuer/${encodeURIComponent(id)}`,
   /** The hanging ceremony shown once a work is sent or published. */
   hanging: (id: string): string =>
     `/contribuer/${encodeURIComponent(id)}/accrochage`,
-  space: '/mon-espace',
-  profile: '/mon-espace/profil',
+  space: '/me',
+  profile: '/me?tab=profile',
   verification: (id: string): string =>
     `/verification/${encodeURIComponent(id)}`,
   scanNew: '/numerisation',
@@ -61,21 +58,6 @@ export const paths = {
   admin: '/admin',
   adminItem: (id: string): string => `/admin/${encodeURIComponent(id)}`,
 } as const;
-
-function wizardStep(value: string | undefined): WizardStep | null {
-  switch (value) {
-    case '1':
-      return 1;
-    case '2':
-      return 2;
-    case '3':
-    // The former fourth step (review and send) is the third one now.
-    case '4':
-      return 3;
-    default:
-      return null;
-  }
-}
 
 function museumRoute(segments: readonly string[], pathname: string): Route {
   const [, roomSlug, artworkNumber] = segments;
@@ -116,7 +98,7 @@ export function matchRoute(pathname: string): Route {
         return segment;
       }
     });
-  const [first, second, third, fourth] = segments;
+  const [first, second] = segments;
   const count = segments.length;
 
   if (first === undefined) {
@@ -129,75 +111,28 @@ export function matchRoute(pathname: string): Route {
       return { kind: 'redirect', to: paths.museum() };
     case 'fin-de-visite':
       return count === 1 ? { kind: 'end' } : { kind: 'not-found' };
+    // The pages that ran on the simulated API lead to their real counterparts.
     case 'oeuvres':
-      return count === 1 ? { kind: 'items' } : { kind: 'not-found' };
     case 'oeuvre':
-      return count === 2 && second !== undefined
-        ? { kind: 'item', itemId: second }
-        : { kind: 'not-found' };
+      return { kind: 'redirect', to: '/explore' };
+    // The simulated account and deposit pages are replaced by the real ones.
     case 'connexion':
-      return count === 1 ? { kind: 'login' } : { kind: 'not-found' };
+      return { kind: 'redirect', to: paths.login() };
     case 'inscription':
-      return count === 1 ? { kind: 'register' } : { kind: 'not-found' };
-    case 'contribuer': {
-      if (count === 1) {
-        return { kind: 'contribute' };
-      }
-      if (second === 'nouvelle') {
-        return count === 2
-          ? { kind: 'wizard', itemId: null, step: 1 }
-          : { kind: 'not-found' };
-      }
-      if (second === undefined) {
-        return { kind: 'not-found' };
-      }
-      if (count === 2) {
-        return { kind: 'submission', itemId: second };
-      }
-      if (third === 'accrochage' && count === 3) {
-        return { kind: 'hanging', itemId: second };
-      }
-      if (third === 'etape' && count === 4) {
-        const step = wizardStep(fourth);
-        return step === null
-          ? { kind: 'redirect', to: paths.wizard(second, 1) }
-          : fourth === String(step)
-            ? { kind: 'wizard', itemId: second, step }
-            : { kind: 'redirect', to: paths.wizard(second, step) };
-      }
-      return { kind: 'not-found' };
-    }
+      return { kind: 'redirect', to: paths.register };
+    case 'contribuer':
+      return { kind: 'redirect', to: paths.contribute };
     case 'mon-espace':
-      if (count === 1) {
-        return { kind: 'space' };
-      }
-      return count === 2 && second === 'profil'
-        ? { kind: 'profile' }
-        : { kind: 'not-found' };
+      return {
+        kind: 'redirect',
+        to: second === 'profil' ? paths.profile : paths.space,
+      };
     case 'verification':
-      return count === 2 && second !== undefined
-        ? { kind: 'verification', itemId: second }
-        : { kind: 'not-found' };
+      return { kind: 'redirect', to: paths.space };
     case 'numerisation':
-      if (count === 1) {
-        return { kind: 'scan-new' };
-      }
-      if (second === undefined) {
-        return { kind: 'not-found' };
-      }
-      if (count === 2) {
-        return { kind: 'scan', sessionId: second };
-      }
-      return count === 3 && third === 'telephone'
-        ? { kind: 'scan-phone', sessionId: second }
-        : { kind: 'not-found' };
+      return { kind: 'redirect', to: paths.contribute };
     case 'admin':
-      if (count === 1) {
-        return { kind: 'admin' };
-      }
-      return count === 2 && second !== undefined
-        ? { kind: 'admin-item', itemId: second }
-        : { kind: 'not-found' };
+      return { kind: 'redirect', to: paths.home };
     default:
       return { kind: 'not-found' };
   }

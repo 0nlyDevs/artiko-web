@@ -36,7 +36,49 @@ export interface NavigateOptions {
   replace?: boolean | undefined;
 }
 
+/**
+ * Addresses served by the Next app outside KANTO (accounts, my space, the
+ * pages of the API). KANTO cannot draw them: they need a full page load.
+ */
+const APP_ROUTES = [
+  '/sign-in',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+  '/me',
+  '/explore',
+  '/hall-of-fame',
+  '/heritage',
+  '/scan',
+  '/works',
+  '/artists',
+  '/expositions',
+  '/api',
+];
+
+/** A full page load; replaceable in tests, where jsdom cannot load another document. */
+export const pageLoad = {
+  go(path: string, replace: boolean): void {
+    if (replace) {
+      window.location.replace(path);
+    } else {
+      window.location.assign(path);
+    }
+  },
+};
+
+export function isAppRoute(path: string): boolean {
+  const pathname = path.split(/[?#]/, 1)[0] ?? path;
+  return APP_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+}
+
 export function navigate(path: string, options: NavigateOptions = {}): void {
+  if (isAppRoute(path)) {
+    pageLoad.go(path, options.replace === true);
+    return;
+  }
   if (options.replace === true) {
     window.history.replaceState(null, '', path);
   } else if (path !== window.location.pathname) {

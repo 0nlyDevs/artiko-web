@@ -31,7 +31,7 @@ export function RequireSession({ children, permission }: RequireSessionProps) {
     if (
       status === 'guest' &&
       !redirected.current &&
-      !pathname.startsWith('/connexion')
+      !pathname.startsWith('/sign-in')
     ) {
       redirected.current = true;
       navigate(paths.login(`${pathname}${window.location.search}`), {

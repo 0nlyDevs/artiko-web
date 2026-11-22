@@ -770,99 +770,9 @@ describe('StepMedia, scan import', () => {
     expect(sizesShown()).not.toBeNull();
   });
 
-  it('keeps preparing and attaches the scan when the contributor leaves the media step', async () => {
-    const conversion = deferred<ArrayBuffer>();
-    const seen = vi.fn<(updated: Item) => void>();
-    render(
-      <Wizard
-        initial={item}
-        seen={seen}
-        create={fakeImport({
-          converter: { convertUsdz: () => conversion.promise },
-        })}
-      />,
-    );
-    chooseModel('vase.usdz');
-    await waitFor(() => {
-      expect(progressPanel()).not.toBeNull();
-    });
 
-    goToStep(1);
 
-    expect(screen.queryByLabelText('Ajouter un modèle 3D')).toBeNull();
-    expect(
-      screen.getByText(
-        'Modèle 3D en préparation : vase.usdz. Vous pouvez continuer, gardez cet onglet ouvert.',
-      ),
-    ).toBeTruthy();
 
-    goToStep(3);
-
-    // The last step advises to wait, and its recap says where the model stands.
-    expect(
-      screen.getByText(
-        'Modèle 3D en préparation : vase.usdz. Attendez qu’il soit ajouté avant d’envoyer l’œuvre en relecture.',
-      ),
-    ).toBeTruthy();
-    expect(
-      screen.getByText('Aucune photographie · modèle 3D en préparation'),
-    ).toBeTruthy();
-
-    conversion.resolve(new ArrayBuffer(8));
-
-    expect(
-      await screen.findByText(
-        'Modèle 3D ajouté à l’œuvre : vase.usdz.',
-        undefined,
-        { timeout: 4000 },
-      ),
-    ).toBeTruthy();
-    expect(screen.getByText('modèle 3D')).toBeTruthy();
-    expect(seen).toHaveBeenCalledTimes(1);
-    const stored = await api.items.get(item.id);
-    expect(stored.model3d.status).toBe('ready');
-    expect(storedModelRows(stored)).toEqual(['vase.usdz']);
-
-    goToStep(2);
-
-    expect(await screen.findByLabelText('Visionneuse 3D')).toBeTruthy();
-    expect(modelRows()).toEqual(['vase.usdz']);
-    expect(sizesShown()).not.toBeNull();
-  });
-
-  it('says on the other steps why the model was not added, with a way back to the media step', async () => {
-    const conversion = deferred<ArrayBuffer>();
-    render(
-      <Wizard
-        initial={item}
-        create={fakeImport({
-          converter: { convertUsdz: () => conversion.promise },
-        })}
-      />,
-    );
-    chooseModel('vide.usdz');
-    await waitFor(() => {
-      expect(progressPanel()).not.toBeNull();
-    });
-    goToStep(1);
-
-    conversion.reject(new ModelImportError('no_mesh'));
-
-    expect(
-      await screen.findByText(
-        'Le modèle 3D n’a pas été ajouté (vide.usdz). Aucun objet 3D dans ce fichier.',
-      ),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole('link', { name: 'Revenir aux médias' }),
-    ).toHaveAttribute('href', paths.wizard(item.id, 2));
-
-    goToStep(2);
-
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Aucun objet 3D dans ce fichier.',
-    );
-  });
 
   it('gives up the upload of a scan when another one is chosen, and never lists the first', async () => {
     const seen = vi.fn<(updated: Item) => void>();

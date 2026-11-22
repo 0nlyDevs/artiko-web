@@ -19,13 +19,6 @@ const CTA: Record<RoomMedium, string> = {
   music: 'Proposer un enregistrement',
 };
 
-const MODE: Record<RoomMedium, string> = {
-  painting: 'painting',
-  sculpture: 'sculpture',
-  craft: 'craft',
-  music: 'music',
-};
-
 /** Figma A4 "Salle vide — accrochage en cours": templates on the wall and a poster inviting a deposit. */
 export function EmptyRoom({ medium }: { medium: RoomMedium }) {
   return (
@@ -43,7 +36,7 @@ export function EmptyRoom({ medium }: { medium: RoomMedium }) {
         <p className={styles.title}>Cette salle attend ses premières œuvres.</p>
         <p className={styles.hint}>{HINT[medium]}</p>
         <Link
-          to={`${paths.wizardNew}?medium=${MODE[medium]}`}
+          to={paths.contribute}
           className={styles.cta}
         >
           {CTA[medium]}

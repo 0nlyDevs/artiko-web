@@ -34,6 +34,12 @@ const CODES = new Map<string, Key>([
   ["extras_need_model", "api.extras_need_model"],
   ["invalid_model_hd", "api.invalid_model_hd"],
   ["invalid_poster", "api.invalid_poster"],
+  // Added with the AI-generated detection of the API (artiko-api #31) and its stricter file checks.
+  ["ai_generated_content", "api.ai_generated_content"],
+  ["image_too_large", "api.image_too_large"],
+  ["unreadable_video", "api.unreadable_video"],
+  ["unsupported_video_format", "api.unsupported_video_format"],
+  ["rate_limit_unavailable", "api.rate_limit_unavailable"],
 
   // Files
   ["file_too_large", "api.file_too_large"],

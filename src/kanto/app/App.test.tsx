@@ -1,7 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import { resetDemoData } from '../lib/api';
-import { session } from '../lib/session/session';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { settleMotion } from '../test/motion';
 import { App } from './App';
 
@@ -49,54 +47,4 @@ describe('App routing', () => {
   });
 });
 
-describe('App routing of the hanging ceremony', () => {
-  afterEach(() => {
-    session.reset();
-    resetDemoData();
-  });
 
-  it('opens the ceremony of a sent work for its owner', async () => {
-    resetDemoData();
-    session.reset();
-    await session.signIn({
-      email: 'visiteur@kanto.demo',
-      password: 'kanto-demo-2026',
-    });
-    window.history.replaceState(
-      null,
-      '',
-      '/contribuer/sub-hautes-terres/accrochage',
-    );
-    render(<App />);
-
-    expect(
-      await screen.findByRole(
-        'heading',
-        { level: 1, name: /Misaotra !\s+Votre œuvre est\s+déposée\./ },
-        { timeout: 4000 },
-      ),
-    ).toBeTruthy();
-    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-  });
-
-  it('sends a guest to sign in, then back to the ceremony', async () => {
-    resetDemoData();
-    session.reset();
-    window.history.replaceState(
-      null,
-      '',
-      '/contribuer/sub-hautes-terres/accrochage',
-    );
-    render(<App />);
-
-    await waitFor(
-      () => {
-        expect(window.location.pathname).toBe('/connexion');
-      },
-      { timeout: 4000 },
-    );
-    expect(new URLSearchParams(window.location.search).get('suite')).toBe(
-      '/contribuer/sub-hautes-terres/accrochage',
-    );
-  });
-});

@@ -26,14 +26,6 @@ function lazyPage<P extends object>(
 }
 
 const MotionLab = lazyPage(() => import('./MotionLab'), 'MotionLab');
-const LoginPage = lazyPage(
-  () => import('../features/account/LoginPage'),
-  'LoginPage',
-);
-const RegisterPage = lazyPage(
-  () => import('../features/account/RegisterPage'),
-  'RegisterPage',
-);
 const ContributeHubPage = lazyPage(
   () => import('../features/contribute/ContributeHubPage'),
   'ContributeHubPage',
@@ -57,14 +49,6 @@ const ItemsPage = lazyPage(
 const ItemPage = lazyPage<{ itemId: string }>(
   () => import('../features/item/ItemPage'),
   'ItemPage',
-);
-const SpacePage = lazyPage(
-  () => import('../features/space/SpacePage'),
-  'SpacePage',
-);
-const ProfilePage = lazyPage(
-  () => import('../features/space/ProfilePage'),
-  'ProfilePage',
 );
 const VerificationPage = lazyPage<{ itemId: string }>(
   () => import('../features/verification/VerificationPage'),
@@ -119,7 +103,12 @@ function Screen({ pathname }: { pathname: string }) {
 
   useEffect(() => {
     if (route.kind === 'redirect') {
-      navigate(route.to, { replace: true });
+      // The old sign-in address kept its way back in `suite`: the real page reads it as `next`.
+      const suite = new URLSearchParams(window.location.search).get('suite');
+      navigate(
+        route.to === paths.login() && suite !== null ? paths.login(suite) : route.to,
+        { replace: true },
+      );
     }
   }, [route]);
 
@@ -136,10 +125,6 @@ function Screen({ pathname }: { pathname: string }) {
       return <ItemsPage />;
     case 'item':
       return <ItemPage itemId={route.itemId} />;
-    case 'login':
-      return <LoginPage />;
-    case 'register':
-      return <RegisterPage />;
     case 'contribute':
       return <ContributeHubPage />;
     case 'wizard':
@@ -154,10 +139,6 @@ function Screen({ pathname }: { pathname: string }) {
           <HangingPage itemId={route.itemId} />
         </Suspense>
       );
-    case 'space':
-      return <SpacePage />;
-    case 'profile':
-      return <ProfilePage />;
     case 'verification':
       return <VerificationPage itemId={route.itemId} />;
     case 'scan-new':
