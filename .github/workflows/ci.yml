@@ -30,6 +30,9 @@ jobs:
           persist-credentials: false
       - uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5
         with:
+          version: 2026.11.11
+          # SHA-256 of the extracted mise binary: the mise-v2026.11.11-linux-x64 entry of the release SHASUMS256.txt.
+          sha256: be6f46a4cc3d5532acf359f163cf7ce80ceb43e5718d7b9049165a340fb02e2d
           install_args: node pnpm task
       - name: Locate the pnpm store
         id: pnpm-store
