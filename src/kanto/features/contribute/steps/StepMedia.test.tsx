@@ -814,7 +814,7 @@ describe('StepMedia, scan import', () => {
         { timeout: 4000 },
       ),
     ).toBeTruthy();
-    expect(screen.getByText('Aucune photographie · modèle 3D')).toBeTruthy();
+    expect(screen.getByText('modèle 3D')).toBeTruthy();
     expect(seen).toHaveBeenCalledTimes(1);
     const stored = await api.items.get(item.id);
     expect(stored.model3d.status).toBe('ready');
@@ -987,7 +987,7 @@ describe('StepMedia, scan import', () => {
 
     expect(
       await screen.findByText(
-        'Aucune photographie · modèle 3D à importer de nouveau',
+        'modèle 3D à importer de nouveau',
       ),
     ).toBeTruthy();
     expect(
