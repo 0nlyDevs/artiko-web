@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useT } from "@/i18n/locale";
 import { ProofSeal } from "@/lib/works/proof-seal";
+import { SlotErrorBoundary } from "@/features/artist-museum/slot-error-boundary";
 import { VoteButton } from "@/features/artist-museum/vote-button";
 import type { Museum, Work } from "@/lib/api";
 
@@ -29,6 +30,23 @@ export function MuseumView({ museum }: { museum: Museum }) {
   const [selected, setSelected] = useState<Work>(museum.slots[0].work);
   const [extraVotes, setExtraVotes] = useState<Record<string, number>>({});
   const votes = (w: Work) => w.votes + (extraVotes[w.id] ?? 0);
+  const workList = (
+    <ul className="grid gap-4 sm:grid-cols-2">
+      {museum.slots.map(({ work }) => (
+        <li key={work.id}>
+          <button
+            type="button"
+            onClick={() => setSelected(work)}
+            aria-pressed={work.id === selected.id}
+            className="flex w-full flex-col gap-2 bg-paper p-3 text-left aria-pressed:outline-3 aria-pressed:outline-ink"
+          >
+            <WorkThumbnail work={work} />
+            <span className="font-bold">{work.title}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,25 +63,13 @@ export function MuseumView({ museum }: { museum: Museum }) {
 
       <div className="grid gap-8 lg:grid-cols-[3fr_2fr]">
         {mode === "3d" ? (
-          <div className="h-[60vh] min-h-80 bg-ink">
-            <Museum3D museum={museum} selectedId={selected.id} onSelect={setSelected} />
-          </div>
+          <SlotErrorBoundary fallback={workList}>
+            <div className="h-[60vh] min-h-80 bg-ink">
+              <Museum3D museum={museum} selectedId={selected.id} onSelect={setSelected} />
+            </div>
+          </SlotErrorBoundary>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {museum.slots.map(({ work }) => (
-              <li key={work.id}>
-                <button
-                  type="button"
-                  onClick={() => setSelected(work)}
-                  aria-pressed={work.id === selected.id}
-                  className="flex w-full flex-col gap-2 bg-paper p-3 text-left aria-pressed:outline-3 aria-pressed:outline-ink"
-                >
-                  <WorkThumbnail work={work} />
-                  <span className="font-bold">{work.title}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          workList
         )}
 
         <aside aria-live="polite" className="flex flex-col gap-4">
