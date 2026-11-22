@@ -26,7 +26,7 @@ pnpm build
 - `src/features/<feature>/`: the code behind a route.
 - `src/components/`: the 3D gallery walk of the home page (`gallery/`), still to be moved under `src/features/gallery/` to follow the same rule.
 - `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `email.ts` (account emails), `api.ts` and `api-client/` (generated, do not edit), `ui/` (sliding chips and tabs, icons, avatars), `works/` (work tile, vote).
-- `public/museum/assets/`: the home gallery's landscape, Monet and Satie files.
+- `public/gallery/`: the home gallery's pictures, landscape and Satie files, credited in `sources.json`.
 - Motion (sliding pills, skeletons, staggered entrances, the vote heart) lives in `globals.css` and stops under `prefers-reduced-motion`.
 
 Rule: a page file only imports from `src/features` and `src/app`, never the reverse. Shared code goes in `src/lib/` once two features need it.

@@ -62,5 +62,37 @@
     "date": "c. 1688/1732",
     "source_url": "https://www.artic.edu/artworks/2102",
     "rights": "Public domain (CC0 image from the Art Institute of Chicago open access collection)."
+  },
+  {
+    "file": "monet.webp",
+    "title": "Water Lilies",
+    "artist": "Claude Monet",
+    "date": "1906",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Water_Lilies_-_1933.1157_-_Art_Institute_of_Chicago.jpg",
+    "rights": "Public domain (painting held by the Art Institute of Chicago); see linked Wikimedia Commons file record."
+  },
+  {
+    "file": "satie-excerpt.mp3",
+    "title": "Gymnopédie No. 1",
+    "artist": "Erik Satie (composition), Teknopazzo (recording)",
+    "date": "1888",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Gymnopedie_No._1..ogg",
+    "rights": "Recording released by Teknopazzo under CC0 1.0 on Wikimedia Commons; composition in the public domain. First 60 seconds, re-encoded as MP3."
+  },
+  {
+    "file": "satie-waveform.json",
+    "title": "Gymnopédie No. 1 (waveform)",
+    "artist": "Erik Satie (composition), Teknopazzo (recording)",
+    "date": "1888",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Gymnopedie_No._1..ogg",
+    "rights": "Derived from the CC0 1.0 recording by Teknopazzo (satie-excerpt.mp3): sound levels of the file."
+  },
+  {
+    "file": "landscape.glb",
+    "title": "Gallery landscape",
+    "artist": "Unknown",
+    "date": "Unknown",
+    "source_url": "",
+    "rights": "Source to be confirmed"
   }
 ]
