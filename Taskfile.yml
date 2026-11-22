@@ -1,0 +1,94 @@
+version: '3'
+
+set: [errexit, nounset, pipefail]
+
+tasks:
+  check:versions:
+    desc: Fail when the active Node or pnpm differs from mise.toml, or pnpm from package.json
+    run: once
+    cmds:
+      - ./scripts/check-tool-versions.sh
+
+  install:
+    desc: Install dependencies from the lockfile (skipped while the lockfile is unchanged)
+    run: once
+    deps: [check:versions]
+    sources: [package.json, pnpm-lock.yaml, pnpm-workspace.yaml]
+    generates: [node_modules/.modules.yaml]
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  audit:
+    desc: Fail on high or critical vulnerabilities in production dependencies
+    deps: [check:versions]
+    cmds:
+      - pnpm audit --prod --audit-level high
+
+  lint:
+    desc: Lint with ESLint
+    deps: [install]
+    cmds:
+      - pnpm lint
+
+  typecheck:
+    desc: Generate the Next.js route types, then type-check the whole project with tsc --noEmit
+    deps: [install]
+    cmds:
+      - pnpm typecheck
+
+  test:
+    desc: Run the unit tests once
+    deps: [install]
+    cmds:
+      - pnpm test
+
+  build:
+    desc: Install dependencies and build the production bundle
+    deps: [install]
+    cmds:
+      - pnpm build
+
+  ci:
+    desc: Run the CI pipeline in order and stop at the first failure
+    cmds:
+      - task: install
+      - task: audit
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: build
+
+  dev:
+    desc: Start the dev server on http://localhost:3000
+    deps: [install]
+    cmds:
+      - pnpm dev
+
+  api:generate:
+    desc: Regenerate the API client from artiko-api/openapi.yml (set OPENAPI_SPEC to override)
+    deps: [install]
+    cmds:
+      - pnpm api:generate
+
+  secrets:scan:
+    desc: Scan the whole git history for secrets with gitleaks
+    cmds:
+      - gitleaks git --no-banner --redact --verbose .
+
+  hooks:install:
+    desc: Point git at the versioned .githooks directory (gitleaks pre-commit)
+    silent: true
+    cmds:
+      - |
+        current_hooks_path="$(git config --get core.hooksPath || true)"
+        if [ -n "$current_hooks_path" ] && [ "$current_hooks_path" != .githooks ]; then
+          echo "hooks:install: core.hooksPath is already '$current_hooks_path': refusing to replace it" >&2
+          exit 1
+        fi
+        legacy_pre_commit="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+        if [ -e "$legacy_pre_commit" ]; then
+          echo "hooks:install: $legacy_pre_commit exists and core.hooksPath would silently bypass it: move it into .githooks/ or remove it first" >&2
+          exit 1
+        fi
+        git config core.hooksPath .githooks
+        echo "pre-commit hook installed (core.hooksPath=.githooks)"

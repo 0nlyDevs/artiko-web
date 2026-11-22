@@ -44,3 +44,5 @@ next-env.d.ts
 # Draco codecs copied from node_modules by scripts/copy-draco.mjs
 /public/draco/
 /public/draco3d/
+# task
+/.task/
