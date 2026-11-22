@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import type { Key } from "@/i18n/en";
 import { useT } from "@/i18n/locale";
 import { clearApiToken } from "@/lib/api-token";
 import { authClient } from "@/lib/auth-client";
 import { authErrorKey } from "@/features/auth/errors";
 import { Field, Notice, PasswordField, useToggle } from "@/features/auth/fields";
+import { resendVerification, verificationNotice } from "@/features/auth/verification";
 
 export function SignInForm() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export function SignInForm() {
 
   async function resend() {
     if (!unverified) return;
-    const { error } = await authClient.sendVerificationEmail({ email: unverified, callbackURL: "/me" });
+    const { error } = await resendVerification(unverified);
     if (error) setError(authErrorKey(error));
     else setResent(true);
   }
@@ -48,6 +49,10 @@ export function SignInForm() {
         <h1 className="text-[40px] leading-none font-extrabold tracking-[-0.04em]">{t("auth.signInTitle")}</h1>
         <p className="mt-3 leading-relaxed text-muted">{t("auth.signInLead")}</p>
       </div>
+      {/* Reads the query string, so only this notice waits for the browser; the form stays prerendered. */}
+      <Suspense>
+        <VerificationNotice />
+      </Suspense>
       <form
         onSubmit={(event) => {
           // Not `action={...}`: React resets the fields after an action even when it fails, wiping what was typed.
@@ -83,4 +88,11 @@ export function SignInForm() {
       </form>
     </div>
   );
+}
+
+/** Where a verification link lands: `?verified=1`, with `error=` when the link no longer works. */
+function VerificationNotice() {
+  const { t } = useT();
+  const notice = verificationNotice(useSearchParams());
+  return notice && <Notice tone={notice === "auth.verified" ? "info" : "error"}>{t(notice)}</Notice>;
 }

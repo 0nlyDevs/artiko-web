@@ -41,3 +41,13 @@ describe("production configuration", () => {
     expect(getAuth).toThrowError("RESEND_API_KEY and EMAIL_FROM must be set");
   });
 });
+
+describe("account security", () => {
+  async function auth() {
+    return (await authWith({ BETTER_AUTH_URL: "https://artiko.example", AUTH_CLIENT_IP_HEADER: "x-real-ip" }))();
+  }
+
+  it("opens no session from a verification link", async () => {
+    expect((await auth()).options.emailVerification?.autoSignInAfterVerification).toBe(false);
+  });
+});

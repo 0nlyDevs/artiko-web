@@ -388,6 +388,7 @@ export const mg: Dictionary = {
   "auth.tooShort": "Fohy loatra io tenimiafina io.",
   "auth.exists": "Efa misy kaonty mampiasa io mailaka io. Midira, na avereno ny tenimiafiny.",
   "auth.linkInvalid": "Tsy miasa intsony io rohy io: lany daty na efa nampiasaina.",
+  "auth.verified": "Voamafy ny adiresy, midira.",
   "auth.tooMany": "Be loatra ny andrana. Miandrasa iray minitra, dia andramo indray.",
   "auth.unexpected": "Tsy nety. Jereo ny aterineto dia andramo indray.",
 

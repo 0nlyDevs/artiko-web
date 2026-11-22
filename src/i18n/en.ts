@@ -401,6 +401,7 @@ export const en = {
   "auth.tooShort": "This password is too short.",
   "auth.exists": "An account already uses this email. Sign in, or reset its password.",
   "auth.linkInvalid": "This link no longer works: it expired or was already used.",
+  "auth.verified": "Address confirmed, sign in.",
   "auth.tooMany": "Too many attempts. Wait a minute, then try again.",
   "auth.unexpected": "That did not work. Check your connection and try again.",
 

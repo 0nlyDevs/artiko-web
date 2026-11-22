@@ -9,6 +9,7 @@ import { IconBack, IconCheck, IconMail } from "@/lib/ui/icons";
 import { useAuthScene } from "@/features/auth/auth-doors";
 import { authErrorKey } from "@/features/auth/errors";
 import { Field, Notice, PasswordField, useToggle } from "@/features/auth/fields";
+import { resendVerification, VERIFIED_CALLBACK_URL } from "@/features/auth/verification";
 
 const METER = [
   { width: "0%", color: "var(--line)", label: null },
@@ -49,14 +50,14 @@ export function SignUpForm() {
   async function create() {
     setBusy(true);
     setError(null);
-    const { error } = await authClient.signUp.email({ ...who, password, callbackURL: "/me" });
+    const { error } = await authClient.signUp.email({ ...who, password, callbackURL: VERIFIED_CALLBACK_URL });
     setBusy(false);
     if (error) return setError(authErrorKey(error));
     setStep("sent");
   }
 
   async function resend() {
-    const { error } = await authClient.sendVerificationEmail({ email: who.email, callbackURL: "/me" });
+    const { error } = await resendVerification(who.email);
     if (error) setError(authErrorKey(error));
     else setResent(true);
   }

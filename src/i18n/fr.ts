@@ -387,6 +387,7 @@ export const fr: Dictionary = {
   "auth.tooShort": "Ce mot de passe est trop court.",
   "auth.exists": "Un compte utilise déjà cet e-mail. Connectez-vous, ou réinitialisez son mot de passe.",
   "auth.linkInvalid": "Ce lien ne fonctionne plus : il a expiré ou a déjà servi.",
+  "auth.verified": "Adresse confirmée, connectez-vous.",
   "auth.tooMany": "Trop de tentatives. Attendez une minute, puis réessayez.",
   "auth.unexpected": "Cela n’a pas fonctionné. Vérifiez votre connexion et réessayez.",
 

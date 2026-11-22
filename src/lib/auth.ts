@@ -77,7 +77,9 @@ function createAuth() {
       sendOnSignUp: true,
       // Signing in to an unverified account sends a fresh link instead of a dead end.
       sendOnSignIn: true,
-      autoSignInAfterVerification: true,
+      // The link confirms the address but opens no session: whoever registered the address first, with a
+      // password of their choosing, would otherwise share the account its owner just activated.
+      autoSignInAfterVerification: false,
       expiresIn: LINK_LIFETIME_SECONDS,
       sendVerificationEmail: async ({ user, url }, request) => sendLater("verify", user.email, url, request),
     },
