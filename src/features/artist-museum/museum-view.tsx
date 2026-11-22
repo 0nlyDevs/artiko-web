@@ -14,6 +14,11 @@ const Museum3D = dynamic(() => import("@/features/artist-museum/museum-3d"), {
   loading: () => <Building />,
 });
 
+// model-viewer and the WebGL check only exist in the browser.
+const ArtworkViewer = dynamic(() => import("@/features/model-viewer/artwork-viewer").then((m) => m.ArtworkViewer), {
+  ssr: false,
+});
+
 function Building() {
   return <div className="flex h-full items-center justify-center">{useT().t("museum.building")}</div>;
 }
@@ -53,9 +58,7 @@ export function MuseumView({ museum }: { museum: Museum }) {
                   aria-pressed={work.id === selected.id}
                   className="flex w-full flex-col gap-2 bg-paper p-3 text-left aria-pressed:outline-3 aria-pressed:outline-ink"
                 >
-                  {work.media_kind === "image" && (
-                    <Image src={work.media_url} alt="" width={400} height={300} className="aspect-[4/3] w-full object-cover" />
-                  )}
+                  <WorkThumbnail work={work} />
                   <span className="font-bold">{work.title}</span>
                 </button>
               </li>
@@ -66,6 +69,14 @@ export function MuseumView({ museum }: { museum: Museum }) {
         <aside aria-live="polite" className="flex flex-col gap-4">
           <h2 className="font-heading text-5xl leading-none">{selected.title}</h2>
           <ProofSeal work={selected} />
+          {selected.media_kind === "model" && (
+            <ArtworkViewer
+              model1k={selected.media_url}
+              model2k={selected.media_hd_url ?? null}
+              poster={selected.poster_url ?? null}
+              alt={selected.title}
+            />
+          )}
           {selected.media_kind === "audio" && <audio controls src={selected.media_url} className="w-full" />}
           {selected.media_kind === "video" && <video controls src={selected.media_url} className="w-full" />}
           {selected.story && <p>{selected.story}</p>}
@@ -95,4 +106,11 @@ export function MuseumView({ museum }: { museum: Museum }) {
       </div>
     </div>
   );
+}
+
+/** Images show themselves; a 3D work shows its poster when it has one (2D mode loads no model). */
+export function WorkThumbnail({ work }: { work: Work }) {
+  const src = work.media_kind === "image" ? work.media_url : work.media_kind === "model" ? work.poster_url : null;
+  if (!src) return null;
+  return <Image src={src} alt="" width={400} height={300} className="aspect-[4/3] w-full object-cover" />;
 }

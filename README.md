@@ -32,5 +32,6 @@ Tasks that need Node first run `task check:versions`, which fails when Node or p
 - `src/components/`: the 3D gallery walk of the home page (`gallery/`), still to be moved under `src/features/gallery/` to follow the same rule.
 - `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `api.ts` and `api-client/` (generated, do not edit).
 - `public/museum/`: vendored static assets (stylesheet, fonts, GSAP, Lenis, the journey script).
+- `public/draco/` and `public/draco3d/`: Draco codecs copied from `three` and `draco3d` by `scripts/copy-draco.mjs` before `pnpm dev` and `pnpm build` (not committed), so no visitor or artist fetches them from www.gstatic.com.
 
 Rule: a page file only imports from `src/features` and `src/app`, never the reverse. Shared code goes in `src/lib/` once two features need it.

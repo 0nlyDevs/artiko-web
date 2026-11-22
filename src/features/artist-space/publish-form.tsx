@@ -3,30 +3,32 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useT } from "@/i18n/locale";
-import { ApiError, createWork, unwrap, withToken, type Category, type CategoryId, type Work } from "@/lib/api";
+import { ApiError, createWork, unwrap, withToken, type Category, type Work } from "@/lib/api";
 import { getApiToken } from "@/lib/api-token";
 import { field } from "@/features/artist-space/profile-form";
 import { CategoryLabel } from "@/lib/works/category-label";
+import { isImportableModel } from "@/features/model-import/import-model";
+import { canPublish } from "@/features/model-import/import-state";
+import { ModelImportPanel } from "@/features/model-import/model-import-panel";
+import { useModelImport } from "@/features/model-import/use-model-import";
+import { publishBody } from "@/features/artist-space/publish-body";
 
-const ACCEPT_WORK = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm,.glb";
+const ACCEPT_WORK = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm,.glb,.usdz";
 const ACCEPT_PROOF = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm";
 
 export function PublishForm({ artistId, categories }: { artistId: string; categories: Category[] }) {
   const { t, rich } = useT();
   // An API error keeps its own message; null means a network failure, translated on render.
   const [state, setState] = useState<"idle" | "publishing" | Work | { error: string | null }>("idle");
+  const modelImport = useModelImport();
+  const importBlocksPublishing = modelImport.state.status !== "idle" && !canPublish(modelImport.state);
 
   async function publish(form: FormData) {
+    if (importBlocksPublishing) return;
     setState("publishing");
     try {
-      const body = {
-        title: String(form.get("title") ?? ""),
-        category: String(form.get("category") ?? "") as CategoryId,
-        story: String(form.get("story") ?? ""),
-        ai_declared: form.get("ai_declared") === "true",
-        file: form.get("file") as File,
-        proof: form.getAll("proof").filter((p): p is File => p instanceof File && p.size > 0),
-      };
+      const imported = modelImport.state.status === "ready" ? modelImport.state.model : null;
+      const body = publishBody(form, imported);
       setState(unwrap(await createWork({ body, ...withToken(await getApiToken()) })));
     } catch (e) {
       setState({ error: e instanceof ApiError ? e.message : null });
@@ -60,8 +62,21 @@ export function PublishForm({ artistId, categories }: { artistId: string; catego
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="file" className="font-bold">{t("publish.file")}</label>
-          <input id="file" name="file" type="file" required accept={ACCEPT_WORK} aria-describedby="file-help" />
+          <input
+            id="file"
+            name="file"
+            type="file"
+            required
+            accept={ACCEPT_WORK}
+            aria-describedby="file-help"
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              if (file && isImportableModel(file)) void modelImport.start(file);
+              else modelImport.reset();
+            }}
+          />
           <p id="file-help">{t("publish.fileHelp")}</p>
+          <ModelImportPanel state={modelImport.state} alt={t("import.previewAlt")} />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="proof" className="font-bold">{t("publish.proof")}</label>
@@ -72,7 +87,7 @@ export function PublishForm({ artistId, categories }: { artistId: string; catego
           <input type="checkbox" name="ai_declared" value="true" />
           {t("publish.ai")}
         </label>
-        <button type="submit" disabled={state === "publishing"} className="self-start bg-ink px-5 py-3 font-bold text-paper disabled:opacity-60">
+        <button type="submit" disabled={state === "publishing" || importBlocksPublishing} className="self-start bg-ink px-5 py-3 font-bold text-paper disabled:opacity-60">
           {state === "publishing" ? t("publish.publishing") : t("publish.submit")}
         </button>
         {typeof state === "object" && "error" in state && (

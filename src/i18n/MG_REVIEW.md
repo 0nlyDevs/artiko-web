@@ -42,3 +42,4 @@ All of `mg.ts` was written by a non-native speaker. These entries are the least 
 | doodle.winners / doodle.hello | WINNERS / HELLO | MPANDRESY / SALAMA | Check |
 | publish.intro | sketches... timelapse, stems | rakikira, sary isaky ny dingana, timelapse, feo tsirairay | "Stems" (audio stems) translated loosely |
 | error.title | This page could not load its works | Tsy mety mampiseho ny asa ity pejy ity | Check |
+| import.*, viewer.* | 3D import and 3D viewer | Fanovana ny scan, Sary fiandrasana, Fijerena 3D, Hazavana avo (HD)... | Written by a non-native speaker; "sary fiandrasana" (waiting image) for poster, "navigateur" kept as a loanword |
