@@ -21,8 +21,8 @@ export async function sendEmail(email: Email, env: Env = process.env): Promise<v
   });
   if (!response.ok) {
     // The status only: Resend's answer can quote the recipient's address, and the error ends up in the log.
-    // The unread body is cancelled so its connection is released.
-    await response.body?.cancel();
+    // The unread body is cancelled so its connection is released; a body already broken cannot be, and must not hide the status.
+    await response.body?.cancel().catch(() => {});
     throw new Error(`Resend answered ${response.status}`);
   }
 }

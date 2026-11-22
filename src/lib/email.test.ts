@@ -27,6 +27,12 @@ describe("sendEmail", () => {
     expect((error as Error).message).toBe("Resend answered 422");
   });
 
+  it("still fails with the status when Resend's answer breaks off, as the unread body cannot be cancelled", async () => {
+    const broken = new ReadableStream({ start: (controller) => controller.error(new TypeError("terminated")) });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(broken, { status: 502 })));
+    await expect(sendEmail(email, { RESEND_API_KEY: "re_test" })).rejects.toThrow(new Error("Resend answered 502"));
+  });
+
   it("prints the email in development when no key is set", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
     await expect(sendEmail(email, { NODE_ENV: "development" })).resolves.toBeUndefined();
