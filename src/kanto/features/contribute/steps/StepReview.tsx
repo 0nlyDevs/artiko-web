@@ -1,12 +1,14 @@
 import frameGildedAsset from '../../../assets/gallery/frame-gilded-800.webp';
+import { Checkbox } from '../../../components/checkbox/Checkbox';
 import { HallSection } from '../../../components/hall-layout/HallLayout';
 import { StatusBanner } from '../../../components/status-banner/StatusBanner';
 import type { Item } from '../../../lib/api/types';
 import type { WizardStep } from '../../../app/routes';
 import type { DraftForm } from '../contribute-content';
 import {
+  CONSENT_ERROR,
+  CONSENT_LABEL,
   MEDIUM_LABEL,
-  RELATIONSHIP_LABEL,
   stepForField,
 } from '../contribute-content';
 import { IMPORT_MODEL_GONE_REVIEW } from '../model-import-copy';
@@ -28,14 +30,25 @@ export interface StepReviewProps {
   /** Details of a refused submission, from `VALIDATION_FAILED`. */
   errors: readonly { field: string; reason: string }[];
   onEdit: (step: WizardStep) => void;
+  /** The one consent: it gives both the sharing and the display consents. */
+  onConsent: (consent: boolean) => void;
+  /** The send was tried without the consent. */
+  consentMissing: boolean;
 }
 
 function joinParts(parts: readonly string[]): string {
   return parts.filter((part) => part.trim() !== '').join(' · ');
 }
 
-/** Step 4, Figma B4: the work hung in the red room, then the recap with edit links. */
-export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
+/** Step 3, Figma B4: the work hung in the red room, a short recap and the consent. */
+export function StepReview({
+  item,
+  form,
+  errors,
+  onEdit,
+  onConsent,
+  consentMissing,
+}: StepReviewProps) {
   const images = item.media.filter(
     (media) => media.kind === 'image' && media.status === 'ready',
   );
@@ -68,7 +81,12 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
   const onPlinth = standsOnPlinth(medium) || readyPoster !== '';
   const plinthImage =
     readyPoster !== '' ? readyPoster : (primary?.url ?? null);
-  const consents = form.consentShare && form.consentDisplay;
+  const consent = form.consentShare && form.consentDisplay;
+  const consentInvalid =
+    !consent &&
+    (consentMissing || errors.some((error) => error.field === 'consent'));
+  // The consent is fixed here, under the recap: the banner lists the rest.
+  const otherErrors = errors.filter((error) => error.field !== 'consent');
 
   const rows: readonly { label: string; value: string; step: WizardStep }[] = [
     {
@@ -95,26 +113,6 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
       ]),
       step: 2,
     },
-    {
-      label: 'Provenance',
-      value:
-        joinParts([
-          form.period,
-          form.place,
-          form.relationship === null
-            ? ''
-            : RELATIONSHIP_LABEL[form.relationship],
-        ]) || 'À compléter',
-      step: 3,
-    },
-    {
-      label: 'Droits',
-      value: joinParts([
-        form.holder === '' ? 'Détenteur non nommé' : `© ${form.holder}`,
-        consents ? 'consentements donnés' : 'consentements incomplets',
-      ]),
-      step: 3,
-    },
   ];
 
   return (
@@ -134,11 +132,11 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
           {IMPORT_MODEL_GONE_REVIEW}
         </StatusBanner>
       )}
-      {errors.length > 0 && (
+      {otherErrors.length > 0 && (
         <StatusBanner tone="error" className={styles.banner}>
           La fiche est incomplète :
           <ul className={styles.errorList}>
-            {errors.map((error) => (
+            {otherErrors.map((error) => (
               <li key={`${error.field}:${error.reason}`}>
                 {error.reason}
                 <button
@@ -212,6 +210,20 @@ export function StepReview({ item, form, errors, onEdit }: StepReviewProps) {
             </div>
           ))}
         </dl>
+      </HallSection>
+      <HallSection title="Votre accord">
+        <Checkbox
+          checked={consent}
+          invalid={consentInvalid}
+          label={CONSENT_LABEL}
+          hint="Vous pourrez la retirer à tout moment depuis votre espace."
+          onChange={onConsent}
+        />
+        {consentInvalid && (
+          <p className={styles.fieldError} role="alert">
+            {CONSENT_ERROR}
+          </p>
+        )}
       </HallSection>
     </div>
   );

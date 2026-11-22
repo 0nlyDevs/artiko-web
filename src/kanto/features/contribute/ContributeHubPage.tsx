@@ -19,7 +19,7 @@ const ENTRIES = [
   {
     number: '01',
     title: 'Créer une fiche',
-    text: 'Décrivez l’œuvre, ajoutez ses photographies et racontez d’où elle vient. Quatre étapes, un brouillon enregistré à chaque instant.',
+    text: 'Donnez un titre, ajoutez une photo ou un modèle 3D, puis envoyez. Trois étapes, un brouillon enregistré à chaque instant.',
     cta: 'Commencer',
     to: paths.wizardNew,
   },

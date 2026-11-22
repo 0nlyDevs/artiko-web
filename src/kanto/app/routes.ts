@@ -1,7 +1,8 @@
 import type { Room } from '../features/gallery/data/rooms';
 import { findRoom, roomPath, rooms } from '../features/gallery/data/rooms';
 
-export type WizardStep = 1 | 2 | 3 | 4;
+/** The contribution wizard: the work, its media, then the send. */
+export type WizardStep = 1 | 2 | 3;
 
 export type Route =
   | { kind: 'home' }
@@ -68,9 +69,9 @@ function wizardStep(value: string | undefined): WizardStep | null {
     case '2':
       return 2;
     case '3':
-      return 3;
+    // The former fourth step (review and send) is the third one now.
     case '4':
-      return 4;
+      return 3;
     default:
       return null;
   }
@@ -160,7 +161,9 @@ export function matchRoute(pathname: string): Route {
         const step = wizardStep(fourth);
         return step === null
           ? { kind: 'redirect', to: paths.wizard(second, 1) }
-          : { kind: 'wizard', itemId: second, step };
+          : fourth === String(step)
+            ? { kind: 'wizard', itemId: second, step }
+            : { kind: 'redirect', to: paths.wizard(second, step) };
       }
       return { kind: 'not-found' };
     }
