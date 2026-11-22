@@ -42,6 +42,12 @@ tasks:
     cmds:
       - pnpm test
 
+  test:e2e:
+    desc: Run the real-browser journeys (rebuilds the app against a mock API; needs Chrome, see CHROME_PATH). Not part of ci
+    deps: [install]
+    cmds:
+      - pnpm test:e2e
+
   build:
     desc: Install dependencies and build the production bundle
     deps: [install]

@@ -13,6 +13,7 @@ task build            # pnpm install --frozen-lockfile (skipped while the lockfi
 task dev              # http://localhost:3000
 task ci               # install, audit, lint, typecheck, test, build: the same steps as CI, stops at the first failure
 task hooks:install    # once per clone: gitleaks pre-commit hook via core.hooksPath=.githooks
+task test:e2e         # real-browser journeys in e2e/ (not in ci): rebuilds .next against a mock API, needs Chrome at CHROME_PATH (default /usr/bin/google-chrome-stable), skipped without it
 ```
 
 Tasks that need Node first run `task check:versions`, which fails when Node or pnpm differs from `mise.toml` or when `mise.toml` and `packageManager` in `package.json` disagree. The pre-commit hook refuses a commit whose staged changes contain a secret; the `gitleaks` CI job scans the commits of every pull request and push too, so a commit made with `--no-verify` is still caught.
