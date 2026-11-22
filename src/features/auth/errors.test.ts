@@ -16,4 +16,8 @@ describe("authErrorKey", () => {
     expect(authErrorKey({ code: "SOMETHING_NEW" })).toBe("auth.unexpected");
     expect(authErrorKey({})).toBe("auth.unexpected");
   });
+
+  it.each(["constructor", "__proto__", "toString", "hasOwnProperty"])("never reads %j from the prototype", (code) => {
+    expect(authErrorKey({ code })).toBe("auth.unexpected");
+  });
 });
