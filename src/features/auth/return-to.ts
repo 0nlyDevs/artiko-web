@@ -25,8 +25,11 @@ export function safeReturnPath(value: string | null | undefined): string | null 
     return null;
   }
   if (url.origin !== BASE) return null;
+  // Normalising may turn `/.//host` or `/works/..//host` into `//host`: check the result, not only the input.
+  if (url.pathname.startsWith("//") || url.pathname.startsWith("/\\")) return null;
   if (NO_RETURN.some((path) => url.pathname === path || url.pathname.startsWith(`${path}/`))) return null;
-  return `${url.pathname}${url.search}${url.hash}`;
+  const path = `${url.pathname}${url.search}${url.hash}`;
+  return new URL(path, BASE).origin === BASE ? path : null;
 }
 
 /** An account page's address that keeps the way back: `withReturn("/sign-up", "/works/12")`. */

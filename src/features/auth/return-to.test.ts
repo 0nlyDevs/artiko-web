@@ -60,3 +60,16 @@ describe("destinationAfterSignIn", () => {
     expect(destinationAfterSignIn("https://evil.example", () => false)).toBe("/me");
   });
 });
+
+describe("safeReturnPath after normalisation", () => {
+  it.each(["/.//evil.example", "/works/..//evil.example", "/%2e//evil.example", "/%2e%2e//evil.example"])(
+    "refuses %s, which normalises to another site",
+    (value) => {
+      expect(safeReturnPath(value)).toBeNull();
+    },
+  );
+
+  it("still accepts a page of this site", () => {
+    expect(safeReturnPath("/works/./12")).toBe("/works/12");
+  });
+});
