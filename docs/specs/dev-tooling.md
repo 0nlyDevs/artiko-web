@@ -88,7 +88,7 @@ Automatisé ou scripté :
 - CA4 → relancer `task build`, la sortie indique que `install` est à jour.
 - CA5/CA7 → ajouter `const x: number = "a"` dans un fichier isolé → `task typecheck` et `task ci` échouent ; retirer.
 - CA6 → `task --dry ci` liste les étapes dans l'ordre attendu.
-- CA8/CA9 → PR de test avec une fausse clé AWS (format `AKIA…` de la doc AWS) → job rouge ; commit de retrait → job vert. La branche de test est supprimée ensuite.
+- CA8/CA9 → PR de test jetable avec un faux jeton (`ghp_` + 36 caractères aléatoires ; la clé d'exemple AWS est ignorée par les règles par défaut) → job rouge. Un commit de retrait laisse le job rouge, car la plage `base..head` contient toujours le commit fautif : la PR de test est fermée sans merge et sa branche supprimée.
 - CA10 → `task hooks:install`, puis commit d'un fichier avec un faux secret → refusé ; commit normal → accepté.
 - CA11 → lecture du workflow + run CI vert ; deux pushes rapprochés sur la PR → le premier run est annulé.
 
