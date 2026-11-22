@@ -20,7 +20,7 @@ import {
   resetModelImportSessions,
 } from './model-import-session';
 import { StepMedia } from './StepMedia';
-import { StepProvenance } from './StepProvenance';
+import { StepArtwork } from './StepArtwork';
 import { StepReview } from './StepReview';
 
 // The real viewer needs WebGL. This one shows which files it was given.
@@ -99,9 +99,9 @@ function chooseModel(name: string): void {
   });
 }
 
-type WizardStep = 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3;
 
-/** The part of the wizard this area needs: the item it holds and three of its steps. */
+/** The part of the wizard this area needs: the item it holds and its three steps. */
 function Wizard({
   initial,
   create,
@@ -134,7 +134,7 @@ function Wizard({
       >
         Relire la fiche
       </button>
-      {([2, 3, 4] as const).map((target) => (
+      {([1, 2, 3] as const).map((target) => (
         <button
           key={target}
           type="button"
@@ -153,19 +153,22 @@ function Wizard({
           createModelImport={create}
         />
       )}
-      {step === 3 && (
-        <StepProvenance
+      {step === 1 && (
+        <StepArtwork
           form={formFromItem(item)}
+          errors={{}}
           onChange={() => undefined}
-          flagged={new Set()}
+          mode3d={false}
         />
       )}
-      {step === 4 && (
+      {step === 3 && (
         <StepReview
           item={item}
           form={formFromItem(item)}
           errors={[]}
           onEdit={() => undefined}
+          onConsent={() => undefined}
+          consentMissing={false}
         />
       )}
     </>
@@ -784,7 +787,7 @@ describe('StepMedia, scan import', () => {
       expect(progressPanel()).not.toBeNull();
     });
 
-    goToStep(3);
+    goToStep(1);
 
     expect(screen.queryByLabelText('Ajouter un modèle 3D')).toBeNull();
     expect(
@@ -793,7 +796,7 @@ describe('StepMedia, scan import', () => {
       ),
     ).toBeTruthy();
 
-    goToStep(4);
+    goToStep(3);
 
     // The last step advises to wait, and its recap says where the model stands.
     expect(
@@ -841,7 +844,7 @@ describe('StepMedia, scan import', () => {
     await waitFor(() => {
       expect(progressPanel()).not.toBeNull();
     });
-    goToStep(3);
+    goToStep(1);
 
     conversion.reject(new ModelImportError('no_mesh'));
 
@@ -983,7 +986,7 @@ describe('StepMedia, scan import', () => {
       screen.getByRole('button', { name: 'Importer de nouveau' }),
     ).toBeTruthy();
 
-    goToStep(4);
+    goToStep(3);
 
     expect(
       await screen.findByText(

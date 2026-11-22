@@ -133,10 +133,10 @@ describe('the hanging ceremony route', () => {
       kind: 'submission',
       itemId: 'abc',
     });
+    // The send is the third step now: an address of the former fourth step leads there.
     expect(matchRoute('/contribuer/abc/etape/4')).toEqual({
-      kind: 'wizard',
-      itemId: 'abc',
-      step: 4,
+      kind: 'redirect',
+      to: '/contribuer/abc/etape/3',
     });
   });
 

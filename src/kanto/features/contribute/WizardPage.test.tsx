@@ -39,6 +39,20 @@ describe('WizardPage', () => {
     expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
   });
 
+  it('asks only the art form, the title and an optional artist, prefilled with the account name', async () => {
+    render(<WizardPage itemId={null} step={1} />);
+
+    expect(
+      await screen.findByText('Déposer une œuvre · Étape 1 sur 3'),
+    ).toBeTruthy();
+    expect(screen.getByLabelText('Titre de l’œuvre')).toBeTruthy();
+    const artist = screen.getByLabelText('Artiste ou atelier (facultatif)');
+    expect((artist as HTMLInputElement).value).not.toBe('');
+    expect(screen.getAllByRole('textbox')).toHaveLength(2);
+    expect(screen.queryByLabelText('Région d’origine')).toBeNull();
+    expect(screen.queryByLabelText('Quelques mots sur l’œuvre')).toBeNull();
+  });
+
   it('creates the draft and moves to the media step once the art form and the title are set', async () => {
     render(<WizardPage itemId={null} step={1} />);
 
@@ -64,7 +78,7 @@ describe('WizardPage', () => {
 
     beforeEach(async () => {
       await api.items.withdraw(DRAFT);
-      window.history.replaceState(null, '', `/contribuer/${DRAFT}/etape/4`);
+      window.history.replaceState(null, '', `/contribuer/${DRAFT}/etape/3`);
     });
 
     afterEach(() => {
@@ -73,7 +87,7 @@ describe('WizardPage', () => {
 
     it('fades to gallery black, then opens the hanging ceremony in place of the wizard', async () => {
       const entries = window.history.length;
-      render(<WizardPage itemId={DRAFT} step={4} />);
+      render(<WizardPage itemId={DRAFT} step={3} />);
 
       fireEvent.click(
         await screen.findByRole('button', { name: /Envoyer en relecture/ }),
@@ -87,7 +101,7 @@ describe('WizardPage', () => {
           { timeout: 3000 },
         ),
       ).toHaveAttribute('role', 'status');
-      expect(window.location.pathname).toBe(`/contribuer/${DRAFT}/etape/4`);
+      expect(window.location.pathname).toBe(`/contribuer/${DRAFT}/etape/3`);
       expect((await api.items.get(DRAFT)).review.state).toBe('pending');
 
       await settleMotion();
@@ -97,13 +111,13 @@ describe('WizardPage', () => {
           `/contribuer/${DRAFT}/accrochage`,
         );
       });
-      // Replaced, not pushed: "back" does not return to a sent step 4.
+      // Replaced, not pushed: "back" does not return to a sent step 3.
       expect(window.history.length).toBe(entries);
     });
 
     it('still reaches the ceremony with reduced motion', async () => {
       setForcedReducedMotion(true);
-      render(<WizardPage itemId={DRAFT} step={4} />);
+      render(<WizardPage itemId={DRAFT} step={3} />);
 
       fireEvent.click(
         await screen.findByRole('button', { name: /Envoyer en relecture/ }),
@@ -122,22 +136,82 @@ describe('WizardPage', () => {
       });
     });
 
+    it('shows the recap and the one consent, without any provenance question', async () => {
+      render(<WizardPage itemId={DRAFT} step={3} />);
+
+      expect(
+        await screen.findByText('Aperçu dans la salle', {}, { timeout: 3000 }),
+      ).toBeTruthy();
+      expect(
+        screen.getByText('Déposer une œuvre · Étape 3 sur 3'),
+      ).toBeTruthy();
+      expect(screen.getByText('Récapitulatif')).toBeTruthy();
+      expect(
+        screen.getByRole('checkbox', {
+          name: /Je certifie avoir le droit de partager cette œuvre et j’accepte que KANTO la présente avec mon nom\./,
+        }),
+      ).toBeChecked();
+      expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+      expect(screen.queryByText('Provenance')).toBeNull();
+      expect(screen.queryByLabelText('Le récit complet')).toBeNull();
+    });
+
+    it('asks for the consent before sending, then gives both consents with the one box', async () => {
+      window.history.replaceState(null, '', '/contribuer/sub-sinibe/etape/3');
+      render(<WizardPage itemId="sub-sinibe" step={3} />);
+
+      const consent = await screen.findByRole('checkbox', {
+        name: /Je certifie avoir le droit/,
+      });
+      expect(consent).not.toBeChecked();
+      fireEvent.click(screen.getByRole('button', { name: /Envoyer en relecture/ }));
+
+      expect(
+        await screen.findByText('Cochez la case pour envoyer votre œuvre.'),
+      ).toHaveAttribute('role', 'alert');
+      expect(consent).toHaveAttribute('aria-invalid', 'true');
+      expect((await api.items.get('sub-sinibe')).review.state).not.toBe(
+        'pending',
+      );
+
+      fireEvent.click(consent);
+
+      expect(consent).toBeChecked();
+      expect(
+        screen.queryByText('Cochez la case pour envoyer votre œuvre.'),
+      ).toBeNull();
+      await waitFor(
+        async () => {
+          const stored = await api.items.get('sub-sinibe');
+          expect(stored.rights.consentShare).toBe(true);
+          expect(stored.rights.consentDisplay).toBe(true);
+        },
+        { timeout: 3000 },
+      );
+    });
+
     it('stays on the wizard, without any fade, when the send is refused', async () => {
-      // A draft with nothing in it: the review refuses it.
-      window.history.replaceState(null, '', '/contribuer/sub-sinibe/etape/4');
-      render(<WizardPage itemId="sub-sinibe" step={4} />);
+      // A draft without any photograph: the review refuses it.
+      window.history.replaceState(null, '', '/contribuer/sub-sinibe/etape/3');
+      render(<WizardPage itemId="sub-sinibe" step={3} />);
 
       fireEvent.click(
-        await screen.findByRole('button', { name: /Envoyer en relecture/ }),
+        await screen.findByRole('checkbox', { name: /Je certifie avoir le droit/ }),
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: /Envoyer en relecture/ }),
       );
 
       expect(
         await screen.findByText(/La fiche est incomplète/, {}, { timeout: 3000 }),
       ).toBeTruthy();
       expect(
+        screen.getByText('Ajoutez une photographie ou un modèle 3D.'),
+      ).toBeTruthy();
+      expect(
         screen.queryByText('Œuvre envoyée. Ouverture de la galerie…'),
       ).toBeNull();
-      expect(window.location.pathname).toBe('/contribuer/sub-sinibe/etape/4');
+      expect(window.location.pathname).toBe('/contribuer/sub-sinibe/etape/3');
     });
   });
 });
