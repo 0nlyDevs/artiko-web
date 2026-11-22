@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Key } from "@/i18n/en";
-import { dictionaries, LOCALES, type Locale } from "@/i18n/locales";
+import { dictionaries, format, LOCALES, type Locale, type Vars } from "@/i18n/locales";
 import { ApiError } from "@/lib/api";
 import { apiErrorKey, apiErrorText } from "./api-messages";
 
@@ -62,7 +62,7 @@ const ANDROID_CODES = [
 // Given on this side: by `unwrap` when the API did not answer in its own shape.
 const OWN_CODES = ["unreachable", "not_found"];
 
-const t = (locale: Locale) => (key: Key) => dictionaries[locale][key];
+const t = (locale: Locale) => (key: Key, vars?: Vars) => format(dictionaries[locale][key], vars);
 const failure = (code: string, message = "The API's own message") => new ApiError(400, code, message);
 
 describe("apiErrorKey", () => {
@@ -106,6 +106,58 @@ describe("apiErrorText", () => {
 
   it("falls back to the API's message for a code we do not know", () => {
     expect(apiErrorText(failure("something_new", "A refusal added after this build"), t("fr"))).toBe("A refusal added after this build");
+  });
+
+  it("names the refused file, as the API's message does", () => {
+    // The messages of app/platform/storage.py.
+    const tooLarge = new ApiError(413, "file_too_large", "timelapse.mp4 is over 20 MB");
+    expect(apiErrorText(tooLarge, t("en"))).toBe("timelapse.mp4 is over 20 MB.");
+    expect(apiErrorText(tooLarge, t("fr"))).toBe("timelapse.mp4 dépasse 20\u00a0Mo.");
+    expect(apiErrorText(tooLarge, t("mg"))).toBe("Mihoatra ny 20 MB ny rakitra timelapse.mp4.");
+
+    const empty = new ApiError(400, "empty_file", "sketch-2.jpg is empty");
+    expect(apiErrorText(empty, t("en"))).toBe("sketch-2.jpg is empty. Choose another one.");
+    expect(apiErrorText(empty, t("fr"))).toBe("sketch-2.jpg est vide. Choisissez-en un autre.");
+    expect(apiErrorText(empty, t("mg"))).toBe("Foana ny rakitra sketch-2.jpg. Misafidiana hafa.");
+
+    const unsupported = new ApiError(400, "unsupported_file", "IMG_0042.MOV: type video/quicktime is not accepted");
+    expect(apiErrorText(unsupported, t("en"))).toBe("IMG_0042.MOV: this type of file is not accepted.");
+    expect(apiErrorText(unsupported, t("fr"))).toBe("IMG_0042.MOV\u00a0: ce type de fichier n’est pas accepté.");
+    expect(apiErrorText(unsupported, t("mg"))).toBe("IMG_0042.MOV: tsy ekena io karazana rakitra io.");
+  });
+
+  it("keeps a file name whole, whatever it contains", () => {
+    expect(apiErrorText(new ApiError(400, "empty_file", "what is empty is over 3 MB {file} $1.jpg is empty"), t("en"))).toBe(
+      "what is empty is over 3 MB {file} $1.jpg is empty. Choose another one.",
+    );
+    expect(apiErrorText(new ApiError(400, "unsupported_file", "a: type b.txt: type text/plain; charset=utf-8 is not accepted"), t("en"))).toBe(
+      "a: type b.txt: this type of file is not accepted.",
+    );
+  });
+
+  it.each([
+    ["file_too_large", "None is over 20 MB", "api.file_too_large"],
+    ["file_too_large", "The upload is too large", "api.file_too_large"],
+    ["file_too_large", "timelapse.mp4 is over 20 MB\nand more", "api.file_too_large"],
+    ["empty_file", "None is empty", "api.empty_file"],
+    ["empty_file", " is empty", "api.empty_file"],
+    ["unsupported_file", "None: type None is not accepted", "api.unsupported_file"],
+    ["unsupported_file", "unsupported_file", "api.unsupported_file"],
+  ] as const)("keeps the sentence without a name for %s when the message names no file (%j)", (code, message, key) => {
+    for (const locale of LOCALES) expect(apiErrorText(new ApiError(400, code, message), t(locale))).toBe(dictionaries[locale][key]);
+  });
+
+  it("does not look for a file name under another code", () => {
+    expect(apiErrorText(failure("duplicate_work", "sobika.jpg is empty"), t("en"))).toBe(dictionaries.en["api.duplicate_work"]);
+    expect(apiErrorText(failure("something_new", "sobika.jpg is empty"), t("en"))).toBe("sobika.jpg is empty");
+  });
+
+  it.each(LOCALES)("does not blame an expired session in %s for a token the API refuses", (locale) => {
+    // callWithToken has already renewed the token once: what reaches a screen is a fresh token refused, which a
+    // session that ended cannot explain (that one is `unauthorized`).
+    const text = apiErrorText(new ApiError(401, "invalid_token", "Invalid token: JWKS unreachable: ConnectTimeout"), t(locale));
+    expect(text).toBe(dictionaries[locale]["api.invalid_token"]);
+    expect(text).not.toMatch(/expire|expiré|lany daty/i);
   });
 
   it.each(ANDROID_CODES)("leaves the Android capture code %s to the API's message", (code) => {

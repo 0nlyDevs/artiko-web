@@ -47,10 +47,20 @@ describe("unwrap", () => {
 
   it("names the framework's own 404 `not_found`", () => {
     expect(() => unwrap(refused(404, { detail: "Not Found" }))).toThrowError(expect.objectContaining({ status: 404, code: "not_found" }));
+    // Both halves count: a 404 page that is not the framework's, and the framework's words on another status, stay `unreachable`.
+    expect(() => unwrap(refused(404, "<html>Not Found</html>"))).toThrowError(expect.objectContaining({ status: 404, code: "unreachable" }));
+    expect(() => unwrap(refused(404, { detail: "No such bucket" }))).toThrowError(expect.objectContaining({ status: 404, code: "unreachable" }));
+    expect(() => unwrap(refused(400, { detail: "Not Found" }))).toThrowError(expect.objectContaining({ status: 400, code: "unreachable" }));
     // The API's own 404 keeps its code.
     expect(() => unwrap(refused(404, { error: { code: "artist_not_found", message: "No artist with this id" } }))).toThrowError(
       expect.objectContaining({ code: "artist_not_found" }),
     );
+  });
+
+  it("uses the code as the message when the API gave none", () => {
+    expect(() => unwrap(refused(404, { detail: "Not Found" }))).toThrowError(expect.objectContaining({ message: "not_found" }));
+    expect(() => unwrap(refused(502, "<html>Bad Gateway</html>"))).toThrowError(expect.objectContaining({ message: "unreachable" }));
+    expect(() => unwrap(refused(409, { error: { code: "duplicate_work" } }))).toThrowError(expect.objectContaining({ message: "duplicate_work" }));
   });
 
   it("keeps the review case of a refused publication", () => {
@@ -74,11 +84,18 @@ describe("unwrap", () => {
     expect(() => unwrap(tooMany("Sun, 22 Nov 2026 09:59:00 GMT"))).toThrowError(expect.objectContaining({ retryAfter: 0 }));
   });
 
-  it("has no Retry-After when the header is absent or unreadable", () => {
-    // Absent is what a browser on another origin gets while the API does not expose the header.
+  it("has no Retry-After when the header is absent", () => {
+    // What a browser on another origin gets while the API does not expose the header.
     expect(() => unwrap(tooMany())).toThrowError(expect.objectContaining({ code: "rate_limited", retryAfter: null }));
-    expect(() => unwrap(tooMany("soon"))).toThrowError(expect.objectContaining({ retryAfter: null }));
   });
+
+  // `Date.parse` would read a date, so 0 seconds, in most of these.
+  it.each(["soon", "-5", "+5", "1.5", "1,5", "1e3", "5 seconds", "retry in 5", "tomorrow at 5", "3/4", "12/25", "2026-11-22T10:01:30Z", "Sun, 22 Nov 2026 10:01:30", "Sun, 22 Foo 2026 10:01:30 GMT"])(
+    "has no Retry-After when the header is unreadable (%j)",
+    (value) => {
+      expect(() => unwrap(tooMany(value))).toThrowError(expect.objectContaining({ code: "rate_limited", retryAfter: null }));
+    },
+  );
 });
 
 describe("ApiError", () => {
