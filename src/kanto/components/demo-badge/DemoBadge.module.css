@@ -1,0 +1,28 @@
+.badge {
+  display: inline-flex;
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-4) var(--space-10);
+  font-family: var(--font-text);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-60);
+  white-space: nowrap;
+  background: var(--color-paper-tile);
+  border-radius: var(--radius-pill);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-gold);
+  border-radius: 50%;
+}
+
+.dark {
+  color: var(--color-paper-70);
+  background: var(--color-glass-dark);
+}

@@ -1,0 +1,66 @@
+/* Claim statuses: text and glyph, never colour alone. */
+.label {
+  display: inline-flex;
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-4) var(--space-10) var(--space-4) var(--space-8);
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid currentcolor;
+  border-radius: var(--radius-pill);
+}
+
+.glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  line-height: 1;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+}
+
+.verified {
+  color: var(--color-success);
+}
+
+.unreviewed {
+  color: var(--color-ink-60);
+}
+
+.uncertain {
+  color: var(--color-warning);
+}
+
+/* Publication and review states share the look, on a tile background. */
+.state {
+  color: var(--color-ink);
+  background: var(--color-paper-tile);
+  border-color: transparent;
+}
+
+.statePublished {
+  color: var(--color-success);
+}
+
+.stateRejected {
+  color: var(--color-error);
+}
+
+.stateWarning {
+  color: var(--color-warning);
+}
+
+.scope {
+  margin-left: var(--space-6);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--color-ink-60);
+}

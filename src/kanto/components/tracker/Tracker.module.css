@@ -1,0 +1,72 @@
+/* Figma B5: the vertical tracker of a submission. */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-14);
+  align-items: flex-start;
+  padding: var(--space-14) 0;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.dot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--color-paper);
+  border: 1.5px solid var(--color-line);
+  border-radius: 50%;
+}
+
+.done .dot {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.active .dot {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.failed .dot {
+  background: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-text);
+  font-size: 15px;
+  color: var(--color-ink-40);
+}
+
+.done .title,
+.failed .title {
+  color: var(--color-ink);
+}
+
+.active .title {
+  font-family: var(--font-serif-italic);
+  font-size: 19px;
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+.detail {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}

@@ -1,0 +1,549 @@
+/* Contribution wizard (Figma 129:62, B1–B4). */
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.banner {
+  margin-bottom: var(--space-32);
+}
+
+.fieldError {
+  margin: calc(-1 * var(--space-6)) 0 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  color: var(--color-error);
+}
+
+.fieldError::before {
+  margin-right: var(--space-6);
+  font-weight: var(--font-weight-bold);
+  content: '!';
+}
+
+.hint3d {
+  margin-bottom: var(--space-24);
+}
+
+/* Step 2: thumbnails */
+.mediaGrid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-14);
+  margin-top: var(--space-14);
+}
+
+.thumb {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin: 0;
+}
+
+.thumbImage {
+  position: relative;
+  aspect-ratio: 210 / 130;
+  overflow: hidden;
+  background: var(--color-paper-tile);
+}
+
+.thumbImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbUploading img {
+  opacity: 0.6;
+}
+
+.thumbTag {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  font-family: var(--font-text);
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  color: var(--color-paper);
+  text-transform: uppercase;
+  background: var(--color-ink);
+}
+
+.thumbErrorBox {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif-italic);
+  font-size: 32px;
+  font-style: italic;
+  color: var(--color-error);
+  background: var(--color-error-tint);
+  border: 1px solid var(--color-error);
+}
+
+.thumbName {
+  overflow: hidden;
+  font-family: var(--font-text);
+  font-size: 13px;
+  color: var(--color-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thumbMeta {
+  font-family: var(--font-text);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+.thumbMetaError {
+  color: var(--color-error);
+}
+
+.thumbProgress {
+  color: var(--color-accent);
+}
+
+.progressLine {
+  height: 2px;
+  overflow: hidden;
+  background: var(--color-line-soft);
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--duration-base) linear;
+}
+
+.thumbActions {
+  display: flex;
+  gap: var(--space-14);
+}
+
+.textAction {
+  padding: 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  color: var(--color-ink-60);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.textAction:hover {
+  color: var(--color-ink);
+}
+
+.extraButtons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-14);
+}
+
+.extraButton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-14) var(--space-16);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-button);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+
+.extraButton:hover {
+  border-color: var(--color-ink);
+}
+
+.extraHighlight {
+  border-color: var(--color-accent);
+  background: var(--color-paper-tile);
+}
+
+.extraTitle {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+.extraMeta {
+  font-family: var(--font-text);
+  font-size: 11px;
+  color: var(--color-ink-60);
+}
+
+.extraList {
+  margin: var(--space-16) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-line-soft);
+}
+
+.extraRow {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  padding: var(--space-10) 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.extraKind {
+  min-width: 72px;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.extraName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none;
+}
+
+/* The 3D viewer reads its own token names; map them onto the hall palette. */
+.viewer {
+  --space-1: var(--space-4);
+  --space-2: var(--space-8);
+  --space-3: var(--space-14);
+  --space-6: var(--space-24);
+  --radius-md: var(--radius-button);
+  --radius-lg: var(--radius-button);
+  --color-surface: var(--color-paper-tile);
+  --color-surface-muted: var(--color-paper-tile);
+  --color-border: var(--color-line-soft);
+  --color-text: var(--color-ink);
+  --color-text-muted: var(--color-ink-60);
+  --color-accent-text: var(--color-ink);
+  --color-focus: var(--color-gold);
+  --focus-ring-width: 3px;
+  --font-size-sm: 13px;
+  --font-weight-strong: var(--font-weight-bold);
+  --target-size-min: 44px;
+  --viewer-max-height: 420px;
+
+  width: min(100%, 420px);
+  margin-top: var(--space-20);
+}
+
+.scanLink {
+  margin-top: var(--space-20);
+  font-family: var(--font-text);
+  font-size: 13px;
+}
+
+.scanLink a {
+  color: var(--color-ink);
+  text-underline-offset: 4px;
+}
+
+/* Step 4: preview in the room */
+.preview {
+  position: relative;
+  aspect-ratio: 664 / 300;
+  overflow: hidden;
+  background: var(--color-gallery-black)
+    url('../../assets/gallery/scene-red-room-1920.webp') center / cover
+    no-repeat;
+}
+
+.previewFrame {
+  position: absolute;
+  top: 12%;
+  left: 32%;
+  width: 28%;
+  aspect-ratio: 1;
+}
+
+.previewArt {
+  position: absolute;
+  top: calc(105 / 538 * 100%);
+  left: calc(137 / 538 * 100%);
+  width: calc(249 / 538 * 100%);
+  height: calc(321 / 538 * 100%);
+  overflow: hidden;
+  background: var(--color-media-missing);
+}
+
+.previewArt img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewGilded {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.previewLabel {
+  position: absolute;
+  top: 50%;
+  left: 66%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 17%;
+  min-width: 96px;
+  padding: var(--space-8) var(--space-10);
+  background: var(--color-paper-95);
+  box-shadow: var(--shadow-label);
+}
+
+.previewEyebrow {
+  font-family: var(--font-text);
+  font-size: 8px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.previewTitle {
+  font-family: var(--font-serif-italic);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.previewMeta {
+  font-family: var(--font-text);
+  font-size: 7px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+}
+
+.previewNote {
+  margin: var(--space-10) 0 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  color: var(--color-ink-60);
+}
+
+.recap {
+  margin: 0;
+  border-top: 1px solid var(--color-line-soft);
+}
+
+.recapRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: var(--space-20);
+  align-items: baseline;
+  padding: var(--space-14) 0;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.recapLabel {
+  font-family: var(--font-text);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+}
+
+.recapValue {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.errorList {
+  margin: var(--space-8) 0 0;
+  padding-left: var(--space-16);
+}
+
+.errorList li {
+  margin-bottom: var(--space-4);
+}
+
+.errorList button {
+  margin-left: var(--space-8);
+}
+
+@media (max-width: 900px) {
+  .mediaGrid,
+  .extraButtons {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .recapRow {
+    grid-template-columns: 1fr auto;
+  }
+
+  .recapLabel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .mediaGrid,
+  .extraButtons {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scan import: steps of the in-browser preparation, then the weight of each file. */
+.importPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin-top: var(--space-16);
+  padding: var(--space-14) 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  border-top: 1px solid var(--color-line-soft);
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.importTitle {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+.importSteps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.importStep {
+  color: var(--color-ink);
+}
+
+.importStepCurrent {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+}
+
+.importStepPending {
+  color: var(--color-ink-60);
+}
+
+.importSizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  margin: var(--space-14) 0 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+}
+
+.importSize {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.importSize dt {
+  color: var(--color-ink-60);
+}
+
+.importSize dd {
+  margin: 0;
+}
+
+/* A sentence that confirms an action on the import, such as a cancellation. */
+.importNote {
+  margin: var(--space-16) 0 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  color: var(--color-ink-60);
+}
+
+/* Refusals and warnings of the import sit under the media list. */
+.importBanner {
+  margin-top: var(--space-16);
+}
+
+.importFile {
+  display: block;
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.importUpload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 360px;
+  margin-top: var(--space-16);
+}
+
+.importUpload p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * On the other steps: where the model stands while it is prepared or sent.
+ * The hall keeps its scroll position from one step to the next, so the band
+ * stays under the navigation instead of waiting at the top of the form.
+ */
+.importNotice {
+  position: sticky;
+  top: 96px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-14);
+  margin-bottom: var(--space-24);
+  padding: var(--space-10) var(--space-16);
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink);
+  background: var(--color-paper-tile);
+  border-left: 2px solid var(--color-ink);
+}
+
+.importNotice a {
+  font-weight: var(--font-weight-bold);
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* The tint is translucent: the hall colour under it keeps the band opaque. */
+.importNoticeError {
+  color: var(--color-error);
+  background:
+    linear-gradient(var(--color-error-tint), var(--color-error-tint)),
+    var(--color-hall);
+  border-left-color: var(--color-error);
+}
+
+@media (max-width: 900px) {
+  .importNotice {
+    top: 72px;
+  }
+}

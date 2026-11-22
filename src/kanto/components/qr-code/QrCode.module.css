@@ -1,0 +1,5 @@
+.qr {
+  display: block;
+  color: var(--color-ink);
+  background: var(--color-paper);
+}

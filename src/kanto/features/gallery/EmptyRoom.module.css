@@ -1,0 +1,117 @@
+/* Figma A4 (138:902): dashed hanging templates and a tilted poster. */
+.empty {
+  position: absolute;
+  top: calc(50% + (250 - 450) * var(--u));
+  left: calc(50% + (64 - 720) * var(--u));
+  width: calc(792 * var(--u));
+  height: calc(400 * var(--u));
+}
+
+.templates {
+  display: flex;
+  gap: calc(28 * var(--u));
+  height: calc(214 * var(--u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.template {
+  position: relative;
+  flex: 1;
+  border: 1px dashed var(--color-paper-40);
+}
+
+.template::before {
+  position: absolute;
+  top: calc(-14 * var(--u));
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  content: '';
+  background: var(--color-paper-70);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.poster {
+  position: absolute;
+  top: calc(176 * var(--u));
+  left: calc(226 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: calc(224 * var(--u));
+  min-width: 200px;
+  padding: var(--space-20);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-label-raised);
+  transform: rotate(-2deg);
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-serif-italic);
+  font-size: 20px;
+  font-style: italic;
+  line-height: 1.15;
+}
+
+.hint {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-60);
+}
+
+.cta {
+  align-self: flex-start;
+  margin-top: var(--space-6);
+  padding: var(--space-10) var(--space-16);
+  font-family: var(--font-text);
+  font-size: 12px;
+  color: var(--color-paper);
+  text-decoration: none;
+  background: var(--color-ink);
+  border-radius: var(--radius-pill);
+}
+
+.cta:hover {
+  background: var(--color-wine);
+}
+
+@media (max-width: 767px), (max-aspect-ratio: 3/4) {
+  .empty {
+    top: calc(140 * var(--u));
+    left: calc(20 * var(--u));
+    width: calc(350 * var(--u));
+    height: auto;
+  }
+
+  .templates {
+    height: calc(120 * var(--u));
+  }
+
+  .template:nth-child(n + 3) {
+    display: none;
+  }
+
+  .poster {
+    position: static;
+    width: auto;
+    margin-top: var(--space-24);
+    transform: none;
+  }
+}

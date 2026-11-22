@@ -1,0 +1,194 @@
+/*
+ * Hall pages (Contribuer frames 129:62, 138:1119…): ivory paper, ink text,
+ * nav from the home, a two-column body on the 1440 stage that scrolls inside
+ * a fixed frame because the museum keeps html overflow hidden.
+ */
+.hall {
+  position: fixed;
+  inset: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  color: var(--color-ink);
+  background: var(--color-hall);
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88px;
+  padding: 0 clamp(var(--space-20), 4vw, 56px);
+  background: linear-gradient(var(--color-hall) 70%, transparent);
+}
+
+.logo {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-button);
+}
+
+.navRight {
+  display: flex;
+  gap: var(--space-32);
+  align-items: center;
+}
+
+.links {
+  display: flex;
+  gap: var(--space-32);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session {
+  display: flex;
+  gap: var(--space-20);
+  align-items: center;
+}
+
+.main {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-40) clamp(var(--space-20), 4vw, 56px) 96px;
+}
+
+.narrow {
+  max-width: 640px;
+  padding-top: var(--space-56);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  column-gap: clamp(var(--space-32), 8vw, 124px);
+  row-gap: var(--space-40);
+  align-items: start;
+}
+
+.aside {
+  position: sticky;
+  top: 112px;
+}
+
+/* Intro block: eyebrow, display headline, lede. */
+.eyebrow {
+  margin: 0 0 var(--space-20);
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.headline {
+  margin: 0 0 var(--space-24);
+  font-family: var(--font-display);
+  font-size: clamp(44px, 6vw, 92px);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.compact .headline {
+  font-size: clamp(36px, 4.4vw, 64px);
+}
+
+.accent {
+  color: var(--color-wine);
+}
+
+.lede {
+  max-width: 46ch;
+  margin: 0 0 var(--space-32);
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-ink-60);
+}
+
+/* Numbered section label: "01 — QUELLE FORME D'ART ?" */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0 0 var(--space-40);
+}
+
+.sectionLabel {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-60);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-20);
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: var(--space-56);
+}
+
+.actionsNote {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  margin-right: auto;
+  font-family: var(--font-text);
+  font-size: 12px;
+  color: var(--color-ink-60);
+}
+
+.actionsNote::before {
+  color: var(--color-accent);
+  content: '✓';
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-24);
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .aside {
+    position: static;
+  }
+
+  .links {
+    display: none;
+  }
+
+  .nav {
+    height: 64px;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .actionsNote {
+    width: 100%;
+    margin-bottom: var(--space-8);
+  }
+}
