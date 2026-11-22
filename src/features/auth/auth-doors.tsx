@@ -1,18 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { createContext, Suspense, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Key } from "@/i18n/en";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useT } from "@/i18n/locale";
-import { IconBack, IconCheck } from "@/lib/ui/icons";
+import { Logo } from "@/kanto/components/logo/Logo";
+import { IconBack } from "@/lib/ui/icons";
+import { WoodFrame } from "@/lib/ui/kanto";
+import { RETURN_PARAM, withReturn } from "@/features/auth/return-to";
+import styles from "./auth-doors.module.css";
 
 type Scene = "painting" | "pottery" | "palette";
 
-const STORY: Record<Scene, { title: Key; text?: Key; points?: Key[] }> = {
+// Headlines carry their line breaks and one <em>…</em>, the word the frame sets in the accent colour.
+const STORY: Record<Scene, { title: Key; text: Key; points?: Key[] }> = {
   painting: { title: "authSide.signInTitle", text: "authSide.signInText" },
-  pottery: { title: "authSide.signUpTitle", points: ["authSide.point1", "authSide.point2", "authSide.point3"] },
+  pottery: { title: "authSide.signUpTitle", text: "account.signUpLede", points: ["authSide.point1", "authSide.point2", "authSide.point3"] },
   palette: { title: "authSide.passwordTitle", text: "authSide.passwordText" },
 };
 
@@ -27,11 +32,12 @@ function sceneFor(pathname: string): Scene {
 }
 
 /**
- * The doors into Artiko: a full-height clip of hands making art, the form on the other side under a
- * switch whose pill slides between signing in and creating an account. Phones get the clip as a band.
+ * The doors into KANTO, in the direction of the Figma frame R9: an eyebrow and a display headline on the
+ * left with a framed clip of hands making art, the form on the right under two tabs, one per address
+ * (`/sign-up` and `/sign-in`). No app navigation here: the wordmark, a way back and the three languages.
  */
 export function AuthDoors({ children }: { children: ReactNode }) {
-  const { t } = useT();
+  const { t, rich } = useT();
   const pathname = usePathname();
   const [override, setOverride] = useState<Scene | null>(null);
   const scene = override ?? sceneFor(pathname);
@@ -41,65 +47,77 @@ export function AuthDoors({ children }: { children: ReactNode }) {
 
   return (
     <SceneContext.Provider value={setOverride}>
-      <div className="app flex min-h-dvh flex-col bg-white text-ink lg:flex-row">
-        <aside className="relative m-3 flex min-h-[220px] flex-col justify-between overflow-hidden rounded-md bg-ink p-6 text-white sm:min-h-[280px] lg:sticky lg:top-3 lg:h-[calc(100dvh-24px)] lg:flex-[1.05] lg:p-7">
-          <Clip key={scene} src={`/auth/${scene}.mp4`} />
-          <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-ink/55 via-ink/10 to-ink/90" />
-          <Link href="/" className="relative self-start text-3xl font-extrabold tracking-[-0.05em]">
-            artiko<span className="text-[#E8846C]">·</span>
+      <div className={`app ${styles.page}`}>
+        <header className={styles.bar}>
+          <Link href="/" aria-label={t("nav.homeAria")} className={styles.home}>
+            <Logo />
           </Link>
-          <div key={`story-${scene}`} className="relative flex flex-col gap-4 lg:gap-5">
-            <p className="rise max-w-[13ch] text-[34px] leading-[0.95] font-extrabold tracking-[-0.05em] sm:text-[44px] lg:text-[clamp(48px,5vw,76px)]">
-              {t(story.title)}
-            </p>
-            {story.text && (
-              <p className="rise hidden max-w-[44ch] text-lg leading-relaxed text-[#EFE6DD] sm:block" style={{ animationDelay: "0.15s" }}>
-                {t(story.text)}
-              </p>
-            )}
+          <Link href="/explore" className={styles.back}>
+            <IconBack size={16} strokeWidth={2} />
+            <span className={styles.backText}>{t("authSide.back")}</span>
+          </Link>
+          <LanguageSwitcher placement="inline" />
+        </header>
+
+        <div className={styles.body}>
+          <aside key={`story-${scene}`} className={styles.intro}>
+            <p className={styles.eyebrow}>{t("account.eyebrow")}</p>
+            <p className={`rise ${styles.headline}`}>{rich(story.title, { em: (word) => <span className={styles.accent}>{word}</span> })}</p>
+            <p className={`rise ${styles.lede}`}>{t(story.text)}</p>
             {story.points && (
-              <ul className="rise hidden flex-col gap-2.5 text-[17px] text-[#EFE6DD] sm:flex" style={{ animationDelay: "0.15s" }}>
-                {story.points.map((p) => (
-                  <li key={p} className="flex items-center gap-2.5">
-                    <IconCheck size={20} strokeWidth={2.2} />
-                    {t(p)}
-                  </li>
+              <ul className={`rise ${styles.points}`}>
+                {story.points.map((point) => (
+                  <li key={point}>{t(point)}</li>
                 ))}
               </ul>
             )}
-            <a href="/auth/CREDITS.md" target="_blank" rel="noreferrer" className="text-[13px] text-[#C9BBB2] hover:text-white hover:underline">
-              {t("authSide.credits")}
-            </a>
-          </div>
-        </aside>
+          </aside>
 
-        <section className="flex flex-1 flex-col px-4 pt-4 pb-8 sm:px-8 lg:px-[clamp(32px,5vw,80px)] lg:pt-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/explore" className="inline-flex min-h-10 items-center gap-2 text-sm font-bold hover:underline">
-              <IconBack size={16} strokeWidth={2} />
-              {t("authSide.back")}
-            </Link>
-            <LanguageSwitcher placement="inline" />
-          </div>
-          <div className="my-auto flex w-full max-w-[440px] flex-col gap-7 py-10">
+          <main className={styles.form}>
             {doors && (
-              <nav aria-label={t("authSide.doors")} className="seg">
-                <span aria-hidden="true" className="seg-pill" data-at={up ? 1 : 0} />
-                <Link href="/sign-in" aria-current={up ? undefined : "page"}>
-                  {t("auth.signInSubmit")}
-                </Link>
-                <Link href="/sign-up" aria-current={up ? "page" : undefined}>
-                  {t("auth.signUpTitle")}
-                </Link>
-              </nav>
+              // The way back travels from one door to the other; it is read from the address, in the browser.
+              <Suspense fallback={<Doors up={up} next={null} />}>
+                <DoorsWithReturn up={up} />
+              </Suspense>
             )}
             {children}
-          </div>
-          <p className="text-[13px] text-muted">{t("footer.title")}</p>
-        </section>
+          </main>
+
+          <figure className={styles.picture}>
+            <WoodFrame className={styles.frame}>
+              <Clip key={scene} src={`/auth/${scene}.mp4`} />
+            </WoodFrame>
+            <figcaption>
+              <a href="/auth/CREDITS.md" target="_blank" rel="noreferrer" className={styles.credits}>
+                {t("authSide.credits")}
+              </a>
+            </figcaption>
+          </figure>
+        </div>
+
+        <p className={styles.foot}>{t("footer.title")}</p>
       </div>
     </SceneContext.Provider>
   );
+}
+
+/** The two tabs of the frame, « Créer un compte » and « Se connecter »: each is a link to its own address. */
+export function Doors({ up, next }: { up: boolean; next: string | null }) {
+  const { t } = useT();
+  return (
+    <nav aria-label={t("authSide.doors")} className={styles.doors}>
+      <Link href={withReturn("/sign-up", next)} aria-current={up ? "page" : undefined} className={styles.door}>
+        {t("auth.signUpTitle")}
+      </Link>
+      <Link href={withReturn("/sign-in", next)} aria-current={up ? undefined : "page"} className={styles.door}>
+        {t("auth.signInSubmit")}
+      </Link>
+    </nav>
+  );
+}
+
+function DoorsWithReturn({ up }: { up: boolean }) {
+  return <Doors up={up} next={useSearchParams().get(RETURN_PARAM)} />;
 }
 
 /** A muted looping clip with a slow zoom; it stays still for people who asked for less motion. */
@@ -111,17 +129,5 @@ function Clip({ src }: { src: string }) {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) v.pause();
     else v.play().catch(() => {});
   }, []);
-  return (
-    <video
-      ref={video}
-      src={src}
-      muted
-      loop
-      playsInline
-      autoPlay
-      preload="metadata"
-      aria-hidden="true"
-      className="ken absolute inset-0 size-full object-cover opacity-85"
-    />
-  );
+  return <video ref={video} src={src} muted loop playsInline autoPlay preload="metadata" aria-hidden="true" className={`ken ${styles.clip}`} />;
 }

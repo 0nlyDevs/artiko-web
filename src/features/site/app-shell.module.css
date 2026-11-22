@@ -1,0 +1,335 @@
+/*
+ * The frame of the app pages in the KANTO direction (Figma frames R9 and R11): the wordmark, the text
+ * links, the account pill and the language pill on one bar. The team's structure and breakpoints stay:
+ * under 768 px a top bar and a tab bar at the bottom, where thumbs reach; the full bar from 768 px,
+ * on two rows until 1024 px.
+ *
+ * A screen can ask for another dress from inside <main>, on any element:
+ *   data-shell-theme="dark"  black bars and paper text, for the rooms (Panthéon, notice, plan);
+ *   data-shell-bleed         no page gutter, the screen runs edge to edge.
+ */
+.shell {
+  --shell-bg: var(--color-wall-ivory);
+  --shell-fg: var(--color-ink);
+  --shell-fg-quiet: var(--color-ink-60);
+  --shell-line: var(--color-line-soft);
+  --shell-mark: var(--color-gold);
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  color: var(--shell-fg);
+  background: var(--shell-bg);
+}
+
+.shell:has([data-shell-theme='dark']) {
+  --shell-bg: var(--color-gallery-black);
+  --shell-fg: var(--color-paper);
+  --shell-fg-quiet: var(--color-paper-70);
+  --shell-line: var(--color-paper-16);
+  --shell-mark: var(--color-gold);
+  --app-focus: var(--color-gold);
+  --lang-fg: var(--color-paper);
+  --lang-bg: var(--color-ink);
+}
+
+/* Top bar */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-16);
+  align-items: center;
+  min-height: var(--app-bar-height);
+  padding: 0 var(--app-gutter);
+  color: var(--shell-fg);
+  background: var(--shell-bg);
+  border-bottom: 1px solid var(--shell-line);
+}
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Phones only: the scan is one thumb away from every page. */
+.scan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: inherit;
+  border-radius: var(--radius-pill);
+}
+
+.scan:hover {
+  background: var(--color-ink-08);
+}
+
+.nav {
+  display: none;
+}
+
+.link {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: 5px;
+  font-family: var(--font-text);
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Figma component NavLink: a 1 px brass underline on hover, on focus and on the current page. */
+.underline {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--shell-mark);
+  opacity: 0;
+  transition: opacity var(--duration-fast) linear;
+}
+
+.link:hover .underline,
+.link:focus-visible .underline,
+.link[aria-current='page'] .underline {
+  opacity: 1;
+}
+
+/* The account: a disc with the person's initials and "Mon espace" in an outlined pill. */
+.account {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  height: 36px;
+  padding: 0 3px;
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid var(--shell-fg);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.account:hover {
+  background: var(--color-ink-08);
+}
+
+.shell:has([data-shell-theme='dark']) .account:hover,
+.shell:has([data-shell-theme='dark']) .scan:hover {
+  background: var(--color-paper-16);
+}
+
+.account[aria-current='page'] {
+  box-shadow: 0 0 0 1px var(--shell-fg);
+}
+
+.accountLabel {
+  display: none;
+  padding-right: var(--space-14);
+}
+
+/* A plain disc while nobody is signed in: the same place, no initials. */
+.disc {
+  display: inline-flex;
+  flex: none;
+  background: var(--shell-fg);
+  border-radius: 50%;
+}
+
+.shell:has([data-shell-theme='dark']) .disc {
+  background: var(--color-paper-40);
+}
+
+/* Page */
+
+.main {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-24) var(--app-gutter) 112px;
+}
+
+.shell:has([data-shell-bleed]) .main {
+  padding: 0 0 calc(64px + env(safe-area-inset-bottom));
+}
+
+.footer {
+  display: none;
+  padding: var(--space-24) var(--app-gutter) var(--space-32);
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--shell-fg-quiet);
+  border-top: 1px solid var(--shell-line);
+}
+
+.footerTitle {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--shell-fg);
+}
+
+.footerText {
+  max-width: 42rem;
+  margin: 0;
+}
+
+/* Tab bar of the phones */
+
+.tabs {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding-bottom: env(safe-area-inset-bottom);
+  color: var(--shell-fg-quiet);
+  background: var(--shell-bg);
+  border-top: 1px solid var(--shell-line);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 56px;
+  padding: var(--space-8) var(--space-2);
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+
+.tab[aria-current='page'] {
+  color: var(--shell-fg);
+}
+
+/* The brass mark of the current page, on the edge of the bar. */
+.tab[aria-current='page']::before {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 24px;
+  height: 2px;
+  content: '';
+  background: var(--shell-mark);
+  transform: translateX(-50%);
+}
+
+.tabLabel {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* From 768 px: the bar of the frames. Two rows until 1024 px, the links under the wordmark. */
+@media (min-width: 768px) {
+  .bar {
+    position: static;
+    row-gap: 0;
+    column-gap: var(--space-24);
+    border-bottom: 0;
+  }
+
+  .scan,
+  .tabs {
+    display: none;
+  }
+
+  .nav {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-16);
+    align-items: center;
+    order: 3;
+    padding-bottom: var(--space-16);
+  }
+
+  /* Six links, the account and three languages must fit in Malagasy too: 15 px comes back at 1280 px. */
+  .link {
+    font-size: 14px;
+  }
+
+  .account {
+    margin-left: auto;
+  }
+
+  .main {
+    padding: var(--space-32) var(--app-gutter) 64px;
+  }
+
+  .shell:has([data-shell-bleed]) .main {
+    padding: 0;
+  }
+
+  .footer {
+    display: block;
+  }
+}
+
+/* From 1024 px: one row, as drawn. The links keep the right, before the account and the languages. */
+@media (min-width: 1024px) {
+  .nav {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    order: 0;
+    padding-bottom: 0;
+  }
+
+  .account {
+    margin-left: var(--space-4);
+  }
+
+  .main {
+    padding-top: var(--space-40);
+  }
+}
+
+@media (min-width: 1280px) {
+  .bar {
+    column-gap: var(--space-32);
+  }
+
+  .nav {
+    gap: var(--space-32);
+  }
+
+  .link {
+    font-size: 15px;
+  }
+
+  .account {
+    margin-left: 0;
+  }
+
+  .accountLabel {
+    display: inline;
+  }
+}

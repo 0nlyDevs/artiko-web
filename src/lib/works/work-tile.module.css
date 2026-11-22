@@ -1,0 +1,87 @@
+/* A work in a feed, hung on the ivory wall: the picture, then its title in the italic serif of « Ligne œuvre ». */
+.tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  margin-bottom: var(--space-14);
+  overflow: hidden;
+  background: var(--color-paper-tile);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-wall);
+  transition: box-shadow var(--duration-base) var(--ease-out);
+}
+
+.tile:hover .media {
+  box-shadow: var(--shadow-wall-raised);
+}
+
+.title {
+  overflow: hidden;
+  font-family: var(--font-display-italic);
+  font-size: 21px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  margin-top: var(--space-2);
+  overflow: hidden;
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-10);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-8);
+}
+
+.votes {
+  font-family: var(--font-text);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/*
+ * Sound, video and 3D have no picture: the kind is written on the ink. The block measures itself, so the
+ * word also fits the small thumbnails of the artist page.
+ */
+.kind {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: inline-size;
+  color: var(--color-paper);
+  text-align: center;
+  background: var(--color-ink);
+}
+
+.kind > span {
+  padding: 0 8cqw;
+  font-family: var(--font-display-italic);
+  font-size: clamp(11px, 13cqw, 22px);
+  font-style: italic;
+  line-height: 1.2;
+}

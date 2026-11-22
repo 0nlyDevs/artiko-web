@@ -2,17 +2,11 @@
 
 import type { Category, CategoryId } from "@/lib/api";
 import { useT } from "@/i18n/locale";
+import { exploreHref } from "@/features/explore/explore-logic";
 import { SlidingChips } from "@/lib/ui/sliding-chips";
 import { CategoryLabel } from "@/lib/works/category-label";
 
-/** `/explore` with the given filters; unset ones stay out of the address. */
-export function exploreHref(filters: { category?: string; month?: string; q?: string }): string {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
-  const query = params.toString();
-  return query ? `/explore?${query}` : "/explore";
-}
-
+/** The art forms as chips: « All », then the categories the API gives. The month and the searched text are kept. */
 export function ExploreCategories({
   categories,
   filters,

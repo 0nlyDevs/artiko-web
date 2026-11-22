@@ -10,7 +10,9 @@ export const VERIFIED_CALLBACK_URL = "/sign-in?verified=1";
  */
 export const MY_SPACE_VERIFIED_CALLBACK_URL = "/me?verified=1";
 
-export function resendVerification(email: string) {
+/** `fetchOptions` lets a form read the wait of a rate-limited answer (`useRetryAfter`). */
+export function resendVerification(email: string, fetchOptions?: NonNullable<Parameters<typeof authClient.sendVerificationEmail>[0]["fetchOptions"]>) {
+  if (fetchOptions) return authClient.sendVerificationEmail({ email, callbackURL: VERIFIED_CALLBACK_URL, fetchOptions });
   return authClient.sendVerificationEmail({ email, callbackURL: VERIFIED_CALLBACK_URL });
 }
 

@@ -17,6 +17,8 @@ import {
 import { ArtistProfile, type HallPlace } from "@/features/artist-museum/artist-profile";
 import { PageTitle, T } from "@/i18n/locale";
 import { currentMonth } from "@/lib/months";
+import { MAX_ITEMS, readAll } from "@/lib/paging";
+import styles from "./artist-profile.module.css";
 
 const notFoundOn = <T,>(promise: Promise<T>) =>
   promise.catch((e) => {
@@ -45,7 +47,8 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const artist = await loadArtist(id);
   const [works, expositions, artists, practices] = await Promise.all([
-    listWorks({ query: { artist_id: id, limit: 200 } }).then(unwrap),
+    // Every page, since the profile counts them (the API sends no total).
+    readAll((page) => listWorks({ query: { artist_id: id, ...page } }).then(unwrap)),
     listExpositions({ query: { artist_id: id } }).then(unwrap),
     listArtists().then(unwrap),
     listPractices().then(unwrap),
@@ -63,6 +66,8 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
       <ArtistProfile
         artist={artist}
         works={works}
+        // readAll ends on a short page, or at its cap: under the cap, the last page read was short.
+        worksComplete={works.length < MAX_ITEMS}
         expositions={expositions}
         places={places}
         others={artists.filter((a) => a.id !== id).slice(0, 4)}
@@ -74,20 +79,24 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
 
 function ProfileSkeleton() {
   return (
-    <div aria-busy="true" className="mx-auto flex max-w-[1400px] flex-col gap-10 lg:flex-row-reverse">
-      <span className="sr-only">
+    <div aria-busy="true" className={styles.profile}>
+      <span className="visually-hidden">
         <T k="museum.opening" />
       </span>
-      <div className="flex flex-col gap-4 lg:w-[300px]">
-        <div className="skel size-24 rounded-full" />
-        <div className="skel h-8 w-3/4" />
-        <div className="skel h-20 w-full" />
+      <div className={`${styles.artist} ${styles.waiting}`}>
+        <div className="skel" style={{ width: 88, height: 88, borderRadius: "50%" }} />
+        <div className="skel" style={{ width: "75%", height: 40 }} />
+        <div className="skel" style={{ width: "100%", height: 72 }} />
+        <div className="skel" style={{ width: "100%", height: 52 }} />
       </div>
-      <div className="grid flex-1 grid-cols-3 gap-1">
-        {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="skel aspect-[4/5] rounded-none" />
-        ))}
+      <div className={styles.works}>
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className={`skel ${styles.tile}`} />
+          ))}
+        </div>
       </div>
+      <div className={styles.related} />
     </div>
   );
 }

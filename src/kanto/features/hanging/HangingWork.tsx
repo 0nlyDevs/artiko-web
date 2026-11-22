@@ -27,30 +27,50 @@ const MODEL_TIMEOUT_MS = 10000;
 /** A picture still loading by then drops as it is, and fills in when it arrives. */
 const STILL_TIMEOUT_MS = 5000;
 
+/** What model-viewer reads aloud for a scanned work: its four sides and how to turn it. */
+export interface ViewerLabels {
+  front: string;
+  right: string;
+  back: string;
+  left: string;
+  prompt: string;
+}
+
+const VIEWER_LABELS: ViewerLabels = {
+  front: 'Vue de face',
+  right: 'Vue de droite',
+  back: 'Vue de dos',
+  left: 'Vue de gauche',
+  prompt: 'Faites glisser ou utilisez les flèches pour faire tourner l’œuvre.',
+};
+
 /*
  * model-viewer settings of the plinth, set as attributes because the typing
  * of the viewer feature only knows the ones its own viewer uses. The object
  * can be turned, not zoomed, moved or re-centred: it stays on its plinth.
  */
-const STAGE_ATTRIBUTES: readonly (readonly [string, string])[] = [
-  ['loading', 'eager'],
-  ['interaction-prompt', 'none'],
-  ['disable-zoom', ''],
-  ['disable-pan', ''],
-  ['disable-tap', ''],
-  ['camera-orbit', `0deg ${String(STAGE_POLAR_DEG)}deg auto`],
-  [
-    'a11y',
-    JSON.stringify({
-      front: 'Vue de face',
-      right: 'Vue de droite',
-      back: 'Vue de dos',
-      left: 'Vue de gauche',
-      'interaction-prompt':
-        'Faites glisser ou utilisez les flèches pour faire tourner l’œuvre.',
-    }),
-  ],
-];
+function stageAttributes(
+  labels: ViewerLabels,
+): readonly (readonly [string, string])[] {
+  return [
+    ['loading', 'eager'],
+    ['interaction-prompt', 'none'],
+    ['disable-zoom', ''],
+    ['disable-pan', ''],
+    ['disable-tap', ''],
+    ['camera-orbit', `0deg ${String(STAGE_POLAR_DEG)}deg auto`],
+    [
+      'a11y',
+      JSON.stringify({
+        front: labels.front,
+        right: labels.right,
+        back: labels.back,
+        left: labels.left,
+        'interaction-prompt': labels.prompt,
+      }),
+    ],
+  ];
+}
 
 export interface CartelLinesProps {
   cartel: HangingCartel;
@@ -60,7 +80,9 @@ export interface CartelLinesProps {
 export function CartelLines({ cartel }: CartelLinesProps) {
   return (
     <>
-      <span className={styles.cartelNumber}>N° {cartel.number}</span>
+      <span className={styles.cartelNumber}>
+        {cartel.reference ?? `N° ${cartel.number}`}
+      </span>
       <span className={styles.cartelTitle}>{cartel.title}</span>
       {cartel.author !== '' && (
         <span className={styles.cartelAuthor}>{cartel.author}</span>
@@ -82,6 +104,7 @@ interface StageModelProps {
   /** Width of the object, as a share of the zone above the plinth. */
   onSpan: (span: number) => void;
   loadModelViewer: () => Promise<void>;
+  labels: ViewerLabels;
 }
 
 /** The scanned work itself, standing on the plinth once its camera is set. */
@@ -92,6 +115,7 @@ function StageModel({
   dispatch,
   onSpan,
   loadModelViewer,
+  labels,
 }: StageModelProps) {
   useEffect(() => {
     let active = true;
@@ -110,7 +134,7 @@ function StageModel({
       if (element === null) {
         return;
       }
-      for (const [name, value] of STAGE_ATTRIBUTES) {
+      for (const [name, value] of stageAttributes(labels)) {
         element.setAttribute(name, value);
       }
       let active = true;
@@ -172,7 +196,7 @@ function StageModel({
         element.removeEventListener('error', onError);
       };
     },
-    [dispatch, onSpan],
+    [dispatch, onSpan, labels],
   );
 
   return (
@@ -311,6 +335,8 @@ export interface HangingWorkProps {
   /** Width of a scanned object once it stands, as a share of its zone. */
   onSpan: (span: number) => void;
   loadModelViewer?: (() => Promise<void>) | undefined;
+  /** Texts model-viewer reads aloud; French when absent. */
+  viewerLabels?: ViewerLabels | undefined;
 }
 
 /**
@@ -328,6 +354,7 @@ export function HangingWork({
   onNear,
   onSpan,
   loadModelViewer = defaultLoadModelViewer,
+  viewerLabels = VIEWER_LABELS,
 }: HangingWorkProps) {
   // The ceremony never waits for a slow file: a model gives way to its
   // still, and a picture drops while it finishes loading. A file that is
@@ -384,6 +411,7 @@ export function HangingWork({
               dispatch={dispatch}
               onSpan={onSpan}
               loadModelViewer={loadModelViewer}
+              labels={viewerLabels}
             />
           )}
           {work.kind === 'poster' && still !== undefined && (

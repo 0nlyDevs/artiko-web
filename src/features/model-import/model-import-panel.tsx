@@ -2,6 +2,8 @@
 
 import { ArtworkViewer } from "@/features/model-viewer/artwork-viewer";
 import { useT } from "@/i18n/locale";
+// The panel lives in the publication form: its KANTO dress is kept with the styles of that screen.
+import styles from "@/features/artist-space/publish/model-import-panel.module.css";
 import { formatBytes } from "./format-bytes";
 import type { ImportedModel, ImportStep } from "./import-model";
 import type { ImportState, PreviewUrls } from "./import-state";
@@ -15,7 +17,7 @@ export function ModelImportPanel({ state, alt }: { state: ImportState; alt: stri
     case "running":
       return <ImportProgress steps={state.steps} current={state.current} />;
     case "failed":
-      return <p role="alert" className="border-l-4 border-red pl-3">{t(`import.error.${state.code}`)}</p>;
+      return <p role="alert" className={styles.error}>{t(`import.error.${state.code}`)}</p>;
     case "ready":
       return <ImportPreview model={state.model} preview={state.preview} alt={alt} />;
   }
@@ -25,13 +27,13 @@ function ImportProgress({ steps, current }: { steps: readonly ImportStep[]; curr
   const { t } = useT();
   const currentIndex = current === null ? -1 : steps.indexOf(current);
   return (
-    <div role="status" aria-live="polite" className="flex flex-col gap-2">
-      <p className="font-bold">{t("import.preparing")}</p>
-      <ol className="flex flex-col gap-1">
+    <div role="status" aria-live="polite" className={styles.progress}>
+      <p className={styles.title}>{t("import.preparing")}</p>
+      <ol className={styles.steps}>
         {steps.map((step, index) => {
           const progress = index < currentIndex ? "done" : index === currentIndex ? "current" : "pending";
           return (
-            <li key={step} aria-current={progress === "current" ? "step" : undefined} className={progress === "pending" ? "opacity-60" : ""}>
+            <li key={step} aria-current={progress === "current" ? "step" : undefined} data-progress={progress}>
               {t(`import.progress.${progress}`, { step: t(`import.step.${step}`) })}
             </li>
           );
@@ -49,18 +51,18 @@ function ImportPreview({ model, preview, alt }: { model: ImportedModel; preview:
     { key: "poster", label: t("import.size.poster"), bytes: model.poster.size },
   ] as const;
   return (
-    <div className="flex flex-col gap-3">
+    <div className={styles.preview}>
       <ArtworkViewer model1k={preview.model1k} model2k={preview.model2k} poster={preview.poster} alt={alt} />
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+      <dl className={styles.sizes}>
         {sizes.map(({ key, label, bytes }) => (
-          <div key={key} className="contents">
+          <div key={key} className={styles.sizeRow}>
             <dt>{label}</dt>
             <dd>{formatBytes(bytes, locale)}</dd>
           </div>
         ))}
       </dl>
       {model.oversized.length > 0 && (
-        <p role="alert" className="border-l-4 border-red pl-3">
+        <p role="alert" className={styles.error}>
           {t("import.oversized", { variants: model.oversized.map((variant) => t(`import.size.${variant}`)).join(", ") })}
         </p>
       )}

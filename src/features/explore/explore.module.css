@@ -1,0 +1,343 @@
+/*
+ * Explore, in the KANTO direction. No Figma frame draws this page: it borrows the reading column of
+ * R1 and R11 (eyebrow, display title in two inks, introduction), the underlined fields of R9, the
+ * artist pills of R8 and the section labels of R11. One column under 1024 px, in the same order.
+ */
+.page {
+  display: grid;
+  gap: var(--space-40);
+  width: 100%;
+  max-width: 1328px;
+  margin: 0 auto;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+}
+
+.page > * {
+  min-width: 0;
+}
+
+/* Reading column */
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-20);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.headline {
+  max-width: 100%;
+  margin: 0 0 var(--space-24);
+  font-family: var(--font-display);
+  font-size: clamp(44px, 12vw, 72px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.headline > span {
+  display: block;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.intro {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-60);
+}
+
+/* Search and month */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  align-items: flex-start;
+}
+
+.search {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.month {
+  flex: 1 1 180px;
+}
+
+@media (min-width: 640px) {
+  .month {
+    flex: 0 1 220px;
+  }
+}
+
+.searchIcon {
+  color: var(--color-ink-60);
+}
+
+/* The browser's own clear button would sit under the icon. */
+.search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-line-soft);
+  border-top-color: var(--color-ink);
+  border-radius: 50%;
+  animation: turn 0.7s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Sections */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sectionLabel {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  color: var(--color-ink-60);
+  text-transform: uppercase;
+}
+
+.headLink {
+  display: inline-flex;
+  gap: var(--space-6);
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+
+.headLink:hover {
+  color: var(--color-wine);
+}
+
+/* Artists: the pills of the plan of the museum (R8), on the ivory wall. A phone slides them sideways. */
+
+.pills {
+  display: flex;
+  gap: var(--space-8);
+  padding: 2px var(--app-gutter) var(--space-4);
+  margin: 0 calc(-1 * var(--app-gutter));
+  overflow-x: auto;
+  list-style: none;
+}
+
+.pills > li {
+  flex: none;
+}
+
+.pill {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-16);
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--color-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.pill:hover {
+  background: var(--color-paper-tile);
+  border-color: var(--color-ink);
+}
+
+.pillStrong {
+  font-weight: var(--font-weight-bold);
+}
+
+/* The biography of an artist, under the region in the full list. */
+.bio {
+  display: block;
+  max-width: 68ch;
+  margin-top: var(--space-2);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* Works */
+
+.count {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-60);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-32) var(--space-16);
+  margin-top: var(--space-8);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  align-items: flex-start;
+  padding: var(--space-32) var(--space-24);
+  background: var(--color-paper-tile);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--font-display-italic);
+  font-size: 26px;
+  font-style: italic;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.emptyHint {
+  max-width: 52ch;
+  margin: 0 0 var(--space-6);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-60);
+}
+
+/* Loading */
+
+.skelField {
+  flex: 1 1 280px;
+  height: 72px;
+}
+
+.skelMonth {
+  flex: 0 1 220px;
+  height: 72px;
+}
+
+.skelLine {
+  width: min(100%, 520px);
+  height: 44px;
+}
+
+.skelTile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.skelMedia {
+  aspect-ratio: 3 / 4;
+}
+
+.skelTitle {
+  width: 80%;
+  height: 20px;
+}
+
+.skelMeta {
+  width: 50%;
+  height: 12px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--space-24);
+  }
+}
+
+@media (min-width: 768px) {
+  .pills {
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .empty {
+    padding: var(--space-56) var(--space-40);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-40) var(--space-56);
+    padding-top: var(--space-40);
+  }
+
+  .filters {
+    align-self: end;
+  }
+
+  .section {
+    grid-column: 1 / -1;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: var(--space-40);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

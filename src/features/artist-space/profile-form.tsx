@@ -1,12 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useT } from "@/i18n/locale";
 import { ApiError, unwrap, upsertMyArtist, type Artist } from "@/lib/api";
 import { apiErrorText } from "@/lib/api-messages";
 import { callWithToken } from "@/lib/api-token";
+import { Button, StatusBanner, UnderlinedField } from "@/lib/ui/kanto";
+import styles from "@/features/artist-space/space/space.module.css";
 
-export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSaved: (artist: Artist) => void }) {
+/**
+ * The artist profile, created or edited in place: the three fields of `PUT /me/artist`, always sent together.
+ * `closeHref` adds the link that leaves the edition (my space gives the address of its reading view).
+ */
+export function ProfileForm({ artist, onSaved, closeHref }: { artist: Artist | null; onSaved: (artist: Artist) => void; closeHref?: string }) {
   const { t } = useT();
   const [pending, startTransition] = useTransition();
   // "saved", "failed" and an API error (api-messages.ts) are translated on render.
@@ -34,29 +41,26 @@ export function ProfileForm({ artist, onSaved }: { artist: Artist | null; onSave
         event.preventDefault();
         void save(new FormData(event.currentTarget));
       }}
-      className="flex max-w-xl flex-col gap-5"
+      className={styles.form}
     >
-      <p className="leading-relaxed">{t("profile.intro")}</p>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="display_name" className="font-semibold">{t("profile.name")}</label>
-        <input id="display_name" name="display_name" required maxLength={100} defaultValue={artist?.display_name} className="input" />
+      <p className={styles.formIntro}>{t("profile.intro")}</p>
+      <UnderlinedField id="display_name" name="display_name" label={t("profile.name")} required maxLength={100} defaultValue={artist?.display_name} autoComplete="off" />
+      <UnderlinedField id="region" name="region" label={t("profile.region")} maxLength={100} defaultValue={artist?.region} autoComplete="off" />
+      <UnderlinedField as="textarea" id="bio" name="bio" label={t("profile.bio")} rows={4} maxLength={2000} defaultValue={artist?.bio} />
+      <div className={styles.formActions}>
+        <Button type="submit" loading={pending}>
+          {artist ? t("profile.saveEdit") : t("profile.saveNew")}
+        </Button>
+        {closeHref !== undefined && (
+          <Link href={closeHref} scroll={false} className={styles.textLink}>
+            {t("work.close")}
+          </Link>
+        )}
       </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="region" className="font-semibold">{t("profile.region")}</label>
-        <input id="region" name="region" maxLength={100} defaultValue={artist?.region} className="input" />
-      </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="bio" className="font-semibold">{t("profile.bio")}</label>
-        <textarea id="bio" name="bio" rows={4} maxLength={2000} defaultValue={artist?.bio} className="input" />
-      </div>
-      <button type="submit" disabled={pending} className="btn btn-ink self-start">
-        {pending && <span className="spin" aria-hidden="true" />}
-        {artist ? t("profile.saveEdit") : t("profile.saveNew")}
-      </button>
       {status && (
-        <p role="status" className={status === "saved" ? "font-semibold" : "text-[#8E3524]"}>
+        <StatusBanner tone={status === "saved" ? "success" : "error"}>
           {status instanceof ApiError ? apiErrorText(status, t) : t(status === "saved" ? "profile.saved" : "profile.failed")}
-        </p>
+        </StatusBanner>
       )}
     </form>
   );

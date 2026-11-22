@@ -3,12 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useT } from "@/i18n/locale";
-import { exploreHref } from "@/features/explore/explore-categories";
+import { exploreHref, QUERY_MAX, type ExploreView } from "@/features/explore/explore-logic";
 import { monthLabel } from "@/lib/months";
-import { IconCalendar, IconSearch } from "@/lib/ui/icons";
+import { IconSearch } from "@/lib/ui/icons";
+import { UnderlinedField } from "@/lib/ui/kanto";
+import styles from "./explore.module.css";
 
-/** Search box and month picker side by side; typing filters after a short pause, Enter right away. */
-export function ExploreFilters({ q, month, months, category }: { q: string; month?: string; months: string[]; category?: string }) {
+/**
+ * Search box and month picker side by side; typing filters after a short pause, Enter right away.
+ * The list of artists has no month: there the picker is left out and the search stays.
+ */
+export function ExploreFilters({ q, month, months, category, view = "works" }: { q: string; month?: string; months: string[]; category?: string; view?: ExploreView }) {
   const { t, locale } = useT();
   const router = useRouter();
   const [text, setText] = useState(q);
@@ -16,59 +21,53 @@ export function ExploreFilters({ q, month, months, category }: { q: string; mont
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const go = (next: { q?: string; month?: string }, replace = false) => {
-    const href = exploreHref({ category, month, q, ...next });
+    const href = exploreHref({ category, month, q, view, ...next });
     startTransition(() => (replace ? router.replace(href, { scroll: false }) : router.push(href, { scroll: false })));
   };
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   return (
-    <>
+    <div className={styles.filters}>
       <form
         role="search"
-        className="flex min-h-12 min-w-0 flex-[1_1_280px] items-center gap-3 rounded-full bg-surface px-5 sm:max-w-[620px]"
+        className={styles.search}
         onSubmit={(e) => {
           e.preventDefault();
           clearTimeout(timer.current);
           go({ q: text.trim() });
         }}
       >
-        <IconSearch size={20} strokeWidth={2} className="shrink-0 text-muted" />
-        <label htmlFor="explore-q" className="sr-only">
-          {t("explore.search")}
-        </label>
-        <input
+        <UnderlinedField
           id="explore-q"
           type="search"
+          label={t("explore.search")}
           value={text}
-          maxLength={100}
+          maxLength={QUERY_MAX}
           placeholder={t("explore.searchPlaceholder")}
+          enterKeyHint="search"
           onChange={(e) => {
             setText(e.target.value);
             clearTimeout(timer.current);
             const value = e.target.value.trim();
             timer.current = setTimeout(() => go({ q: value }, true), 400);
           }}
-          className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted"
+          trailing={pending ? <span aria-hidden="true" className={styles.spinner} /> : <IconSearch size={18} className={styles.searchIcon} />}
         />
-        {pending && <span aria-hidden="true" className="spin shrink-0 border-ink/20 border-t-ink" />}
       </form>
-      <label className="relative flex min-h-12 shrink-0 items-center rounded-full bg-white shadow-[inset_0_0_0_1.5px_var(--line)]">
-        <span className="sr-only">{t("explore.month")}</span>
-        <IconCalendar size={18} className="pointer-events-none absolute left-4 text-ink" />
-        <select
-          value={month ?? ""}
-          onChange={(e) => go({ month: e.target.value })}
-          className="input h-12 bg-transparent pl-11 font-semibold first-letter:uppercase"
-        >
+      {view === "works" && (
+        <UnderlinedField as="select" label={t("explore.month")} value={month ?? ""} onChange={(e) => go({ month: e.target.value })} className={styles.month}>
           <option value="">{t("explore.anyMonth")}</option>
           {months.map((m) => (
             <option key={m} value={m}>
-              {monthLabel(m, locale)}
+              {capitalised(monthLabel(m, locale), locale)}
             </option>
           ))}
-        </select>
-      </label>
-    </>
+        </UnderlinedField>
+      )}
+    </div>
   );
 }
+
+/** « novembre 2026 » opens with a capital in a list, as a line of its own. */
+const capitalised = (label: string, locale: string) => label.charAt(0).toLocaleUpperCase(locale) + label.slice(1);

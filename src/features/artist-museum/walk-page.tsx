@@ -5,16 +5,18 @@ import { loadMuseum } from "@/features/artist-museum/artist-museum-page";
 import { MuseumView } from "@/features/artist-museum/museum-view";
 import { PageTitle, T } from "@/i18n/locale";
 import { IconBack } from "@/lib/ui/icons";
+import styles from "./museum.module.css";
 
-/** The 3D walk through an artist's works, reached from their profile. */
+/** The 3D walk through an artist's works, reached from their profile. The page asks the shell for its dark dress. */
 export function WalkPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense
       fallback={
-        <div aria-busy="true" className="skel mx-auto h-[70vh] max-w-[1400px]">
-          <span className="sr-only">
+        <div aria-busy="true" className={styles.page} data-shell-theme="dark">
+          <span className="visually-hidden">
             <T k="museum.opening" />
           </span>
+          <div className={styles.waiting} />
         </div>
       }
     >
@@ -28,21 +30,26 @@ async function Walk({ params }: { params: Promise<{ id: string }> }) {
   const museum = await loadMuseum((await params).id);
   const { artist } = museum;
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
-      <PageTitle k="meta.museum" vars={{ name: artist.display_name }} />
-      <div className="flex flex-wrap items-center gap-4">
-        <Link href={`/artists/${artist.id}`} className="inline-flex items-center gap-2 text-sm font-bold hover:underline">
+    <div className={styles.page} data-shell-theme="dark">
+      {/* The same title as the tab had on the server: « 3D » stays after the page wakes up. */}
+      <PageTitle k="meta.museum3d" vars={{ name: artist.display_name }} />
+      <header className={styles.header}>
+        <Link href={`/artists/${artist.id}`} className={styles.back}>
           <IconBack size={16} strokeWidth={2} />
           {artist.display_name}
         </Link>
-        <h1 className="w-full text-[32px] leading-none font-extrabold tracking-[-0.04em]">
+        <p className={styles.eyebrow}>
+          <T k="room.eyebrow" />
+          {artist.region && <> · {artist.region}</>}
+        </p>
+        <h1 className={styles.title}>
           <T k="museum.walk" />
         </h1>
-      </div>
+      </header>
       {museum.slots.length ? (
         <MuseumView museum={museum} />
       ) : (
-        <p className="rounded-md bg-surface px-6 py-12 text-center text-muted">
+        <p className={styles.empty}>
           <T k="museum.empty" />
         </p>
       )}
