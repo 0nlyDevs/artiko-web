@@ -28,6 +28,20 @@ En tant que personne qui s'inscrit sur Artiko, je veux que mon compte ne puisse 
 - alors l'adresse est marquée vérifiée, aucune session n'est créée (`emailVerification.autoSignInAfterVerification` vaut `false`), et la personne arrive sur `/sign-in?verified=1`. La page affiche « Adresse confirmée, connectez-vous » (clé `auth.verified`, en en, fr et mg).
 - Les liens envoyés depuis l'inscription et depuis la connexion (renvoi du lien) utilisent ce même `callbackURL`, défini dans une seule constante.
 
+**CA1 bis (ajout du 2026-11-22) : liens qui reviennent sur « mon espace ».**
+- Contexte : à la connexion, `callbackURL` sert à la fois de redirection après une connexion réussie et d'adresse de retour du lien envoyé automatiquement à un compte non vérifié (`better-auth/dist/api/routes/sign-in.mjs:343-346`).
+- Étant donné la connexion (`sign-in-form.tsx`) et le renvoi du lien depuis « mon espace » (`my-space.tsx`),
+- quand ils appellent Better Auth,
+- alors ils passent `callbackURL: "/me?verified=1"`, défini par une constante partagée à côté de `VERIFIED_CALLBACK_URL`.
+- Sur `/me` :
+  - avec `verified=1` et **sans** session, le bandeau `auth.verified` s'affiche au-dessus des liens de connexion ;
+  - avec une session, aucun bandeau ne s'affiche, même si `verified=1` est présent ;
+  - avec `verified=1&error=…`, le bandeau `auth.linkInvalid` s'affiche, comme sur `/sign-in`, avec la même fonction `verificationNotice`.
+
+**CA7 (ajout du 2026-11-22) : robustesse des deux enveloppes.**
+- Étant donné une `APIError` 500 levée par `hash` dont le message ne commence pas par « Failed to check password », alors elle est relancée telle quelle et n'est pas convertie en `PASSWORD_CHECK_UNAVAILABLE`.
+- Étant donné une réponse non-2xx de Resend dont le flux est déjà en erreur, alors `sendEmail` lève toujours `Resend answered <statut>` : l'échec de `body.cancel()` est ignoré.
+
 **CA2 : panne de Have I Been Pwned annoncée clairement.**
 - Étant donné que `api.pwnedpasswords.com` est injoignable ou répond une erreur,
 - quand la personne s'inscrit ou choisit un nouveau mot de passe,
@@ -88,7 +102,7 @@ Aucun autre changement de design, de texte ni de comportement de la PR #20.
 
 - **Lien de vérification ouvert deux fois.** Better Auth redirige vers `callbackURL` même si l'adresse est déjà vérifiée (`better-auth/dist/api/routes/email-verification.mjs:278-283`), donc la page affiche « Adresse confirmée » sans erreur.
 - **Lien de vérification invalide ou expiré.** C'est le comportement actuel de la PR (`auth.linkInvalid`), sans changement.
-- **Renvoi du lien depuis « mon espace »** (`my-space.tsx:105`, `callbackURL: "/me"`, session ouverte avant la vérification obligatoire). Le comportement n'est pas modifié par cette branche ; il est à vérifier au test manuel.
+- **Renvoi du lien depuis « mon espace »** (`my-space.tsx:105`) : couvert par CA1 bis.
 - **Scénario d'attaque de CA1.** Un compte est créé d'avance par un tiers, puis la victime clique sur le lien. Elle n'a pas de session et doit passer par « Mot de passe oublié ». La réinitialisation ferme les sessions du tiers (`revokeSessionsOnPasswordReset: true`, `src/lib/auth.ts:70`).
 - **Mots de passe de 127, 128 et 129 caractères.** Les deux premiers sont acceptés, le troisième refusé. La longueur est comptée en unités UTF-16 côté serveur (`password.length`) comme côté `maxLength`.
 - **Collage d'un mot de passe de plus de 128 caractères dans un champ.** Le navigateur le tronque à cause de `maxLength` ; `passwordProblems` reste l'autorité pour l'affichage.
@@ -149,7 +163,11 @@ Tests automatisés (vitest), un par critère au minimum :
   - un test vérifie l'absence de `public/museum/` et de toute chaîne `"/museum/` dans `src/` en dehors de `src/app/**/artists/[id]/museum`.
 - **CA6** :
   - Resend en 422 avec un corps qui contient `victim@example.test` : le message d'erreur vaut exactement `Resend answered 422` ;
-  - sans clé : rien n'est affiché et aucune erreur n'est levée avec `NODE_ENV=development` ; une erreur est levée avec `test`, `staging` et une valeur absente.
+  - sans clé : l'email est affiché et aucune erreur n'est levée avec `NODE_ENV=development` ; une erreur est levée et rien n'est affiché avec `test`, `staging` et une valeur absente.
+- **CA1 bis** : la constante vaut `/me?verified=1` et la connexion comme « mon espace » l'utilisent. La logique du bandeau de `/me` est testée : `verified=1` sans session donne `auth.verified`, avec une session aucun bandeau, et `error=` donne `auth.linkInvalid`.
+- **CA7** :
+  - une `APIError` 500 avec un autre message passe intacte à travers l'enveloppe ;
+  - une `Response` 502 dont le flux est en erreur donne `Resend answered 502`.
 - **Dictionnaires** : les clés ajoutées existent dans les trois langues (`locales.test.ts`).
 - **Commandes** : `vitest run`, `eslint`, `tsc --noEmit` (après `next typegen`) et `next build` passent.
 
