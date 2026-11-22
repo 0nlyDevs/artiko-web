@@ -98,6 +98,14 @@ export type Work = {
      */
     series_id?: string | null;
     media_url: string;
+    /**
+     * Detailed GLB of a 3D work
+     */
+    media_hd_url?: string | null;
+    /**
+     * Still image shown while a 3D work loads
+     */
+    poster_url?: string | null;
     media_kind: MediaKind;
     /**
      * The proofs the caller may open; private ones are short-lived signed links, for the owner and reviewers only
@@ -469,6 +477,18 @@ export type CreateWorkData = {
         exposition_id?: string;
         file: Blob | File;
         proof?: Array<Blob | File>;
+        /**
+         * Detailed GLB of a 3D work, loaded on demand; only with a GLB `file`.
+         * Errors (400): `extras_need_model` when `file` is not a GLB, `invalid_model_hd`.
+         *
+         */
+        model_hd?: Blob | File;
+        /**
+         * Still image (jpeg, png, webp) shown while a 3D work loads; only with a GLB `file`.
+         * Errors (400): `extras_need_model` when `file` is not a GLB, `invalid_poster`.
+         *
+         */
+        poster?: Blob | File;
     };
     path?: never;
     query?: never;

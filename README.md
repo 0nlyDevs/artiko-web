@@ -4,12 +4,19 @@ Next.js web app for Artiko: the home gallery, explore, artist museums, the Hall 
 
 ## Develop
 
+Prerequisite: [mise](https://mise.jdx.dev/getting-started.html). It installs the exact Node, pnpm, Task and gitleaks versions pinned in `mise.toml`; run every command below from the mise environment (`mise activate` in your shell, or prefix with `mise exec --`).
+
 ```
-pnpm install
-pnpm dev      # http://localhost:3000
-pnpm lint
-pnpm build
+mise install          # Node, pnpm, Task, gitleaks at the mise.toml versions
+task --list           # every task with its description
+task build            # pnpm install --frozen-lockfile (skipped while the lockfile is unchanged), then next build
+task dev              # http://localhost:3000
+task ci               # install, audit, lint, typecheck, test, build: the same steps as CI, stops at the first failure
+task hooks:install    # once per clone: gitleaks pre-commit hook via core.hooksPath=.githooks
+task test:e2e         # real-browser journeys in e2e/ (not in ci): rebuilds .next against a mock API, needs Chrome at CHROME_PATH (default /usr/bin/google-chrome-stable), skipped without it
 ```
+
+Tasks that need Node first run `task check:versions`, which fails when Node or pnpm differs from `mise.toml` or when `mise.toml` and `packageManager` in `package.json` disagree. The pre-commit hook refuses a commit whose staged changes contain a secret; the `gitleaks` CI job scans the commits of every pull request and push too, so a commit made with `--no-verify` is still caught.
 
 ## Auth and API
 
@@ -28,5 +35,6 @@ pnpm build
 - `src/lib/`: `auth.ts` and `auth-client.ts` (Better Auth), `email.ts` (account emails), `api.ts` and `api-client/` (generated, do not edit), `ui/` (sliding chips and tabs, icons, avatars), `works/` (work tile, vote).
 - `public/gallery/`: the home gallery's pictures, landscape and Satie files, credited in `sources.json`.
 - Motion (sliding pills, skeletons, staggered entrances, the vote heart) lives in `globals.css` and stops under `prefers-reduced-motion`.
+- `public/draco/` and `public/draco3d/`: Draco codecs copied from `three` and `draco3d` by `scripts/copy-draco.mjs` before `pnpm dev` and `pnpm build` (not committed), so no visitor or artist fetches them from www.gstatic.com.
 
 Rule: a page file only imports from `src/features` and `src/app`, never the reverse. Shared code goes in `src/lib/` once two features need it.

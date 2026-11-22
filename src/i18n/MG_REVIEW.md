@@ -45,3 +45,4 @@ All of `mg.ts` was written by a non-native speaker. These entries are the least 
 | auth.verified | Address confirmed, sign in. | Voamafy ny adiresy, midira. | "Voamafy" (confirmed) assumed from "hamafiso" |
 | auth.checkUnavailable | The password check is unavailable for now. Try again in a few minutes. | Tsy azo atao vetivety ny fanamarinana ny tenimiafina. Andramo indray afaka minitra vitsy. | "vetivety" (for now) and "afaka minitra vitsy" (in a few minutes), check |
 | auth.tooLong | This password is too long. | Lava loatra io tenimiafina io. | Built like auth.tooShort with "lava" (long), check |
+| import.*, viewer.* | 3D import and 3D viewer | Fanovana ny scan, Sary fiandrasana, Fijerena 3D, Hazavana avo (HD)... | Written by a non-native speaker; "sary fiandrasana" (waiting image) for poster, "navigateur" kept as a loanword |

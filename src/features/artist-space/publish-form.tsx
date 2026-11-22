@@ -7,8 +7,13 @@ import { ApiError, createExposition, createWork, unwrap, withToken, type Categor
 import { getApiToken } from "@/lib/api-token";
 import { IconAdd, IconUpload } from "@/lib/ui/icons";
 import { CategoryLabel } from "@/lib/works/category-label";
+import { isImportableModel } from "@/features/model-import/import-model";
+import { canPublish } from "@/features/model-import/import-state";
+import { ModelImportPanel } from "@/features/model-import/model-import-panel";
+import { useModelImport } from "@/features/model-import/use-model-import";
+import { publishBody } from "@/features/artist-space/publish-body";
 
-const ACCEPT_WORK = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm,.glb";
+const ACCEPT_WORK = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm,.glb,.usdz";
 const ACCEPT_PROOF = "image/jpeg,image/png,image/webp,audio/mpeg,audio/wav,audio/ogg,video/mp4,video/webm";
 const MAX_PROOFS = 5;
 const NEW_EXPOSITION = "__new";
@@ -47,9 +52,11 @@ export function PublishForm({
   const [state, setState] = useState<"idle" | "publishing" | Work | { error: string | null }>("idle");
   const [workPreview] = usePreviews(file);
   const proofPreviews = usePreviews(proofs);
+  const modelImport = useModelImport();
+  const importBlocksPublishing = modelImport.state.status !== "idle" && !canPublish(modelImport.state);
 
   async function publish(form: FormData) {
-    if (!file[0]) return;
+    if (!file[0] || importBlocksPublishing) return;
     setState("publishing");
     try {
       const auth = withToken(await getApiToken());
@@ -58,16 +65,17 @@ export function PublishForm({
         created = unwrap(await createExposition({ body: { title: String(form.get("expo_title") ?? "") }, ...auth }));
       }
       const expositionId = created?.id ?? (expo || undefined);
-      const body = {
+      const fields = {
         title: String(form.get("title") ?? ""),
         category: String(form.get("category") ?? "") as CategoryId,
         story: String(form.get("story") ?? ""),
         ai_declared: form.get("ai_declared") === "true",
-        file: file[0],
         proof: proofs,
         proof_visibility: visibility,
         ...(expositionId && { exposition_id: expositionId }),
       };
+      const imported = modelImport.state.status === "ready" ? modelImport.state.model : null;
+      const body = publishBody(fields, file[0], imported);
       const work = unwrap(await createWork({ body, ...auth }));
       setState(work);
       onPublished(work, created);
@@ -102,16 +110,23 @@ export function PublishForm({
                 </>
               )}
               <input
+                id="file"
                 name="file"
                 type="file"
                 required
                 accept={ACCEPT_WORK}
                 aria-describedby="file-help"
-                onChange={(e) => setFile(e.target.files?.[0] ? [e.target.files[0]] : [])}
+                onChange={(e) => {
+                  const chosen = e.target.files?.[0];
+                  setFile(chosen ? [chosen] : []);
+                  if (chosen && isImportableModel(chosen)) void modelImport.start(chosen);
+                  else modelImport.reset();
+                }}
                 className="sr-only"
               />
             </label>
             <p id="file-help" className="text-[13px] text-muted">{t("publish.fileHelp")}</p>
+            <ModelImportPanel state={modelImport.state} alt={t("import.previewAlt")} />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -204,7 +219,7 @@ export function PublishForm({
             <input type="checkbox" name="ai_declared" value="true" className="mt-1 size-5 shrink-0 accent-[var(--ink)]" />
             {t("publish.ai")}
           </label>
-          <button type="submit" disabled={state === "publishing"} className="btn btn-ink min-h-[52px]">
+          <button type="submit" disabled={state === "publishing" || importBlocksPublishing} className="btn btn-ink min-h-[52px]">
             {state === "publishing" && <span className="spin" aria-hidden="true" />}
             {state === "publishing" ? t("publish.publishing") : t("publish.submit")}
           </button>

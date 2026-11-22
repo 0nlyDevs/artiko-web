@@ -40,3 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+
+# Draco codecs copied from node_modules by scripts/copy-draco.mjs
+/public/draco/
+/public/draco3d/
+# task
+/.task/
